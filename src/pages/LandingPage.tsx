@@ -30,7 +30,7 @@ const LandingPage: React.FC = () => {
                     <div className="step">
                         <FaTruck className="step-icon" />
                         <h3>Kamyon Sahipleri İçin</h3>
-                        <p>Mevcut yükleri görüntüleyin ve en uygun olanı seçin.</p>
+                        <p>Mevcut yükleri görüntüleyin ve  size en uygun olanı seçin.</p>
                     </div>
                     <div className="step">
                         <FaHandshake className="step-icon" />
