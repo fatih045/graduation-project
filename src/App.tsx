@@ -3,7 +3,8 @@ import './App.css'
 import './index.css'
 import Footer from "./components/layout/Footer.tsx";
 
-import LandingPage from './pages/LandingPage.tsx';
+
+import AppRoutes from './routes/routes.tsx';
 
 function App() {
 
@@ -11,9 +12,7 @@ function App() {
       <>
         <div className="app-container">
           <main className="main-content">
-
-           <LandingPage/>
-
+          <AppRoutes/>
           </main>
           <Footer/>
         </div>

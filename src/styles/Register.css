@@ -1,5 +1,6 @@
 .register-container {
-    width: 300px;
+    flex-grow: 0;
+    width: 200px;
     margin: auto;
     padding: 20px;
     background: #1a1a1a;

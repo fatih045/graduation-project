@@ -2,8 +2,15 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { FaTruck, FaBox, FaHandshake, FaChartLine, FaCalculator } from 'react-icons/fa';
 import "../styles/LandingPage.css";
+import { useNavigate } from 'react-router-dom';
+
 
 const LandingPage: React.FC = () => {
+
+ const navigate = useNavigate();
+
+
+
     return (
         <motion.div
             className="landing-container"
@@ -16,7 +23,7 @@ const LandingPage: React.FC = () => {
                 <p className="hero-description">
                     Yük sahipleri ve kamyon sahiplerini güvenli, hızlı ve verimli şekilde bir araya getiren platform.
                 </p>
-                <button className="cta-button">Hemen Kayıt Ol</button>
+                <button onClick={()=>navigate("/register")} className="cta-button">Hemen Kayıt Ol</button>
             </header>
 
             <section className="how-it-works">
@@ -57,7 +64,7 @@ const LandingPage: React.FC = () => {
             </section>
 
             <div className="cta-section">
-                <button className="cta-button">Hemen Kayıt Ol</button>
+                <button onClick={()=>navigate("/login")} className="cta-button">Hemen Kayıt Ol</button>
             </div>
         </motion.div>
     );
