@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { Link } from 'react-router-dom';
 import "../../styles/Header.css";
 
 interface HeaderProps {
@@ -7,7 +7,7 @@ interface HeaderProps {
     logoUrl?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ appName, logoUrl  }) => {
+const Header: React.FC<HeaderProps> = ({ appName, logoUrl }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleMenu = () => {
@@ -20,43 +20,20 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl  }) => {
                 <div className="header-content">
                     {/* Logo ve Uygulama Adı */}
                     <div className="logo-container">
-                        <a href="/" className="logo-link">
-                        <img
-                            src={logoUrl}
-                            alt={`${appName} logo`}
-                            className="logo"
-                        />
-                        <h1 className="app-name">{appName}</h1>
-                        </a>
+                        <Link to="/" className="logo-link">
+                            <img src={logoUrl} alt={`${appName} logo`} className="logo" />
+                            <h1 className="app-name">{appName}</h1>
+                        </Link>
                     </div>
 
                     {/* Mobil Menü Butonu */}
                     <div className="mobile-menu-button">
-                        <button
-                            onClick={toggleMenu}
-                            className="menu-toggle"
-                        >
-                            <svg
-                                className="hamburger-icon"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
+                        <button onClick={toggleMenu} className="menu-toggle">
+                            <svg className="hamburger-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 {isMenuOpen ? (
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 ) : (
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                 )}
                             </svg>
                         </button>
@@ -67,14 +44,14 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl  }) => {
                         <nav>
                             <ul className="nav-list">
                                 <li>
-                                    <a href="/login" className="login-link">
+                                    <Link to="/login" className="login-link">
                                         Giriş Yap
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a href="/register" className="register-button">
+                                    <Link to="/register" className="register-button">
                                         Kayıt Ol
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </nav>
@@ -87,14 +64,14 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl  }) => {
                         <nav>
                             <ul className="mobile-nav-list">
                                 <li>
-                                    <a href="/login" className="mobile-login-link">
+                                    <Link to="/login" className="mobile-login-link">
                                         Giriş Yap
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a href="/register" className="mobile-register-button">
+                                    <Link to="/register" className="mobile-register-button">
                                         Kayıt Ol
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
                         </nav>
