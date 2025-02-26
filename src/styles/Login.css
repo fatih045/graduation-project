@@ -2,6 +2,7 @@
     width: 300px;
     margin: auto;
     padding: 20px;
+    margin-top: 3%;
     background: #1a1a1a;
     border-radius: 8px;
     text-align: center;
@@ -17,7 +18,8 @@ input {
     border-radius: 4px;
 }
 
-button {
+/* Login Page Button */
+.login-button {
     width: 100%;
     padding: 10px;
     background: #e63946;
@@ -27,6 +29,6 @@ button {
     transition: 0.3s;
 }
 
-button:hover {
+.login-button:hover {
     background: #bf2d3a;
 }

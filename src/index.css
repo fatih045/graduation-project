@@ -12,9 +12,12 @@ html, body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+
 }
 
 /* İçerik alanı büyüdükçe footer en altta kalacak */
 .main-content {
+
     flex-grow: 1;
+
 }

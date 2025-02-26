@@ -23,7 +23,8 @@ const LandingPage: React.FC = () => {
                 <p className="hero-description">
                     Yük sahipleri ve kamyon sahiplerini güvenli, hızlı ve verimli şekilde bir araya getiren platform.
                 </p>
-                <button onClick={()=>navigate("/register")} className="cta-button">Hemen Kayıt Ol</button>
+                <button  className="cta-button" onClick={()=>navigate("/register")} >Hemen Kayıt Ol</button>
+
             </header>
 
             <section className="how-it-works">

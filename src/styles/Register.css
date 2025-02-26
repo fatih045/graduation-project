@@ -1,13 +1,16 @@
 .register-container {
-    flex-grow: 0;
-    width: 200px;
+
+    width: 100%;
+    max-width: 400px;
     margin: auto;
-    padding: 20px;
+    padding: 50px;
+    margin-top: 3%;
     background: #1a1a1a;
     border-radius: 8px;
     text-align: center;
     color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
 }
 
 input {
@@ -18,16 +21,5 @@ input {
     border-radius: 4px;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background: #2a9d8f;
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-}
 
-button:hover {
-    background: #21867a;
-}
+

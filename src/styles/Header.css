@@ -1,0 +1,158 @@
+/* Header.css */
+
+.header {
+    background-color: #1a202c;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo ve uygulama adı */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 80px;
+    height: 45px;
+    border-radius: 6px;
+    margin-right: 12px;
+}
+
+.app-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Masaüstü navigasyon */
+.desktop-nav {
+    display: none;
+}
+
+.nav-list {
+    display: flex;
+    gap: 16px;
+}
+
+.login-link {
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.login-link:hover {
+    color: #d1d5db;
+}
+
+.register-button {
+    background-color: red;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.2s;
+}
+
+.register-button:hover {
+    background-color: darkred;
+}
+
+/* Mobil menü butonu */
+.mobile-menu-button {
+    display: block;
+}
+
+.menu-toggle {
+    padding: 8px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.menu-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(209, 213, 219, 0.5);
+}
+
+.hamburger-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Mobil menü */
+.mobile-menu {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #4b5563;
+}
+
+.mobile-nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mobile-login-link {
+    display: block;
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.mobile-login-link:hover {
+    color: #d1d5db;
+}
+
+.mobile-register-button {
+    display: block;
+    background-color: red;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: white;
+    text-align: center;
+    transition: background-color 0.2s;
+}
+
+.mobile-register-button:hover {
+    background-color: #1d4ed8;
+}
+
+/* Medya sorguları */
+@media (min-width: 768px) {
+    .desktop-nav {
+        display: block;
+    }
+
+    .mobile-menu-button {
+        display: none;
+    }
+
+    .mobile-menu {
+        display: none;
+    }
+}
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+}
+
+.logo-link:hover {
+    opacity: 0.9;
+}

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { authService } from "../services/authService";
 import { motion } from "framer-motion";
 import { User } from "../models/User";
+import "../styles/Register.css";
 
 
 const  Register =() => {
@@ -45,7 +46,7 @@ const  Register =() => {
                 value={user.password}
                 onChange={(e) => setUser({ ...user, password: e.target.value })}
             />
-            <button onClick={handleRegister}>Kayıt Ol</button>
+            <button className="login-button" onClick={handleRegister}>Kayıt Ol</button>
         </motion.div>
     );
 };

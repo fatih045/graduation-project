@@ -35,7 +35,7 @@ const Login = () => {
                 value={user.password}
                 onChange={(e) => setUser({ ...user, password: e.target.value })}
             />
-            <button onClick={handleLogin}>Giriş Yap</button>
+            <button className= "login-button" onClick={handleLogin}>Giriş Yap</button>
         </motion.div>
     );
 };
