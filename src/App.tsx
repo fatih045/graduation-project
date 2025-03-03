@@ -14,7 +14,7 @@ function App() {
       <>
         <div className="app-container">
           <main className="main-content">
-              <Header appName="TruckLink"  logoUrl={truckLogo}/>
+              <Header appName="TruckLink"  logoUrl={truckLogo} isLoggedIn={true} userName="fatih"/>
           <AppRoutes/>
           </main>
           <Footer/>
