@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import "../../styles/Header.css";
+import { Link } from 'react-router-dom';
+
+
 
 interface HeaderProps {
     appName: string;
     logoUrl?: string;
+    isLoggedIn?: boolean;
+    userName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ appName, logoUrl }) => {
+const Header: React.FC<HeaderProps> = ({
+                                           appName,
+                                           logoUrl = "/api/placeholder/48/48",
+                                           isLoggedIn = false,
+                                           userName = ""
+                                       }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
+    };
+
+    const toggleProfileMenu = () => {
+        setIsProfileMenuOpen(!isProfileMenuOpen);
     };
 
     return (
@@ -20,20 +34,43 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl }) => {
                 <div className="header-content">
                     {/* Logo ve Uygulama Adı */}
                     <div className="logo-container">
-                        <Link to="/" className="logo-link">
-                            <img src={logoUrl} alt={`${appName} logo`} className="logo" />
+                        <a href="/" className="logo-link">
+                            <img
+                                src={logoUrl}
+                                alt={`${appName} logo`}
+                                className="logo"
+                            />
                             <h1 className="app-name">{appName}</h1>
-                        </Link>
+                        </a>
                     </div>
 
                     {/* Mobil Menü Butonu */}
                     <div className="mobile-menu-button">
-                        <button onClick={toggleMenu} className="menu-toggle">
-                            <svg className="hamburger-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <button
+                            onClick={toggleMenu}
+                            className="menu-toggle"
+                        >
+                            <svg
+                                className="hamburger-icon"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
                                 {isMenuOpen ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
                                 ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M4 6h16M4 12h16M4 18h16"
+                                    />
                                 )}
                             </svg>
                         </button>
@@ -43,16 +80,63 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl }) => {
                     <div className="desktop-nav">
                         <nav>
                             <ul className="nav-list">
-                                <li>
-                                    <Link to="/login" className="login-link">
-                                        Giriş Yap
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link to="/register" className="register-button">
-                                        Kayıt Ol
-                                    </Link>
-                                </li>
+                                {!isLoggedIn ? (
+                                    // Kullanıcı giriş yapmamışsa
+                                    <>
+                                        <li>
+                                            <Link to="/login" className="login-link">
+                                                Giriş Yap
+                                            </Link>
+                                        </li>
+                                        <li>
+                                           <Link to="/register" className="register-button">
+                                                Kayıt Ol
+                                             </Link>
+                                        </li>
+                                    </>
+                                ) : (
+                                    // Kullanıcı giriş yapmışsa
+                                    <li className="profile-dropdown-container">
+                                        <button onClick={toggleProfileMenu} className="profile-button">
+                                            <span className="user-name">{userName}</span>
+                                            <svg
+                                                className="dropdown-icon"
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            >
+                                                <path d="M6 9l6 6 6-6" />
+                                            </svg>
+                                        </button>
+
+                                        {isProfileMenuOpen && (
+                                            <div className="profile-dropdown">
+                                                <ul className="profile-menu">
+                                                    <li>
+                                                        <Link to="/profile" className="profile-link">
+                                                            Profil
+                                                        </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link to="/settings" className="profile-link">
+                                                            Ayarlar
+                                                        </Link>
+                                                    </li>
+                                                    <li>
+                                                        <Link to="/logout" className="profile-link">
+                                                            Çıkış Yap
+                                                     </Link>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </li>
+                                )}
                             </ul>
                         </nav>
                     </div>
@@ -63,16 +147,43 @@ const Header: React.FC<HeaderProps> = ({ appName, logoUrl }) => {
                     <div className="mobile-menu">
                         <nav>
                             <ul className="mobile-nav-list">
-                                <li>
-                                    <Link to="/login" className="mobile-login-link">
-                                        Giriş Yap
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link to="/register" className="mobile-register-button">
-                                        Kayıt Ol
-                                    </Link>
-                                </li>
+                                {!isLoggedIn ? (
+                                    // Kullanıcı giriş yapmamışsa
+                                    <>
+                                        <li>
+                                            <Link to="/login" className="login-link">
+                                                Giriş Yap
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/register" className="register-button">
+                                                Kayıt Ol
+                                            </Link>
+                                        </li>
+                                    </>
+                                ) : (
+                                    // Kullanıcı giriş yapmışsa
+                                    <>
+                                        <li>
+                                            <span className="mobile-user-name">{userName}</span>
+                                        </li>
+                                        <li>
+                                            <Link to="/profile" className="profile-link">
+                                                Profil
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/settings" className="profile-link">
+                                                Ayarlar
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link to="/logout" className="profile-link">
+                                                Çıkış Yap
+                                            </Link>
+                                        </li>
+                                    </>
+                                )}
                             </ul>
                         </nav>
                     </div>
