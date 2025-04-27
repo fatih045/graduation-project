@@ -1,0 +1,256 @@
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Main container */
+.list-shipping-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Search styles */
+.list-search-container {
+    position: relative;
+    max-width: 500px;
+    margin: 0 0 20px 0;
+}
+
+.list-search-icon {
+    position: absolute;
+    inset-y: 0;
+    left: 0;
+    padding-left: 12px;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.list-search-icon-svg {
+    height: 16px;
+    width: 16px;
+    color: #6b7280;
+}
+
+.list-search-input {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 9999px;
+    padding: 8px 16px 8px 36px;
+    width: 100%;
+    font-size: 0.875rem;
+    border: none;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Main content styles */
+.list-main-content {
+    padding: 16px;
+    flex-grow: 1;
+}
+
+.list-recommendations {
+    margin-bottom: 16px;
+}
+
+.list-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.list-section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.list-dropdown-icon {
+    height: 16px;
+    width: 16px;
+}
+
+/* Loading and error states */
+.list-loading-state,
+.list-error-state,
+.list-no-results {
+    text-align: center;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.list-error-state {
+    color: #dc2626;
+}
+
+/* Offers container */
+.list-offers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.list-offer-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.list-offer-details {
+    display: flex;
+    align-items: center;
+}
+
+.list-company-logo {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.list-arkas {
+    background-color: #e0f2fe;
+    color: #1e40af;
+}
+
+.list-microsoft {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+.list-microsoft::before {
+    content: "";
+    background-color: #f87171;
+}
+
+.list-microsoft::after {
+    content: "";
+    background-color: #4ade80;
+}
+
+.list-bmw {
+    background-color: #1e40af;
+    color: white;
+}
+
+.list-apple {
+    position: relative;
+}
+
+.list-apple::after {
+    content: "";
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background-color: black;
+    border-radius: 50%;
+}
+
+.list-tab {
+    background-color: #2563eb;
+    color: white;
+}
+
+.list-default {
+    background-color: #e5e7eb;
+}
+
+.list-offer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.list-cargo-details,
+.list-route-details {
+    font-size: 0.875rem;
+}
+
+.list-date-details {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.list-label {
+    font-weight: 500;
+}
+
+.list-capacity,
+.list-destination {
+    margin-left: 16px;
+}
+
+.list-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.list-offer-label {
+    color: #2563eb;
+    font-size: 0.875rem;
+    margin-bottom: 4px;
+}
+
+.list-price {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .list-search-container {
+        max-width: none;
+        margin: 0 0 12px 0;
+    }
+
+    .list-offer-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .list-price-container {
+        align-items: flex-start;
+        margin-top: 12px;
+        margin-left: 52px;  /* Align with offer info */
+    }
+}
+
+@media (max-width: 480px) {
+    .list-search-input {
+        font-size: 0.75rem;
+        padding: 6px 12px 6px 32px;
+    }
+
+    .list-cargo-details,
+    .list-route-details,
+    .list-date-details {
+        font-size: 0.75rem;
+    }
+
+    .list-capacity,
+    .list-destination {
+        margin-left: 8px;
+    }
+}

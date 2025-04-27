@@ -1,17 +1,31 @@
-import { useState } from "react";
-import { authService } from "../services/authService";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../store/store";
+import { login } from "../features/user/authSlice";
 import { motion } from "framer-motion";
 import "../styles/Login.css";
+import { UserLoginDto } from "../models/dtos/UserLoginDto";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-    const [user, setUser] = useState({ email: "", password: "" });
+    const [user, setUser] = useState<UserLoginDto>({ email: "", password: "" });
+    const dispatch = useDispatch<AppDispatch>();
+    const { status, error, user: loggedInUser } = useSelector((state: RootState) => state.auth);
+    const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (loggedInUser) {
+            // Login başarılıysa anasayfaya yönlendir
+            navigate("/");
+        }
+    }, [loggedInUser, navigate]);
 
     const handleLogin = async () => {
-        try {
-            const response = await authService.login(user);
-            console.log("Login successful:", response.data);
-        } catch (error) {
-            console.error("Login failed", error);
+        setSuccess(false);
+        const resultAction = await dispatch(login(user));
+        if (login.fulfilled.match(resultAction)) {
+            setSuccess(true);
         }
     };
 
@@ -35,7 +49,11 @@ const Login = () => {
                 value={user.password}
                 onChange={(e) => setUser({ ...user, password: e.target.value })}
             />
-            <button className= "login-button" onClick={handleLogin}>Giriş Yap</button>
+            <button className="login-button" onClick={handleLogin} disabled={status === "loading"}>
+                {status === "loading" ? "Giriş Yapılıyor..." : "Giriş Yap"}
+            </button>
+            {error && <div className="error-message">{error}</div>}
+            {success && <div className="success-message">Giriş başarılı!</div>}
         </motion.div>
     );
 };
