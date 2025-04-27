@@ -1,262 +1,343 @@
-
 /* Header.css - Tam Versiyon */
 
 /* Temel Header Stilleri */
 .header {
-    background-color: #1a202c;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: #232837;
+  color: #fff;
+  padding: 0.5rem 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 60px;
 }
 
-/* Logo ve uygulama adı */
 .logo-container {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    margin-right: 12px;
+  width: 36px;
+  height: 36px;
+  margin-right: 10px;
 }
 
 .app-name {
-    font-size: 1.25rem;
-    font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #fff;
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.main-nav ul {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.main-nav ul li a {
+  color: #b3b8c7;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s, box-shadow 0.2s, border 0.2s;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  box-shadow: none;
+}
+
+.main-nav ul li a:hover, .main-nav ul li a:focus {
+  color: #fff;
+  border: 1.5px solid #3b82f6;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+  background: rgba(59,130,246,0.08);
+  outline: none;
+}
+
+.user-info {
+  font-weight: 500;
+  color: #fff;
+  margin-left: 12px;
+  background: #31364a;
+  border-radius: 16px;
+  padding: 4px 14px;
+  font-size: 0.97rem;
+}
+
+.menu-toggle {
+  display: none;
+  margin-left: 18px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .main-nav ul {
+    flex-direction: column;
+    gap: 8px;
+    background: #232837;
+    padding: 14px 0 8px 0;
+    border-radius: 10px;
+    margin-top: 8px;
+  }
+  .main-nav {
+    width: 100%;
+  }
+  .menu-toggle {
+    display: block;
+  }
 }
 
 /* Logo bağlantısı */
 .logo-link {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: white;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
 }
 
 .logo-link:hover {
-    opacity: 0.9;
+  opacity: 0.9;
 }
 
 /* Masaüstü navigasyon */
 .desktop-nav {
-    display: none;
+  display: none;
 }
 
 .nav-list {
-    display: flex;
-    gap: 16px;
+  display: flex;
+  gap: 16px;
 }
 
 .login-link {
-    color: white;
-    text-decoration: none;
-    transition: color 0.2s;
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
 .login-link:hover {
-    color: #d1d5db;
+  color: #d1d5db;
 }
 
 .register-button {
-    background-color: #2563eb;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    color: white;
-    transition: background-color 0.2s;
+  background-color: #2563eb;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: white;
+  transition: background-color 0.2s;
 }
 
 .register-button:hover {
-    background-color: #1d4ed8;
+  background-color: #1d4ed8;
 }
 
 /* Mobil menü butonu */
 .mobile-menu-button {
-    display: block;
+  display: block;
 }
 
 .menu-toggle {
-    padding: 8px;
-    border-radius: 6px;
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
 }
 
 .menu-toggle:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(209, 213, 219, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(209, 213, 219, 0.5);
 }
 
 .hamburger-icon {
-    width: 24px;
-    height: 24px;
+  width: 24px;
+  height: 24px;
 }
 
 /* Mobil menü */
 .mobile-menu {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid #4b5563;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #4b5563;
 }
 
 .mobile-nav-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .mobile-login-link {
-    display: block;
-    color: white;
-    text-decoration: none;
-    transition: color 0.2s;
+  display: block;
+  color: white;
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
 .mobile-login-link:hover {
-    color: #d1d5db;
+  color: #d1d5db;
 }
 
 .mobile-register-button {
-    display: block;
-    background-color: #2563eb;
-    padding: 8px 16px;
-    border-radius: 6px;
-    text-decoration: none;
-    color: white;
-    text-align: center;
-    transition: background-color 0.2s;
+  display: block;
+  background-color: #2563eb;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: white;
+  text-align: center;
+  transition: background-color 0.2s;
 }
 
 .mobile-register-button:hover {
-    background-color: #1d4ed8;
+  background-color: #1d4ed8;
 }
 
 /* Medya sorguları */
 @media (min-width: 768px) {
-    .desktop-nav {
-        display: block;
-    }
+  .desktop-nav {
+    display: block;
+  }
 
-    .mobile-menu-button {
-        display: none;
-    }
+  .mobile-menu-button {
+    display: none;
+  }
 
-    .mobile-menu {
-        display: none;
-    }
+  .mobile-menu {
+    display: none;
+  }
 }
 
 /* YENİ EKLENEN STİLLER - KULLANICI GİRİŞ DURUMU İÇİN */
 
 /* Profil düğmesi için stiller */
 .profile-button {
-    display: flex;
-    align-items: center;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1rem;
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
 .profile-button:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .user-name {
-    margin-right: 8px;
+  margin-right: 8px;
 }
 
 .dropdown-icon {
-    transition: transform 0.2s;
+  transition: transform 0.2s;
 }
 
 .profile-dropdown-container {
-    position: relative;
+  position: relative;
 }
 
 /* Profil dropdown menüsü */
 .profile-dropdown {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: white;
-    border-radius: 4px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-top: 8px;
-    min-width: 180px;
-    z-index: 100;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 8px;
+  min-width: 180px;
+  z-index: 100;
 }
 
 .profile-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .profile-link {
-    display: block;
-    color: #333;
-    padding: 12px 16px;
-    text-decoration: none;
-    transition: background-color 0.2s;
+  display: block;
+  color: #333;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: background-color 0.2s;
 }
 
 .profile-link:hover {
-    background-color: #f5f5f5;
+  background-color: #f5f5f5;
 }
 
 .logout-button {
-    display: block;
-    color: #e53e3e;
-    padding: 12px 16px;
-    text-decoration: none;
-    transition: background-color 0.2s;
-    border-top: 1px solid #eee;
+  display: block;
+  color: #e53e3e;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  border-top: 1px solid #eee;
 }
 
 .logout-button:hover {
-    background-color: #f5f5f5;
+  background-color: #f5f5f5;
 }
 
 /* Mobil profil menüsü için stiller */
 .mobile-user-name {
-    display: block;
-    font-weight: 600;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    margin-bottom: 8px;
+  display: block;
+  font-weight: 600;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  margin-bottom: 8px;
 }
 
 .mobile-profile-link {
-    display: block;
-    color: white;
-    padding: 8px 0;
-    text-decoration: none;
+  display: block;
+  color: white;
+  padding: 8px 0;
+  text-decoration: none;
 }
 
 .mobile-logout-button {
-    display: block;
-    padding: 8px 0;
-    color: #f56565;
-    text-decoration: none;
-    margin-top: 8px;
+  display: block;
+  padding: 8px 0;
+  color: #f56565;
+  text-decoration: none;
+  margin-top: 8px;
 }
