@@ -2,7 +2,8 @@
 
 /* Temel Header Stilleri */
 .header {
-  background: #232837;
+  /*background: #232837;*/
+  background-color: #0B1B33;
   color: #fff;
   padding: 0.5rem 0;
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);

@@ -13,8 +13,9 @@ function App() {
   return (
       <>
         <div className="app-container">
+            <Header appName="TruckLink" logoUrl={truckLogo} />
           <main className="main-content">
-              <Header appName="TruckLink" logoUrl={truckLogo} />
+
               <AppRoutes />
           </main>
             <Footer/>

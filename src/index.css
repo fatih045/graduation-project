@@ -17,7 +17,16 @@ html, body {
 
 /* İçerik alanı büyüdükçe footer en altta kalacak */
 .main-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0B1B33, #2C3E50);
+    animation: gradientAnimation 15s ease infinite;
+}
 
-    flex-grow: 1;
-
+@keyframes gradientAnimation {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
 }

@@ -1,25 +1,70 @@
+/* Register Container */
 .register-container {
-
-    width: 100%;
-    max-width: 400px;
-    margin: auto;
-    padding: 50px;
-    margin-top: 3%;
-    background: #1a1a1a;
-    border-radius: 8px;
+    width: 400px;
+    max-width: 90vw;
+    margin: 40px auto;
+    padding: 40px 32px 32px 32px;
+    background: #fff;
+    border-radius: 16px;
     text-align: center;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
+    color: #1a1a1a;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 4px rgba(0,0,0,0.08);
+    border: 2px solid #e3e8ee;
+    transition: box-shadow 0.2s;
 }
 
-input {
-    width: 90%;
-    padding: 10px;
-    margin: 10px 0;
+.register-container h2 {
+    color: #14213d;
+    font-size: 2rem;
+    margin-bottom: 28px;
+    font-weight: bold;
+}
+
+.register-container input {
+    width: 100%;
+    padding: 14px 12px;
+    margin: 12px 0;
+    border: 1.5px solid #e3e8ee;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: #fafbfc;
+    transition: border 0.2s;
+    outline: none;
+}
+.register-container input:focus {
+    border: 1.5px solid #d90429;
+}
+
+/* Register Page Button */
+.register-button {
+    width: 100%;
+    padding: 14px;
+    background: #d90429;
+    color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 18px;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(217,4,41,0.08);
+}
+.register-button:hover {
+    background: #b30022;
 }
 
-
-
+@media (max-width: 600px) {
+    .register-container {
+        width: 98vw;
+        padding: 20px 6vw 20px 6vw;
+        border-radius: 8px;
+    }
+    .register-container h2 {
+        font-size: 1.3rem;
+    }
+    .register-button {
+        font-size: 1rem;
+        padding: 12px;
+    }
+}
