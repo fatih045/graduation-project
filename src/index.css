@@ -1,21 +1,64 @@
-/* Sayfanın en az tam ekran yüksekliğinde olmasını sağlıyoruz */
+/*!* Sayfanın en az tam ekran yüksekliğinde olmasını sağlıyoruz *!*/
+/*html, body {*/
+/*    height: 100%;*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
+
+/*!* Sayfanın ana içeriğini esneterek footer’ı aşağı iter *!*/
+/*#root, .app-container {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    min-height: 100vh;*/
+
+/*}*/
+
+/*!* İçerik alanı büyüdükçe footer en altta kalacak *!*/
+/*.main-content {*/
+/*    flex: 1;*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*    background: linear-gradient(135deg, #0B1B33, #2C3E50);*/
+/*    animation: gradientAnimation 15s ease infinite;*/
+/*}*/
+
+/*@keyframes gradientAnimation {*/
+/*    0% {background-position: 0% 50%;}*/
+/*    50% {background-position: 100% 50%;}*/
+/*    100% {background-position: 0% 50%;}*/
+/*}*/
+
+/* Tüm sayfa yüksekliği */
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
+ /*//   background-color: #0B1B33;*/
 }
 
-/* Sayfanın ana içeriğini esneterek footer’ı aşağı iter */
-#root, .app-container {
+/* Uygulama konteyneri: Header, içerik (sidebar + main), footer */
+.app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-
 }
 
-/* İçerik alanı büyüdükçe footer en altta kalacak */
+/* İçerik alanı: Sidebar + Main birlikte */
+.content-with-sidebar {
+    flex: 1;
+    display: flex;
+}
+
+/* Sidebar solda kalıyor, responsive ayarlandı */
+.side-bar {
+    width: 20%;
+    min-width: 200px;
+}
+
+/* Main içerik alanı */
 .main-content {
     flex: 1;
     display: flex;
@@ -23,10 +66,34 @@ html, body {
     justify-content: center;
     background: linear-gradient(135deg, #0B1B33, #2C3E50);
     animation: gradientAnimation 15s ease infinite;
+    padding: 1rem;
 }
 
+/* Arka plan animasyonu */
 @keyframes gradientAnimation {
     0% {background-position: 0% 50%;}
     50% {background-position: 100% 50%;}
     100% {background-position: 0% 50%;}
+}
+
+/* Responsive düzeltme: Sidebar kapalıysa içerik %100 genişlik alır */
+@media (max-width: 768px) {
+    .side-bar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100vh;
+        background-color: #1f2a40;
+        transition: left 0.3s ease;
+        z-index: 999;
+    }
+
+    .side-bar.open {
+        left: 0;
+    }
+
+    .main-content {
+        padding: 1rem;
+    }
 }
