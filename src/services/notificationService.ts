@@ -1,58 +1,41 @@
-// src/services/notificationService.ts
-import axiosInstance from './axios.ts';
+import axiosInstance from './axios';
 
-export interface Notification {
-    id: number;
+export const getAllNotifications = async () => {
+    try {
+        const response = await axiosInstance.get('/Notifications');
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Bildirimler alınamadı');
+    }
+};
+
+export const getNotificationById = async (id: number) => {
+    try {
+        const response = await axiosInstance.get(`/Notifications/${id}`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Bildirim bulunamadı');
+    }
+};
+
+export const createNotification = async (data: {
     user_id: number;
     message: string;
-    created_at: string; // ISO format DateTime
-}
-
-// Get all notifications
-export const getAllNotifications = async (): Promise<Notification[]> => {
+    created_at: string;
+}) => {
     try {
-        const response = await axiosInstance.get('/notifications');
+        const response = await axiosInstance.post('/Notifications', data);
         return response.data;
     } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch notifications');
+        throw new Error(error.response?.data?.message || 'Bildirim oluşturulamadı');
     }
 };
 
-// Get single notification by ID
-export const getNotificationById = async (id: number): Promise<Notification> => {
+export const deleteNotification = async (id: number) => {
     try {
-        const response = await axiosInstance.get(`/notifications/${id}`);
+        const response = await axiosInstance.delete(`/Notifications/${id}`);
         return response.data;
     } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch notification');
-    }
-};
-
-// Create new notification
-export const addNotification = async (data: Omit<Notification, 'id' | 'created_at'>): Promise<Notification> => {
-    try {
-        const response = await axiosInstance.post('/notifications', data);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to create notification');
-    }
-};
-
-// Update notification
-export const updateNotification = async (id: number, data: Partial<Notification>): Promise<Notification> => {
-    try {
-        const response = await axiosInstance.put(`/notifications/${id}`, data);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to update notification');
-    }
-};
-
-// Delete notification
-export const deleteNotification = async (id: number): Promise<void> => {
-    try {
-        await axiosInstance.delete(`/notifications/${id}`);
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to delete notification');
+        throw new Error(error.response?.data?.message || 'Bildirim silinemedi');
     }
 };
