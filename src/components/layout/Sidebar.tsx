@@ -54,7 +54,7 @@ const Sidebar: React.FC = () => {
                     <Link to="/vehicle/all" className="side-bar__item">
                         <i className="fas fa-warehouse"></i> Tüm İlanlar
                     </Link>
-                    <Link to="/vehicle/add" className="side-bar__item">
+                    <Link to="/addVehicle" className="side-bar__item">
                         <i className="fas fa-plus-circle"></i> Araç Ekle
                     </Link>
                     <Link to="/vehicle/my-vehicles" className="side-bar__item">
