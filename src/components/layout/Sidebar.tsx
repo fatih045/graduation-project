@@ -24,13 +24,13 @@ const Sidebar: React.FC = () => {
 
                 <div className="side-bar__section">
                     <div className="side-bar__heading">Yük İşlemleri</div>
-                    <Link to="/cargo/create" className="side-bar__item">
-                        <i className="fas fa-plus"></i> İlan Oluştur
+                    <Link to="/createCargo" className="side-bar__item">
+                        <i className="fas fa-plus"></i> Yük  İlani Oluştur
                     </Link>
-                    <Link to="/cargo/my" className="side-bar__item">
+                    <Link to="/mycargo" className="side-bar__item">
                         <i className="fas fa-list"></i> İlanlarım
                     </Link>
-                    <Link to="/cargo/all" className="side-bar__item">
+                    <Link to="/cargoList" className="side-bar__item">
                         <i className="fas fa-box"></i> Tüm İlanlar
                     </Link>
                     <Link to="/cargo/active" className="side-bar__item">
@@ -57,7 +57,7 @@ const Sidebar: React.FC = () => {
                     <Link to="/addVehicle" className="side-bar__item">
                         <i className="fas fa-plus-circle"></i> Araç Ekle
                     </Link>
-                    <Link to="/vehicle/my-vehicles" className="side-bar__item">
+                    <Link to="/myvehicle" className="side-bar__item">
                         <i className="fas fa-car"></i> Araçlarım
                     </Link>
                     <Link to="/transport/active" className="side-bar__item">

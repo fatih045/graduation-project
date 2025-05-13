@@ -58,6 +58,8 @@ html, body {
     min-width: 200px;
 }
 
+
+
 /* Main içerik alanı */
 .main-content {
     flex: 1;
@@ -65,8 +67,8 @@ html, body {
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, #0B1B33, #2C3E50);
-    animation: gradientAnimation 15s ease infinite;
-    padding: 1rem;
+    min-height: 100vh;
+    padding: 0;
 }
 
 /* Arka plan animasyonu */
