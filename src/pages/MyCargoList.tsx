@@ -1,48 +1,50 @@
+
+
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store/store'; // Adjust this import as needed for your store structure
 import {
     fetchMyCargos,
     updateCargo,
     deleteCargo,
-    Cargo as CargoType
-} from '../features/cargo/cargoSlice';
-import { RootState, AppDispatch } from '../store/store';
+    Cargo
+} from '../features/cargo/cargoSlice'; // Adjust path as needed
+import {
+    fetchCustomerByUserIdThunk,
+    clearSelectedCustomer
+} from '../features/customer/customerSlice'; // Add this import
 
-// Form interface for cargo updates
+// Status mapping for display purposes
+const STATUS_MAP = {
+    0: 'Beklemede',     // Pending
+    1: 'Yolda',         // InTransit
+    2: 'Teslim Edildi', // Delivered
+    3: 'İptal Edildi'   // Cancelled
+};
+
+// Updated Cargo interface - adding status field
+interface CargoWithStatus extends Cargo {
+    status: number;
+}
+
+// Type for the cargo form data
 interface CargoFormData {
     id: number;
     description: string;
     weight: number;
     pickupLocationId: number;
     dropoffLocationId: number;
-    cargoType: string;
-    customerId: number;
-    status: number; // Added status field
+    status: number;
 }
 
-// Define status mapping for proper display and selection
-const statusMapping = {
-    0: 'Beklemede',
-    1: 'Yolda',
-    2: 'Teslim Edildi',
-    3: 'İptal Edildi'
-};
-
 const UserCargoManagement: React.FC = () => {
-    const dispatch = useDispatch<AppDispatch>();
-
-    // Get current user ID from auth state (assume it's available in redux store)
-    const { user } = useSelector((state: RootState) => state.auth);
-    // FIX 1: Ensure customerId is properly extracted from user object
-    const customerId = user?.uid || null;
-
-    // Get cargo state from the Redux store
+    // Redux hooks
+    const dispatch = useDispatch();
     const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
+    const auth = useSelector((state: RootState) => state.auth); // Get auth state
+    const { selectedCustomer, status: customerStatus } = useSelector((state: RootState) => state.customer); // Get customer state
 
-    // Get locations from store (assuming your location store has them)
-    const { locations } = useSelector((state: RootState) => state.location);
-
-    // Component state
+    // Local state
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [filterStatus, setFilterStatus] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('id');
@@ -52,7 +54,10 @@ const UserCargoManagement: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
     const [currentCargo, setCurrentCargo] = useState<CargoFormData | null>(null);
 
-    // CSS styles
+    // Debug state
+    const [debug, setDebug] = useState<string>('');
+
+    // CSS styles (same as before)
     useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = `
@@ -180,94 +185,131 @@ const UserCargoManagement: React.FC = () => {
         };
     }, []);
 
-    // FIX 2: Improved fetch logic to ensure customerId is valid before attempting to fetch
+    // Fetch customer data when component mounts
     useEffect(() => {
-        if (customerId) {
-            // Make sure this works by logging customerId
-            console.log("Fetching cargos for customer ID:", customerId);
-            dispatch(fetchMyCargos(customerId));
-        } else {
-            console.warn("Customer ID not available. Cannot fetch cargos.");
+        // If user is logged in, fetch customer data
+        if (auth?.user?.uid) {
+            dispatch(fetchCustomerByUserIdThunk() as any);
         }
-    }, [customerId, dispatch]);
 
-    // Debug: Log cargos when they change
+        // Cleanup function
+        return () => {
+            dispatch(clearSelectedCustomer() as any);
+        };
+    }, [dispatch, auth?.user]);
+
+    // Load cargo data when customer data is available
     useEffect(() => {
-        console.log("Current cargos:", cargos);
-    }, [cargos]);
+        if (selectedCustomer?.customerId) {
+            // Fix: Use the correct id property from selectedCustomer
+            dispatch(fetchMyCargos(selectedCustomer.customerId) as any);
+            setDebug(`Fetching cargos for customer ID: ${selectedCustomer.customerId}`);
+        } else if (selectedCustomer?.customerId) {
+            // Fallback to customerId if id is not available
+            dispatch(fetchMyCargos(selectedCustomer.customerId) as any);
+            setDebug(`Fetching cargos for customer ID (fallback): ${selectedCustomer.customerId}`);
+        }
+    }, [dispatch, selectedCustomer]);
 
-    // Helper function to get location name by ID
-    const getLocationNameById = (locationId: number): string => {
-        const location = locations.find(loc => loc.id === locationId);
-        return location ? location.city : 'Bilinmeyen konum';
-    };
-
-    // Helper function to determine cargo status based on its state
-    const getCargoStatus = (cargo: CargoType): string => {
-        // Use the cargo.status value to get the corresponding status text
-        return statusMapping[cargo.status as keyof typeof statusMapping] || 'Beklemede';
-    };
-
-    // Filtering and sorting logic
+    // Filtering and sorting
     const filteredAndSortedCargos = React.useMemo(() => {
-        // First filter
+        // Filter first
         let result = [...cargos];
+        //
+        // if (searchTerm) {
+        //     const lowercasedSearch = searchTerm.toLowerCase();
+        //     result = result.filter(cargo =>
+        //         cargo.description.toLowerCase().includes(lowercasedSearch) ||
+        //         (cargo.status !== undefined && STATUS_MAP[cargo.status as keyof typeof STATUS_MAP]?.toLowerCase().includes(lowercasedSearch))
+        //     );
+        // }
 
-        if (searchTerm) {
-            const lowercasedSearch = searchTerm.toLowerCase();
-            result = result.filter(cargo =>
-                cargo.description.toLowerCase().includes(lowercasedSearch) ||
-                getLocationNameById(cargo.pickupLocationId).toLowerCase().includes(lowercasedSearch) ||
-                getLocationNameById(cargo.dropoffLocationId).toLowerCase().includes(lowercasedSearch) ||
-                getCargoStatus(cargo).toLowerCase().includes(lowercasedSearch)
-            );
-        }
-
-        if (filterStatus) {
-            result = result.filter(cargo => getCargoStatus(cargo) === filterStatus);
-        }
+        // if (filterStatus !== '') {
+        //     const statusNumber = parseInt(filterStatus);
+        //     result = result.filter(cargo => cargo.status === statusNumber);
+        // }
 
         // Then sort
         result.sort((a, b) => {
-            // For numeric fields
-            // if (sortBy === 'weight' || sortBy === 'id') {
-            //     return sortOrder === 'asc'
-            //         ? a[sortBy as keyof CargoType] - b[sortBy as keyof CargoType]
-            //         : b[sortBy as keyof CargoType] - a[sortBy as keyof CargoType];
-            // }
+            // Handle numerical fields
+            if (['id', 'weight', 'status'].includes(sortBy)) {
+                return sortOrder === 'asc'
+                    ? (a[sortBy as keyof Cargo] as number) - (b[sortBy as keyof Cargo] as number)
+                    : (b[sortBy as keyof Cargo] as number) - (a[sortBy as keyof Cargo] as number);
+            }
 
-            // For string fields
-            if (sortBy === 'description' || sortBy === 'cargoType') {
-                const valueA = String(a[sortBy as keyof CargoType]);
-                const valueB = String(b[sortBy as keyof CargoType]);
+            // Handle string fields
+            if (['description', 'cargoType'].includes(sortBy)) {
+                const valueA = String(a[sortBy as keyof Cargo] || '');
+                const valueB = String(b[sortBy as keyof Cargo] || '');
                 return sortOrder === 'asc'
                     ? valueA.localeCompare(valueB)
                     : valueB.localeCompare(valueA);
             }
 
-            // For location fields
-            if (sortBy === 'pickupLocationId') {
-                const valueA = getLocationNameById(a.pickupLocationId);
-                const valueB = getLocationNameById(b.pickupLocationId);
-                return sortOrder === 'asc'
-                    ? valueA.localeCompare(valueB)
-                    : valueB.localeCompare(valueA);
-            }
-
-            if (sortBy === 'dropoffLocationId') {
-                const valueA = getLocationNameById(a.dropoffLocationId);
-                const valueB = getLocationNameById(b.dropoffLocationId);
-                return sortOrder === 'asc'
-                    ? valueA.localeCompare(valueB)
-                    : valueB.localeCompare(valueA);
-            }
-
-            // Default sorting by ID
-            return sortOrder === 'asc' ? a.id - b.id : b.id - a.id;
+            return 0;
         });
 
-        return result;
-    }, [cargos, searchTerm, filterStatus, sortBy, sortOrder, locations]);
+        return result as CargoWithStatus[];
+    }, [cargos, searchTerm, filterStatus, sortBy, sortOrder]);
+
+    // Update cargo handler
+    const handleUpdateCargo = (cargo: CargoWithStatus) => {
+        setCurrentCargo({
+            id: cargo.id,
+            description: cargo.description,
+            weight: cargo.weight,
+            pickupLocationId: cargo.pickupLocationId,
+            dropoffLocationId: cargo.dropoffLocationId,
+            status: cargo.status
+        });
+        setShowUpdateModal(true);
+    };
+
+    // Delete cargo handler
+    const handleDeleteCargo = (id: number) => {
+        if (window.confirm('Bu kargoyu silmek istediğinizden emin misiniz?')) {
+            dispatch(deleteCargo(id) as any)
+                .then(() => {
+                    alert('Kargo başarıyla silindi!');
+                })
+                .catch((err: any) => {
+                    alert(`Silme işlemi başarısız: ${err.message}`);
+                });
+        }
+    };
+
+    // Form change handler
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        if (currentCargo) {
+            setCurrentCargo({
+                ...currentCargo,
+                [name]: name === 'weight' ? parseFloat(value) :
+                    name === 'status' ? parseInt(value) :
+                        name === 'pickupLocationId' || name === 'dropoffLocationId' ? parseInt(value) :
+                            value
+            });
+        }
+    };
+
+    // Form submit handler
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (currentCargo) {
+            const { id, ...updatedData } = currentCargo;
+
+            dispatch(updateCargo({ id, updatedData }) as any)
+                .then(() => {
+                    setShowUpdateModal(false);
+                    setCurrentCargo(null);
+                    alert('Kargo bilgileri başarıyla güncellendi!');
+                })
+                .catch((err: any) => {
+                    alert(`Güncelleme işlemi başarısız: ${err.message}`);
+                });
+        }
+    };
 
     // Sort handler
     const handleSort = (field: string) => {
@@ -279,82 +321,16 @@ const UserCargoManagement: React.FC = () => {
         }
     };
 
-    // Update cargo handler
-    const handleUpdateCargo = (cargo: CargoType) => {
-        setCurrentCargo({
-            id: cargo.id,
-            description: cargo.description,
-            weight: cargo.weight,
-            pickupLocationId: cargo.pickupLocationId,
-            dropoffLocationId: cargo.dropoffLocationId,
-            cargoType: cargo.cargoType,
-            customerId: cargo.customerId,
-            status: cargo.status || 0 // Set default status to Pending (0) if not provided
-        });
-        setShowUpdateModal(true);
-    };
-
-    // Delete cargo handler
-    const handleDeleteCargo = (id: number) => {
-        if (window.confirm('Bu kargoyu silmek istediğinizden emin misiniz?')) {
-            dispatch(deleteCargo(id))
-                .unwrap()
-                .then(() => {
-                    alert('Kargo başarıyla silindi!');
-                })
-                .catch((error) => {
-                    alert(`Hata: ${error}`);
-                });
-        }
-    };
-
-    // Form change handler
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        if (currentCargo) {
-            setCurrentCargo({
-                ...currentCargo,
-                [name]: name === 'weight' || name === 'pickupLocationId' || name === 'dropoffLocationId' || name === 'status'
-                    ? parseFloat(value)
-                    : value
-            });
-        }
-    };
-
-    // FIX 3: Form submit handler - Ensure ID is included in payload
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (currentCargo) {
-            // Ensure ID is explicitly included in the payload
-            const updatedCargoData = {
-                ...currentCargo,
-                id: currentCargo.id // Explicitly include ID to ensure it's in the payload
-            };
-
-            console.log("Updating cargo with data:", updatedCargoData);
-
-            dispatch(updateCargo(updatedCargoData))
-                .unwrap()
-                .then(() => {
-                    setShowUpdateModal(false);
-                    setCurrentCargo(null);
-                    alert('Kargo bilgileri başarıyla güncellendi!');
-                })
-                .catch((error) => {
-                    alert(`Hata: ${error}`);
-                });
-        }
-    };
-
-    // Status style helper
-    const getStatusStyle = (status: string) => {
+    // Status style handler
+    const getStatusStyle = (statusCode: number) => {
+        const status = STATUS_MAP[statusCode as keyof typeof STATUS_MAP];
         switch (status) {
             case 'Beklemede':
                 return { backgroundColor: '#ffeeba', color: '#856404', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             case 'Yolda':
-                return { backgroundColor: '#b8daff', color: '#004085', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            case 'Teslim Edildi':
                 return { backgroundColor: '#c3e6cb', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
+            case 'Teslim Edildi':
+                return { backgroundColor: '#d4edda', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             case 'İptal Edildi':
                 return { backgroundColor: '#f5c6cb', color: '#721c24', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             default:
@@ -362,7 +338,7 @@ const UserCargoManagement: React.FC = () => {
         }
     };
 
-    // Style definitions
+    // Component styles
     const pageStyle = {
         width: '100%',
         minHeight: '100vh',
@@ -530,17 +506,32 @@ const UserCargoManagement: React.FC = () => {
         marginLeft: '5px'
     };
 
+    // Display loading state when customer data is being fetched
+    if (customerStatus === 'loading') {
+        return (
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <h1 style={headerStyle}>Kargo Yönetimim</h1>
+                    <div style={loadingStyle}>Kullanıcı bilgileri yükleniyor...</div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
                 <h1 style={headerStyle}>Kargo Yönetimim</h1>
                 <p style={subHeaderStyle}>Kargolarınızı görüntüleyin, güncelleyin ve yönetin</p>
 
-                {/* User info area */}
+                {/* User info section */}
                 <div style={userInfoStyle}>
                     <div>
-                        <span style={userNameStyle}>Hoş geldiniz, {user?.name || 'Kullanıcı'}</span>
-                        <p style={{ margin: '5px 0 0', color: '#666' }}>{user?.email || 'kullanici@ornek.com'}</p>
+                        <span style={userNameStyle}>Hoş geldiniz, {selectedCustomer?.customerId || auth?.user?.displayName || 'Kullanıcı'}</span>
+                        <p style={{ margin: '5px 0 0', color: '#666' }}>{auth?.user?.email}</p>
+                        {selectedCustomer && (
+                            <p style={{ margin: '5px 0 0', color: '#666' }}>Müşteri ID: {selectedCustomer.customerId || selectedCustomer.customerId}</p>
+                        )}
                     </div>
                     <div>
                         <span style={{
@@ -550,24 +541,29 @@ const UserCargoManagement: React.FC = () => {
                             borderRadius: '15px',
                             fontWeight: 'bold'
                         }}>
-                          Kullanıcı
+                            Kullanıcı
                         </span>
                     </div>
                 </div>
 
-                {/* Debug info - can be removed in production */}
-                {cargos.length === 0 && !loading && (
-                    <div style={{ padding: '10px', marginBottom: '15px', backgroundColor: '#fff3cd', borderRadius: '5px', border: '1px solid #ffeeba' }}>
-                        <p style={{ margin: 0, color: '#856404' }}>
-                            <strong>Debug bilgisi:</strong> Kullanıcı ID: {customerId || 'Tanımlanmamış'} için kargolar yüklenemedi.
-                        </p>
+                {/* Debug info (can remove in production) */}
+                {debug && (
+                    <div style={{
+                        padding: '10px',
+                        marginBottom: '15px',
+                        backgroundColor: '#e8f4fd',
+                        borderRadius: '5px',
+                        fontSize: '12px',
+                        color: '#444'
+                    }}>
+                        {debug}
                     </div>
                 )}
 
-                {/* Search and filtering */}
+                {/* Search and filter */}
                 <input
                     type="text"
-                    placeholder="Arama yap... (Açıklama, Lokasyon, Durum)"
+                    placeholder="Arama yap... (Açıklama, Durum)"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={inputStyle}
@@ -582,10 +578,10 @@ const UserCargoManagement: React.FC = () => {
                             className="select-element"
                         >
                             <option value="">Tüm Durumlar</option>
-                            <option value="Beklemede">Beklemede</option>
-                            <option value="Yolda">Yolda</option>
-                            <option value="Teslim Edildi">Teslim Edildi</option>
-                            <option value="İptal Edildi">İptal Edildi</option>
+                            <option value="0">Beklemede</option>
+                            <option value="1">Yolda</option>
+                            <option value="2">Teslim Edildi</option>
+                            <option value="3">İptal Edildi</option>
                         </select>
                     </div>
 
@@ -604,17 +600,15 @@ const UserCargoManagement: React.FC = () => {
                             <option value="id-asc">ID (Eski-Yeni)</option>
                             <option value="weight-asc">Ağırlık (Artan)</option>
                             <option value="weight-desc">Ağırlık (Azalan)</option>
-                            <option value="pickupLocationId-asc">Alım Lokasyonu (A-Z)</option>
-                            <option value="pickupLocationId-desc">Alım Lokasyonu (Z-A)</option>
-                            <option value="dropoffLocationId-asc">Teslim Lokasyonu (A-Z)</option>
-                            <option value="dropoffLocationId-desc">Teslim Lokasyonu (Z-A)</option>
-                            <option value="cargoType-asc">Kargo Tipi (A-Z)</option>
-                            <option value="cargoType-desc">Kargo Tipi (Z-A)</option>
+                            <option value="description-asc">Açıklama (A-Z)</option>
+                            <option value="description-desc">Açıklama (Z-A)</option>
+                            <option value="status-asc">Durum (A-Z)</option>
+                            <option value="status-desc">Durum (Z-A)</option>
                         </select>
                     </div>
                 </div>
 
-                {loading && <div style={loadingStyle}>Yükleniyor...</div>}
+                {loading && <div style={loadingStyle}>Kargolar yükleniyor...</div>}
 
                 {error && <div style={errorStyle}>{error}</div>}
 
@@ -653,37 +647,27 @@ const UserCargoManagement: React.FC = () => {
                                         </th>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('pickupLocationId')}
-                                        >
-                                            Alım Yeri
-                                            {sortBy === 'pickupLocationId' && (
-                                                <span style={sortIndicatorStyle}>
-                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                                </span>
-                                            )}
-                                        </th>
-                                        <th
-                                            style={thStyle}
-                                            onClick={() => handleSort('dropoffLocationId')}
-                                        >
-                                            Teslim Yeri
-                                            {sortBy === 'dropoffLocationId' && (
-                                                <span style={sortIndicatorStyle}>
-                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                                </span>
-                                            )}
-                                        </th>
-                                        <th
-                                            style={thStyle}
-                                        >
-                                            Durum
-                                        </th>
-                                        <th
-                                            style={thStyle}
                                             onClick={() => handleSort('cargoType')}
                                         >
                                             Kargo Tipi
                                             {sortBy === 'cargoType' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th style={thStyle}>
+                                            Alım Lokasyonu ID
+                                        </th>
+                                        <th style={thStyle}>
+                                            Teslim Lokasyonu ID
+                                        </th>
+                                        <th
+                                            style={thStyle}
+                                            onClick={() => handleSort('status')}
+                                        >
+                                            Durum
+                                            {sortBy === 'status' && (
                                                 <span style={sortIndicatorStyle}>
                                                     {sortOrder === 'asc' ? ' ▲' : ' ▼'}
                                                 </span>
@@ -695,45 +679,40 @@ const UserCargoManagement: React.FC = () => {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {filteredAndSortedCargos.map((cargo: CargoType) => {
-                                        const cargoStatus = getCargoStatus(cargo);
-                                        return (
-                                            <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
-                                                <td style={tdFirstStyle}>
-                                                    {cargo.description.length > 30 ? `${cargo.description.substring(0, 30)}...` : cargo.description}
-                                                </td>
-                                                <td style={tdStyle}>{cargo.weight} kg</td>
-                                                <td style={tdStyle}>
-                                                    {getLocationNameById(cargo.pickupLocationId)}
-                                                </td>
-                                                <td style={tdStyle}>
-                                                    {getLocationNameById(cargo.dropoffLocationId)}
-                                                </td>
-                                                <td style={tdStyle}>
-                                                    <span style={getStatusStyle(cargoStatus)}>
-                                                      {cargoStatus}
-                                                    </span>
-                                                </td>
-                                                <td style={tdStyle}>{cargo.cargoType}</td>
-                                                <td style={tdLastStyle}>
-                                                    <div className="action-buttons">
-                                                        <button
-                                                            onClick={() => handleUpdateCargo(cargo)}
-                                                            style={updateButtonStyle}
-                                                        >
-                                                            Güncelle
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteCargo(cargo.id)}
-                                                            style={deleteButtonStyle}
-                                                        >
-                                                            Sil
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {filteredAndSortedCargos.map((cargo) => (
+                                        <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
+                                            <td style={tdFirstStyle}>
+                                                {cargo.description && cargo.description.length > 30
+                                                    ? `${cargo.description.substring(0, 30)}...`
+                                                    : cargo.description}
+                                            </td>
+                                            <td style={tdStyle}>{cargo.weight} kg</td>
+                                            <td style={tdStyle}>{cargo.cargoType}</td>
+                                            <td style={tdStyle}>{cargo.pickupLocationId}</td>
+                                            <td style={tdStyle}>{cargo.dropoffLocationId}</td>
+                                            <td style={tdStyle}>
+                                                <span style={getStatusStyle(cargo.status)}>
+                                                    {STATUS_MAP[cargo.status as keyof typeof STATUS_MAP]}
+                                                </span>
+                                            </td>
+                                            <td style={tdLastStyle}>
+                                                <div className="action-buttons">
+                                                    <button
+                                                        onClick={() => handleUpdateCargo(cargo)}
+                                                        style={updateButtonStyle}
+                                                    >
+                                                        Güncelle
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCargo(cargo.id)}
+                                                        style={deleteButtonStyle}
+                                                    >
+                                                        Sil
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -760,6 +739,13 @@ const UserCargoManagement: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleSubmit}>
+                            {/* Hidden ID field - automatically filled */}
+                            <input
+                                type="hidden"
+                                name="id"
+                                value={currentCargo.id}
+                            />
+
                             <div className="form-group">
                                 <label className="form-label">Açıklama</label>
                                 <input
@@ -787,12 +773,24 @@ const UserCargoManagement: React.FC = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Kargo Tipi</label>
+                                <label className="form-label">Alım Lokasyonu ID</label>
                                 <input
-                                    type="text"
-                                    name="cargoType"
+                                    type="number"
+                                    name="pickupLocationId"
                                     className="form-control"
-                                    value={currentCargo.cargoType}
+                                    value={currentCargo.pickupLocationId}
+                                    onChange={handleFormChange}
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">Teslim Lokasyonu ID</label>
+                                <input
+                                    type="number"
+                                    name="dropoffLocationId"
+                                    className="form-control"
+                                    value={currentCargo.dropoffLocationId}
                                     onChange={handleFormChange}
                                     required
                                 />
@@ -807,46 +805,10 @@ const UserCargoManagement: React.FC = () => {
                                     onChange={handleFormChange}
                                     required
                                 >
-                                    <option value="0">Beklemede</option>
-                                    <option value="1">Yolda</option>
-                                    <option value="2">Teslim Edildi</option>
-                                    <option value="3">İptal Edildi</option>
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Alım Yeri</label>
-                                <select
-                                    name="pickupLocationId"
-                                    className="form-control"
-                                    value={currentCargo.pickupLocationId}
-                                    onChange={handleFormChange}
-                                    required
-                                >
-                                    <option value="">Lokasyon Seçin</option>
-                                    {locations.map(location => (
-                                        <option key={location.id} value={location.id}>
-                                            {location.city}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-
-                            <div className="form-group">
-                                <label className="form-label">Teslim Yeri</label>
-                                <select
-                                    name="dropoffLocationId"
-                                    className="form-control"
-                                    value={currentCargo.dropoffLocationId}
-                                    onChange={handleFormChange}
-                                    required
-                                >
-                                    <option value="">Lokasyon Seçin</option>
-                                    {locations.map(location => (
-                                        <option key={location.id} value={location.id}>
-                                            {location.city}
-                                        </option>
-                                    ))}
+                                    <option value={0}>Beklemede</option>
+                                    <option value={1}>Yolda</option>
+                                    <option value={2}>Teslim Edildi</option>
+                                    <option value={3}>İptal Edildi</option>
                                 </select>
                             </div>
 

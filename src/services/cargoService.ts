@@ -24,7 +24,7 @@ const fetchAllCargos = async () => {
 // Kullanıcının kargolarını getir
 const fetchMyCargos = async (customerId: number) => {
     try {
-        const response = await axiosInstance.get(`api/by-customer/${customerId}`);
+        const response = await axiosInstance.get(`api/Cargo/by-customer/${customerId}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Kullanıcıya ait kargolar alınamadı');

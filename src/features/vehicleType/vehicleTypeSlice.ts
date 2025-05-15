@@ -11,7 +11,7 @@ import {
 export interface VehicleType {
     id: number;
     name: string;
-    desc: string;
+    description: string;
 }
 
 interface VehicleTypeState {
