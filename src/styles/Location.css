@@ -1,0 +1,234 @@
+/* location.css */
+/* Yerelleştirilmiş CSS kuralları, diğer dosyalarla çakışmaları önlemek için */
+
+.location-container {
+    width: 100%;
+    max-width: 1000px;
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    margin: 0 auto;
+}
+
+.location-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.location-header-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.location-add-button {
+    padding: 10px 20px;
+    background-color: #4a6cf7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.location-add-button:hover {
+    background-color: #3151d3;
+}
+
+.location-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.location-table th {
+    text-align: left;
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.location-table td {
+    padding: 15px;
+    font-size: 15px;
+    color: #333;
+    background-color: #f9f9f9;
+    border-top: 1px solid #eee;
+}
+
+.location-table tr td:first-child {
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.location-table tr td:last-child {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.location-row:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.location-action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.location-update-button {
+    padding: 8px 12px;
+    background-color: #4a6cf7;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.location-delete-button {
+    padding: 8px 12px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.location-update-button:hover {
+    background-color: #3151d3;
+}
+
+.location-delete-button:hover {
+    background-color: #c0392b;
+}
+
+.location-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.location-modal-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.location-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.location-modal-title {
+    margin: 0;
+    font-size: 24px;
+}
+
+.location-close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.location-form-group {
+    margin-bottom: 15px;
+}
+
+.location-form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.location-form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.location-btn-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.location-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.location-btn-primary {
+    background-color: #4a6cf7;
+    color: white;
+}
+
+.location-btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.location-btn-primary:hover {
+    background-color: #3151d3;
+}
+
+.location-btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.location-loading-indicator {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.location-error-message {
+    text-align: center;
+    padding: 15px;
+    color: #e63946;
+    background-color: #ffeeee;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.location-no-data {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    margin-top: 20px;
+}

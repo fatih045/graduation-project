@@ -39,6 +39,12 @@ const Sidebar: React.FC = () => {
                     <Link to="/cargo/history" className="side-bar__item">
                         <i className="fas fa-history"></i> Geçmiş Yüklerim
                     </Link>
+                    <Link to="/mylocations" className="side-bar__item">
+                        <i className="fas fa-history"></i> Lokasyon Yönetimi
+                    </Link>
+                    <Link to="/customer-management" className="side-bar__item">
+                        <i className="fas fa-history"></i> Customer Yönetimi
+                    </Link>
 
 
                 </div>

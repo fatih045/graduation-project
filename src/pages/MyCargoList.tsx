@@ -1,104 +1,58 @@
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    fetchMyCargos,
+    updateCargo,
+    deleteCargo,
+    Cargo as CargoType
+} from '../features/cargo/cargoSlice';
+import { RootState, AppDispatch } from '../store/store';
 
-// Kargo tipi tanımı
-export interface Cargo {
-    id: number;
-    user_id: number;
-    desc: string;
-    weight: number;
-    pickUpLocation: string;
-    dropOffLocation: string;
-    status: string;
-    createdAt: string;
-}
-
-// Mock kullanıcı ve JWT bilgisi
-const mockCurrentUser = {
-    id: 1,
-    name: 'Ahmet Yılmaz',
-    email: 'ahmet.yilmaz@example.com',
-    role: 'customer'
-};
-
-// Mock kargo verileri - Kullanıcının kendi kargoları
-const mockUserCargos: Cargo[] = [
-    {
-        id: 1,
-        user_id: 1,
-        desc: 'Elektronik eşyalar, dikkatli taşınmalı',
-        weight: 12.5,
-        pickUpLocation: 'İstanbul, Kadıköy',
-        dropOffLocation: 'Ankara, Çankaya',
-        status: 'Yolda',
-        createdAt: '2025-04-15'
-    },
-    {
-        id: 2,
-        user_id: 1,
-        desc: 'Ofis malzemeleri, 2 koli',
-        weight: 15.8,
-        pickUpLocation: 'İstanbul, Şişli',
-        dropOffLocation: 'İstanbul, Ümraniye',
-        status: 'Beklemede',
-        createdAt: '2025-05-01'
-    },
-    {
-        id: 3,
-        user_id: 1,
-        desc: 'Kıyafet ve aksesuar, 1 valiz',
-        weight: 8.3,
-        pickUpLocation: 'İstanbul, Beşiktaş',
-        dropOffLocation: 'İzmir, Karşıyaka',
-        status: 'Hazırlanıyor',
-        createdAt: '2025-04-28'
-    },
-    {
-        id: 4,
-        user_id: 1,
-        desc: 'Kitap koleksiyonu, özel paketleme',
-        weight: 22.7,
-        pickUpLocation: 'Ankara, Çankaya',
-        dropOffLocation: 'İstanbul, Kadıköy',
-        status: 'Teslim Edildi',
-        createdAt: '2025-04-10'
-    },
-    {
-        id: 5,
-        user_id: 1,
-        desc: 'Mutfak eşyaları, kırılabilir',
-        weight: 14.2,
-        pickUpLocation: 'İzmir, Bornova',
-        dropOffLocation: 'Antalya, Konyaaltı',
-        status: 'İptal Edildi',
-        createdAt: '2025-04-05'
-    }
-];
-
-// Güncellenecek kargo için form interface'i
+// Form interface for cargo updates
 interface CargoFormData {
     id: number;
-    desc: string;
+    description: string;
     weight: number;
-    pickUpLocation: string;
-    dropOffLocation: string;
-    status: string;
+    pickupLocationId: number;
+    dropoffLocationId: number;
+    cargoType: string;
+    customerId: number;
+    status: number; // Added status field
 }
 
+// Define status mapping for proper display and selection
+const statusMapping = {
+    0: 'Beklemede',
+    1: 'Yolda',
+    2: 'Teslim Edildi',
+    3: 'İptal Edildi'
+};
+
 const UserCargoManagement: React.FC = () => {
-    // State tanımlamaları
-    const [cargos, setCargos] = useState<Cargo[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch<AppDispatch>();
+
+    // Get current user ID from auth state (assume it's available in redux store)
+    const { user } = useSelector((state: RootState) => state.auth);
+    // FIX 1: Ensure customerId is properly extracted from user object
+    const customerId = user?.uid || null;
+
+    // Get cargo state from the Redux store
+    const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
+
+    // Get locations from store (assuming your location store has them)
+    const { locations } = useSelector((state: RootState) => state.location);
+
+    // Component state
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [filterStatus, setFilterStatus] = useState<string>('');
-    const [sortBy, setSortBy] = useState<string>('createdAt');
+    const [sortBy, setSortBy] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-    // Modal state'leri
+    // Modal state
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
     const [currentCargo, setCurrentCargo] = useState<CargoFormData | null>(null);
 
-    // CSS sınıfları için useEffect
+    // CSS styles
     useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = `
@@ -226,74 +180,96 @@ const UserCargoManagement: React.FC = () => {
         };
     }, []);
 
-    // Veri yükleme simülasyonu
+    // FIX 2: Improved fetch logic to ensure customerId is valid before attempting to fetch
     useEffect(() => {
-        const fetchUserCargos = async () => {
-            try {
-                setLoading(true);
-                // Simüle edilmiş API çağrısı gecikmesi
-                await new Promise(resolve => setTimeout(resolve, 800));
-                setCargos(mockUserCargos);
-                setLoading(false);
-            } catch (err) {
-                setError('Kargo verileri yüklenirken bir hata oluştu.');
-                setLoading(false);
-            }
-        };
+        if (customerId) {
+            // Make sure this works by logging customerId
+            console.log("Fetching cargos for customer ID:", customerId);
+            dispatch(fetchMyCargos(customerId));
+        } else {
+            console.warn("Customer ID not available. Cannot fetch cargos.");
+        }
+    }, [customerId, dispatch]);
 
-        fetchUserCargos();
-    }, []);
+    // Debug: Log cargos when they change
+    useEffect(() => {
+        console.log("Current cargos:", cargos);
+    }, [cargos]);
 
-    // Filtreleme ve sıralama
+    // Helper function to get location name by ID
+    const getLocationNameById = (locationId: number): string => {
+        const location = locations.find(loc => loc.id === locationId);
+        return location ? location.city : 'Bilinmeyen konum';
+    };
+
+    // Helper function to determine cargo status based on its state
+    const getCargoStatus = (cargo: CargoType): string => {
+        // Use the cargo.status value to get the corresponding status text
+        return statusMapping[cargo.status as keyof typeof statusMapping] || 'Beklemede';
+    };
+
+    // Filtering and sorting logic
     const filteredAndSortedCargos = React.useMemo(() => {
-        // Önce filtreleme yap
+        // First filter
         let result = [...cargos];
 
         if (searchTerm) {
             const lowercasedSearch = searchTerm.toLowerCase();
             result = result.filter(cargo =>
-                cargo.desc.toLowerCase().includes(lowercasedSearch) ||
-                cargo.pickUpLocation.toLowerCase().includes(lowercasedSearch) ||
-                cargo.dropOffLocation.toLowerCase().includes(lowercasedSearch) ||
-                cargo.status.toLowerCase().includes(lowercasedSearch)
+                cargo.description.toLowerCase().includes(lowercasedSearch) ||
+                getLocationNameById(cargo.pickupLocationId).toLowerCase().includes(lowercasedSearch) ||
+                getLocationNameById(cargo.dropoffLocationId).toLowerCase().includes(lowercasedSearch) ||
+                getCargoStatus(cargo).toLowerCase().includes(lowercasedSearch)
             );
         }
 
         if (filterStatus) {
-            result = result.filter(cargo => cargo.status === filterStatus);
+            result = result.filter(cargo => getCargoStatus(cargo) === filterStatus);
         }
 
-        // Sonra sıralama yap
+        // Then sort
         result.sort((a, b) => {
-            // Tarih sıralaması için
-            if (sortBy === 'createdAt') {
-                return sortOrder === 'asc'
-                    ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                    : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-            }
+            // For numeric fields
+            // if (sortBy === 'weight' || sortBy === 'id') {
+            //     return sortOrder === 'asc'
+            //         ? a[sortBy as keyof CargoType] - b[sortBy as keyof CargoType]
+            //         : b[sortBy as keyof CargoType] - a[sortBy as keyof CargoType];
+            // }
 
-            // Sayısal alanlar için
-            if (sortBy === 'weight') {
-                return sortOrder === 'asc'
-                    ? a[sortBy] - b[sortBy]
-                    : b[sortBy] - a[sortBy];
-            }
-
-            // String alanlar için
-            if (sortBy in a && sortBy in b) {
-                const valueA = String(a[sortBy as keyof Cargo]);
-                const valueB = String(b[sortBy as keyof Cargo]);
+            // For string fields
+            if (sortBy === 'description' || sortBy === 'cargoType') {
+                const valueA = String(a[sortBy as keyof CargoType]);
+                const valueB = String(b[sortBy as keyof CargoType]);
                 return sortOrder === 'asc'
                     ? valueA.localeCompare(valueB)
                     : valueB.localeCompare(valueA);
             }
-            return 0;
+
+            // For location fields
+            if (sortBy === 'pickupLocationId') {
+                const valueA = getLocationNameById(a.pickupLocationId);
+                const valueB = getLocationNameById(b.pickupLocationId);
+                return sortOrder === 'asc'
+                    ? valueA.localeCompare(valueB)
+                    : valueB.localeCompare(valueA);
+            }
+
+            if (sortBy === 'dropoffLocationId') {
+                const valueA = getLocationNameById(a.dropoffLocationId);
+                const valueB = getLocationNameById(b.dropoffLocationId);
+                return sortOrder === 'asc'
+                    ? valueA.localeCompare(valueB)
+                    : valueB.localeCompare(valueA);
+            }
+
+            // Default sorting by ID
+            return sortOrder === 'asc' ? a.id - b.id : b.id - a.id;
         });
 
         return result;
-    }, [cargos, searchTerm, filterStatus, sortBy, sortOrder]);
+    }, [cargos, searchTerm, filterStatus, sortBy, sortOrder, locations]);
 
-    // Sıralama değiştirme fonksiyonu
+    // Sort handler
     const handleSort = (field: string) => {
         if (sortBy === field) {
             setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -303,68 +279,82 @@ const UserCargoManagement: React.FC = () => {
         }
     };
 
-    // Kargo güncelleme fonksiyonu
-    const handleUpdateCargo = (cargo: Cargo) => {
+    // Update cargo handler
+    const handleUpdateCargo = (cargo: CargoType) => {
         setCurrentCargo({
             id: cargo.id,
-            desc: cargo.desc,
+            description: cargo.description,
             weight: cargo.weight,
-            pickUpLocation: cargo.pickUpLocation,
-            dropOffLocation: cargo.dropOffLocation,
-            status: cargo.status
+            pickupLocationId: cargo.pickupLocationId,
+            dropoffLocationId: cargo.dropoffLocationId,
+            cargoType: cargo.cargoType,
+            customerId: cargo.customerId,
+            status: cargo.status || 0 // Set default status to Pending (0) if not provided
         });
         setShowUpdateModal(true);
     };
 
-    // Kargo silme fonksiyonu
+    // Delete cargo handler
     const handleDeleteCargo = (id: number) => {
-        // Kullanıcıya silmek istediğinden emin olup olmadığını sor
         if (window.confirm('Bu kargoyu silmek istediğinizden emin misiniz?')) {
-            // Silme işlemi simülasyonu
-            setCargos(cargos.filter(cargo => cargo.id !== id));
-            alert('Kargo başarıyla silindi!');
+            dispatch(deleteCargo(id))
+                .unwrap()
+                .then(() => {
+                    alert('Kargo başarıyla silindi!');
+                })
+                .catch((error) => {
+                    alert(`Hata: ${error}`);
+                });
         }
     };
 
-    // Form değişikliklerini izleme
+    // Form change handler
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         if (currentCargo) {
             setCurrentCargo({
                 ...currentCargo,
-                [name]: name === 'weight' ? parseFloat(value) : value
+                [name]: name === 'weight' || name === 'pickupLocationId' || name === 'dropoffLocationId' || name === 'status'
+                    ? parseFloat(value)
+                    : value
             });
         }
     };
 
-    // Form gönderme
+    // FIX 3: Form submit handler - Ensure ID is included in payload
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (currentCargo) {
-            // Güncelleme işlemi simülasyonu
-            const updatedCargos = cargos.map(cargo =>
-                cargo.id === currentCargo.id
-                    ? { ...cargo, ...currentCargo }
-                    : cargo
-            );
-            setCargos(updatedCargos);
-            setShowUpdateModal(false);
-            setCurrentCargo(null);
-            alert('Kargo bilgileri başarıyla güncellendi!');
+            // Ensure ID is explicitly included in the payload
+            const updatedCargoData = {
+                ...currentCargo,
+                id: currentCargo.id // Explicitly include ID to ensure it's in the payload
+            };
+
+            console.log("Updating cargo with data:", updatedCargoData);
+
+            dispatch(updateCargo(updatedCargoData))
+                .unwrap()
+                .then(() => {
+                    setShowUpdateModal(false);
+                    setCurrentCargo(null);
+                    alert('Kargo bilgileri başarıyla güncellendi!');
+                })
+                .catch((error) => {
+                    alert(`Hata: ${error}`);
+                });
         }
     };
 
-    // Durum gösterimini renklendirme
+    // Status style helper
     const getStatusStyle = (status: string) => {
         switch (status) {
             case 'Beklemede':
                 return { backgroundColor: '#ffeeba', color: '#856404', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            case 'Hazırlanıyor':
-                return { backgroundColor: '#b8daff', color: '#004085', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             case 'Yolda':
-                return { backgroundColor: '#c3e6cb', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
+                return { backgroundColor: '#b8daff', color: '#004085', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             case 'Teslim Edildi':
-                return { backgroundColor: '#d4edda', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
+                return { backgroundColor: '#c3e6cb', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             case 'İptal Edildi':
                 return { backgroundColor: '#f5c6cb', color: '#721c24', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
             default:
@@ -372,7 +362,7 @@ const UserCargoManagement: React.FC = () => {
         }
     };
 
-    // Stil tanımlamaları
+    // Style definitions
     const pageStyle = {
         width: '100%',
         minHeight: '100vh',
@@ -546,26 +536,35 @@ const UserCargoManagement: React.FC = () => {
                 <h1 style={headerStyle}>Kargo Yönetimim</h1>
                 <p style={subHeaderStyle}>Kargolarınızı görüntüleyin, güncelleyin ve yönetin</p>
 
-                {/* Kullanıcı bilgi alanı */}
+                {/* User info area */}
                 <div style={userInfoStyle}>
                     <div>
-                        <span style={userNameStyle}>Hoş geldiniz, {mockCurrentUser.name}</span>
-                        <p style={{ margin: '5px 0 0', color: '#666' }}>{mockCurrentUser.email}</p>
+                        <span style={userNameStyle}>Hoş geldiniz, {user?.name || 'Kullanıcı'}</span>
+                        <p style={{ margin: '5px 0 0', color: '#666' }}>{user?.email || 'kullanici@ornek.com'}</p>
                     </div>
                     <div>
-            <span style={{
-                backgroundColor: '#e3f2fd',
-                color: '#0d47a1',
-                padding: '8px 12px',
-                borderRadius: '15px',
-                fontWeight: 'bold'
-            }}>
-              Kullanıcı
-            </span>
+                        <span style={{
+                            backgroundColor: '#e3f2fd',
+                            color: '#0d47a1',
+                            padding: '8px 12px',
+                            borderRadius: '15px',
+                            fontWeight: 'bold'
+                        }}>
+                          Kullanıcı
+                        </span>
                     </div>
                 </div>
 
-                {/* Arama ve filtreleme */}
+                {/* Debug info - can be removed in production */}
+                {cargos.length === 0 && !loading && (
+                    <div style={{ padding: '10px', marginBottom: '15px', backgroundColor: '#fff3cd', borderRadius: '5px', border: '1px solid #ffeeba' }}>
+                        <p style={{ margin: 0, color: '#856404' }}>
+                            <strong>Debug bilgisi:</strong> Kullanıcı ID: {customerId || 'Tanımlanmamış'} için kargolar yüklenemedi.
+                        </p>
+                    </div>
+                )}
+
+                {/* Search and filtering */}
                 <input
                     type="text"
                     placeholder="Arama yap... (Açıklama, Lokasyon, Durum)"
@@ -584,7 +583,6 @@ const UserCargoManagement: React.FC = () => {
                         >
                             <option value="">Tüm Durumlar</option>
                             <option value="Beklemede">Beklemede</option>
-                            <option value="Hazırlanıyor">Hazırlanıyor</option>
                             <option value="Yolda">Yolda</option>
                             <option value="Teslim Edildi">Teslim Edildi</option>
                             <option value="İptal Edildi">İptal Edildi</option>
@@ -602,16 +600,16 @@ const UserCargoManagement: React.FC = () => {
                             style={selectStyle}
                             className="select-element"
                         >
-                            <option value="createdAt-desc">Tarih (Yeni-Eski)</option>
-                            <option value="createdAt-asc">Tarih (Eski-Yeni)</option>
+                            <option value="id-desc">ID (Yeni-Eski)</option>
+                            <option value="id-asc">ID (Eski-Yeni)</option>
                             <option value="weight-asc">Ağırlık (Artan)</option>
                             <option value="weight-desc">Ağırlık (Azalan)</option>
-                            <option value="pickUpLocation-asc">Alım Lokasyonu (A-Z)</option>
-                            <option value="pickUpLocation-desc">Alım Lokasyonu (Z-A)</option>
-                            <option value="dropOffLocation-asc">Teslim Lokasyonu (A-Z)</option>
-                            <option value="dropOffLocation-desc">Teslim Lokasyonu (Z-A)</option>
-                            <option value="status-asc">Durum (A-Z)</option>
-                            <option value="status-desc">Durum (Z-A)</option>
+                            <option value="pickupLocationId-asc">Alım Lokasyonu (A-Z)</option>
+                            <option value="pickupLocationId-desc">Alım Lokasyonu (Z-A)</option>
+                            <option value="dropoffLocationId-asc">Teslim Lokasyonu (A-Z)</option>
+                            <option value="dropoffLocationId-desc">Teslim Lokasyonu (Z-A)</option>
+                            <option value="cargoType-asc">Kargo Tipi (A-Z)</option>
+                            <option value="cargoType-desc">Kargo Tipi (Z-A)</option>
                         </select>
                     </div>
                 </div>
@@ -633,13 +631,13 @@ const UserCargoManagement: React.FC = () => {
                                     <tr>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('desc')}
+                                            onClick={() => handleSort('description')}
                                         >
                                             Açıklama
-                                            {sortBy === 'desc' && (
+                                            {sortBy === 'description' && (
                                                 <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
                                             )}
                                         </th>
                                         <th
@@ -649,52 +647,46 @@ const UserCargoManagement: React.FC = () => {
                                             Ağırlık (kg)
                                             {sortBy === 'weight' && (
                                                 <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
                                             )}
                                         </th>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('pickUpLocation')}
+                                            onClick={() => handleSort('pickupLocationId')}
                                         >
                                             Alım Yeri
-                                            {sortBy === 'pickUpLocation' && (
+                                            {sortBy === 'pickupLocationId' && (
                                                 <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
                                             )}
                                         </th>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('dropOffLocation')}
+                                            onClick={() => handleSort('dropoffLocationId')}
                                         >
                                             Teslim Yeri
-                                            {sortBy === 'dropOffLocation' && (
+                                            {sortBy === 'dropoffLocationId' && (
                                                 <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
                                             )}
                                         </th>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('status')}
                                         >
                                             Durum
-                                            {sortBy === 'status' && (
-                                                <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
-                                            )}
                                         </th>
                                         <th
                                             style={thStyle}
-                                            onClick={() => handleSort('createdAt')}
+                                            onClick={() => handleSort('cargoType')}
                                         >
-                                            Oluşturma Tarihi
-                                            {sortBy === 'createdAt' && (
+                                            Kargo Tipi
+                                            {sortBy === 'cargoType' && (
                                                 <span style={sortIndicatorStyle}>
-                            {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                          </span>
+                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                </span>
                                             )}
                                         </th>
                                         <th style={{...thStyle, textAlign: 'center' as const}}>
@@ -703,42 +695,45 @@ const UserCargoManagement: React.FC = () => {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {filteredAndSortedCargos.map((cargo: Cargo) => (
-                                        <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
-                                            <td style={tdFirstStyle}>
-                                                {cargo.desc.length > 30 ? `${cargo.desc.substring(0, 30)}...` : cargo.desc}
-                                            </td>
-                                            <td style={tdStyle}>{cargo.weight} kg</td>
-                                            <td style={tdStyle}>
-                                                {cargo.pickUpLocation.length > 20 ? `${cargo.pickUpLocation.substring(0, 20)}...` : cargo.pickUpLocation}
-                                            </td>
-                                            <td style={tdStyle}>
-                                                {cargo.dropOffLocation.length > 20 ? `${cargo.dropOffLocation.substring(0, 20)}...` : cargo.dropOffLocation}
-                                            </td>
-                                            <td style={tdStyle}>
-                          <span style={getStatusStyle(cargo.status)}>
-                            {cargo.status}
-                          </span>
-                                            </td>
-                                            <td style={tdStyle}>{cargo.createdAt}</td>
-                                            <td style={tdLastStyle}>
-                                                <div className="action-buttons">
-                                                    <button
-                                                        onClick={() => handleUpdateCargo(cargo)}
-                                                        style={updateButtonStyle}
-                                                    >
-                                                        Güncelle
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCargo(cargo.id)}
-                                                        style={deleteButtonStyle}
-                                                    >
-                                                        Sil
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {filteredAndSortedCargos.map((cargo: CargoType) => {
+                                        const cargoStatus = getCargoStatus(cargo);
+                                        return (
+                                            <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
+                                                <td style={tdFirstStyle}>
+                                                    {cargo.description.length > 30 ? `${cargo.description.substring(0, 30)}...` : cargo.description}
+                                                </td>
+                                                <td style={tdStyle}>{cargo.weight} kg</td>
+                                                <td style={tdStyle}>
+                                                    {getLocationNameById(cargo.pickupLocationId)}
+                                                </td>
+                                                <td style={tdStyle}>
+                                                    {getLocationNameById(cargo.dropoffLocationId)}
+                                                </td>
+                                                <td style={tdStyle}>
+                                                    <span style={getStatusStyle(cargoStatus)}>
+                                                      {cargoStatus}
+                                                    </span>
+                                                </td>
+                                                <td style={tdStyle}>{cargo.cargoType}</td>
+                                                <td style={tdLastStyle}>
+                                                    <div className="action-buttons">
+                                                        <button
+                                                            onClick={() => handleUpdateCargo(cargo)}
+                                                            style={updateButtonStyle}
+                                                        >
+                                                            Güncelle
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCargo(cargo.id)}
+                                                            style={deleteButtonStyle}
+                                                        >
+                                                            Sil
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                     </tbody>
                                 </table>
                             </div>
@@ -747,7 +742,7 @@ const UserCargoManagement: React.FC = () => {
                 )}
             </div>
 
-            {/* Güncelleme Modal */}
+            {/* Update Modal */}
             {showUpdateModal && currentCargo && (
                 <div className="modal-overlay">
                     <div className="modal-content">
@@ -769,9 +764,9 @@ const UserCargoManagement: React.FC = () => {
                                 <label className="form-label">Açıklama</label>
                                 <input
                                     type="text"
-                                    name="desc"
+                                    name="description"
                                     className="form-control"
-                                    value={currentCargo.desc}
+                                    value={currentCargo.description}
                                     onChange={handleFormChange}
                                     required
                                 />
@@ -792,24 +787,12 @@ const UserCargoManagement: React.FC = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Alım Yeri</label>
+                                <label className="form-label">Kargo Tipi</label>
                                 <input
                                     type="text"
-                                    name="pickUpLocation"
+                                    name="cargoType"
                                     className="form-control"
-                                    value={currentCargo.pickUpLocation}
-                                    onChange={handleFormChange}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label className="form-label">Teslim Yeri</label>
-                                <input
-                                    type="text"
-                                    name="dropOffLocation"
-                                    className="form-control"
-                                    value={currentCargo.dropOffLocation}
+                                    value={currentCargo.cargoType}
                                     onChange={handleFormChange}
                                     required
                                 />
@@ -824,11 +807,46 @@ const UserCargoManagement: React.FC = () => {
                                     onChange={handleFormChange}
                                     required
                                 >
-                                    <option value="Beklemede">Beklemede</option>
-                                    <option value="Hazırlanıyor">Hazırlanıyor</option>
-                                    <option value="Yolda">Yolda</option>
-                                    <option value="Teslim Edildi">Teslim Edildi</option>
-                                    <option value="İptal Edildi">İptal Edildi</option>
+                                    <option value="0">Beklemede</option>
+                                    <option value="1">Yolda</option>
+                                    <option value="2">Teslim Edildi</option>
+                                    <option value="3">İptal Edildi</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Alım Yeri</label>
+                                <select
+                                    name="pickupLocationId"
+                                    className="form-control"
+                                    value={currentCargo.pickupLocationId}
+                                    onChange={handleFormChange}
+                                    required
+                                >
+                                    <option value="">Lokasyon Seçin</option>
+                                    {locations.map(location => (
+                                        <option key={location.id} value={location.id}>
+                                            {location.city}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+
+                            <div className="form-group">
+                                <label className="form-label">Teslim Yeri</label>
+                                <select
+                                    name="dropoffLocationId"
+                                    className="form-control"
+                                    value={currentCargo.dropoffLocationId}
+                                    onChange={handleFormChange}
+                                    required
+                                >
+                                    <option value="">Lokasyon Seçin</option>
+                                    {locations.map(location => (
+                                        <option key={location.id} value={location.id}>
+                                            {location.city}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 

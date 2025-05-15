@@ -1,14 +1,15 @@
 // src/api/customerService.ts
 import axiosInstance from './axios.ts';
+import store from "../store/store.ts";
 
 // Yeni müşteri eklemek için servis
 export const createCustomer = async (data: {
-    customer_id: number;
+
+    userId: string;
     address: string;
-    phone_number: number;
 }) => {
     try {
-        const response = await axiosInstance.post('/Customer', data);
+        const response = await axiosInstance.post('api/Customer', data);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Customer creation failed');
@@ -18,7 +19,7 @@ export const createCustomer = async (data: {
 // Tüm müşterileri getirme servisi
 export const getAllCustomers = async () => {
     try {
-        const response = await axiosInstance.get('/Customer');
+        const response = await axiosInstance.get('api/Customer');
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Failed to fetch customers');
@@ -28,33 +29,57 @@ export const getAllCustomers = async () => {
 // Belirli bir müşteri bilgilerini getirme servisi
 export const getCustomerById = async (customer_id: number) => {
     try {
-        const response = await axiosInstance.get(`/Customer/${customer_id}`);
+        const response = await axiosInstance.get(`api/Customer/${customer_id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Failed to fetch customer');
     }
 };
 
-// Müşteri bilgilerini güncelleme servisi
-export const updateCustomer = async (customer_id: number, data: {
+export const updateCustomer = async (data: {
     address?: string;
-    phone_number?: number;
 }) => {
+    const state = store.getState();
+    const customerId = state.customer.selectedCustomer?.customerId;
+
+    if (!customerId) throw new Error("Müşteri ID bulunamadı.");
+
     try {
-        const response = await axiosInstance.put(`/Customer/${customer_id}`, data);
+        const response = await axiosInstance.put(`api/Customer`, {
+            customerId: customerId, // camelCase'e sadık kal
+            address: data.address
+        });
         return response.data;
     } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Customer update failed');
+        throw new Error(error.response?.data?.message || "Müşteri güncellenemedi");
     }
 };
 
 // Müşteri silme servisi
 export const deleteCustomer = async (customer_id: number) => {
     try {
-        const response = await axiosInstance.delete(`/Customer/${customer_id}`);
+        const response = await axiosInstance.delete(`api/Customer/${customer_id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Customer deletion failed');
+    }
+};
+
+// Oturumdaki kullanıcıya ait müşteri bilgisi
+export const getCustomerByUserIdFromStore = async () => {
+    const state = store.getState();
+    const userId = state.auth.user?.uid; // JWT'den decode edilen userId burada olmalı
+
+    if (!userId) {
+        throw new Error('Oturum açmış kullanıcı bulunamadı');
+    }
+
+    try {
+        const response = await axiosInstance.get(`/api/Customer/by-user/${userId}`);
+        return response.data;
+        console.log("deney")
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Müşteri bilgisi alınamadı');
     }
 };
 

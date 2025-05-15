@@ -5,14 +5,14 @@ import {
     getAllCustomers,
     getCustomerById,
     updateCustomer,
-    deleteCustomer,
+    deleteCustomer, getCustomerByUserIdFromStore,
 } from '../../services/customerService';
 
 // Müşteri tipi
 interface Customer {
-    customer_id: number;
+    userId: string;
     address: string;
-    phone_number: number;
+    customerId: number;
 }
 
 interface CustomerState {
@@ -20,6 +20,7 @@ interface CustomerState {
     selectedCustomer: Customer | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
+    loading: boolean;   ///
 }
 
 const initialState: CustomerState = {
@@ -27,6 +28,7 @@ const initialState: CustomerState = {
     selectedCustomer: null,
     status: 'idle',
     error: null,
+    loading: false   //
 };
 
 // Thunk: Yeni müşteri oluşturma
@@ -68,18 +70,18 @@ export const fetchCustomerById = createAsyncThunk(
     }
 );
 
-// Thunk: Müşteri güncelleme
 export const updateCustomerThunk = createAsyncThunk(
     'customer/update',
-    async ({ customer_id, data }: { customer_id: number; data: Partial<Customer> }, { rejectWithValue }) => {
+    async (data: Partial<Customer>, { rejectWithValue }) => {
         try {
-            const response = await updateCustomer(customer_id, data);
+            const response = await updateCustomer(data); // sadece data gönderiyoruz
             return response;
         } catch (error: any) {
             return rejectWithValue(error?.message || 'Müşteri güncellenemedi');
         }
     }
 );
+
 
 // Thunk: Müşteri silme
 export const deleteCustomerThunk = createAsyncThunk(
@@ -93,6 +95,22 @@ export const deleteCustomerThunk = createAsyncThunk(
         }
     }
 );
+
+
+
+export const fetchCustomerByUserIdThunk = createAsyncThunk(
+    'customer/fetchByUserId',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await getCustomerByUserIdFromStore();
+            return response;
+            console.log(response)
+        } catch (error: any) {
+            return rejectWithValue(error?.message || 'Kullanıcıya ait müşteri getirilemedi');
+        }
+    }
+);
+
 
 const customerSlice = createSlice({
     name: 'customer',
@@ -153,7 +171,7 @@ const customerSlice = createSlice({
             })
             .addCase(updateCustomerThunk.fulfilled, (state, action: PayloadAction<Customer>) => {
                 state.status = 'succeeded';
-                const index = state.customers.findIndex(c => c.customer_id === action.payload.customer_id);
+                const index = state.customers.findIndex(c => c.customerId === action.payload.customerId);
                 if (index !== -1) state.customers[index] = action.payload;
             })
             .addCase(updateCustomerThunk.rejected, (state, action) => {
@@ -169,13 +187,30 @@ const customerSlice = createSlice({
             .addCase(deleteCustomerThunk.fulfilled, (state, action) => {
                 state.status = 'succeeded';
                 state.customers = state.customers.filter(
-                    (c) => c.customer_id !== action.payload.customer_id
+                    (c) => c.customerId !== action.payload.customer_id
                 );
             })
             .addCase(deleteCustomerThunk.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload as string;
-            });
+            })
+
+            // FETCH BY USER ID
+            // builder içine ekle
+            .addCase(fetchCustomerByUserIdThunk.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(fetchCustomerByUserIdThunk.fulfilled, (state, action: PayloadAction<Customer>) => {
+                state.status = 'succeeded';
+                state.selectedCustomer = action.payload;
+            })
+            .addCase(fetchCustomerByUserIdThunk.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload as string;
+            })
+
+
     },
 });
 

@@ -1,16 +1,15 @@
-// src/features/cargo/cargoSlice.ts
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import cargoService from '../../services/cargoService';
 
 export interface Cargo {
     id: number;
-    customer_id: number;
-    desc: string;
+    customerId: number;
+    description: string;
     weight: number;
-    dimensions: string;
-    pickUpLocation: string;
-    dropOffLocation: string;
-    status: string;
+    cargoType: string;
+    pickupLocationId: number;
+    dropoffLocationId: number;
 }
 
 interface CargoState {
@@ -41,9 +40,9 @@ export const fetchAllCargos = createAsyncThunk(
 
 export const fetchMyCargos = createAsyncThunk(
     'cargo/fetchMy',
-    async (_, thunkAPI) => {
+    async (customerId:number, thunkAPI) => {
         try {
-            return await cargoService.fetchMyCargos();
+            return await cargoService.fetchMyCargos(customerId);
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -76,9 +75,11 @@ export const updateCargo = createAsyncThunk(
     'cargo/update',
     async ({ id, updatedData }: { id: number; updatedData: Omit<Cargo, 'id'> }, thunkAPI) => {
         try {
-            return await cargoService.updateCargo(id, updatedData);
+            const result = await cargoService.updateCargo(id, updatedData);
+            return result;
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            const errorMessage = error.message || 'Kargo güncellenirken bir hata oluştu';
+            return thunkAPI.rejectWithValue(errorMessage);
         }
     }
 );

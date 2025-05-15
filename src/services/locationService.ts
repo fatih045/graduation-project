@@ -4,7 +4,7 @@ import axiosInstance from './axios.ts';
 // Tüm lokasyonları getir
 export const fetchAllLocations = async () => {
     try {
-        const response = await axiosInstance.get('/Location');
+        const response = await axiosInstance.get('api/Location');
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyonlar alınamadı');
@@ -14,7 +14,7 @@ export const fetchAllLocations = async () => {
 // ID'ye göre lokasyon getir
 export const getLocationById = async (id: number) => {
     try {
-        const response = await axiosInstance.get(`/Location/${id}`);
+        const response = await axiosInstance.get(`api/Location/${id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon bulunamadı');
@@ -26,11 +26,11 @@ export const createLocation = async (locationData: {
     address: string;
     city: string;
     state: string;
-    postal_Code: number;
+    postalCode: number;
     coordinates: string;
 }) => {
     try {
-        const response = await axiosInstance.post('/Location', locationData);
+        const response = await axiosInstance.post('api/Location', locationData);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon oluşturulamadı');
@@ -42,11 +42,11 @@ export const updateLocation = async (id: number, updatedData: {
     address: string;
     city: string;
     state: string;
-    postal_Code: number;
+    postalCode: number;
     coordinates: string;
 }) => {
     try {
-        const response = await axiosInstance.put(`/Location/${id}`, updatedData);
+        const response = await axiosInstance.put(`api/Location/${id}`, updatedData);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon güncellenemedi');
@@ -56,7 +56,7 @@ export const updateLocation = async (id: number, updatedData: {
 // Lokasyonu sil
 export const deleteLocation = async (id: number) => {
     try {
-        const response = await axiosInstance.delete(`/Location/${id}`);
+        const response = await axiosInstance.delete(`api/Location/${id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon silinemedi');

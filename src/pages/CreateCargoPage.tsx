@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { createCargo } from '../features/cargo/cargoSlice';
-
-// Varsayılan müşteri listesi
-const mockCustomers = [
-    { id: 1, name: 'Ahmet Yılmaz' },
-    { id: 2, name: 'Ayşe Demir' },
-    { id: 3, name: 'Mehmet Kaya' }
-];
+import { fetchCustomers } from '../features/customer/customerSlice';
+import { fetchAllLocations } from '../features/location/locationSlice';
+import { RootState, AppDispatch } from '../store/store'; // Store tiplerini ekleyin
 
 const CreateCargo: React.FC = () => {
     // CSS sınıfını document head'e ekle
-    React.useEffect(() => {
+    useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = `
       .select-element {
@@ -27,50 +23,106 @@ const CreateCargo: React.FC = () => {
         };
     }, []);
 
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
-    const [formData, setFormData] = useState({
-        customer_id: '',
-        desc: '',
+    // Redux store'dan müşteri ve lokasyon verilerini al
+    const { customers, loading: customersLoading } = useSelector((state: RootState) => state.customer);
+    const { locations, loading: locationsLoading } = useSelector((state: RootState) => state.location);
+
+    // Sayfa yüklendiğinde müşteri ve lokasyon verilerini getir
+    useEffect(() => {
+        dispatch(fetchCustomers());
+        dispatch(fetchAllLocations());
+    }, [dispatch]);
+
+    interface FormData {
+        customerId: string;
+        description: string;
+        weight: string;
+        cargoType: string;
+        pickupLocationId: string;
+        dropoffLocationId: string;
+    }
+
+    interface FormErrors {
+        customerId?: string;
+        description?: string;
+        weight?: string;
+        cargoType?: string;
+        pickupLocationId?: string;
+        dropoffLocationId?: string;
+        form?: string;
+    }
+
+    const [formData, setFormData] = useState<FormData>({
+        customerId: '',
+        description: '',
         weight: '',
-        dimensions: '',
-        pickUpLocation: '',
-        dropOffLocation: '',
-        status: 'Beklemede'
+        cargoType: '',
+        pickupLocationId: '',
+        dropoffLocationId: ''
     });
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [buttonHover, setButtonHover] = useState(false);
+
+    const cargoTypes = [
+        { id: 'STANDART', name: 'Standart Kargo' },
+        { id: 'EXPRESS', name: 'Express Kargo' },
+        { id: 'HEAVY', name: 'Ağır Yük' },
+        { id: 'FRAGILE', name: 'Kırılgan Eşya' },
+        { id: 'COLD_CHAIN', name: 'Soğuk Zincir' }
+    ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
 
         // Hata mesajını temizle
-        if (errors[name]) {
+        if (errors[name as keyof FormErrors]) {
             setErrors(prev => {
                 const newErrors = { ...prev };
-                delete newErrors[name];
+                delete newErrors[name as keyof FormErrors];
                 return newErrors;
             });
         }
+
+        // Eğer pickup veya dropoff lokasyonu değiştiyse, aynı olmadıklarını kontrol et
+        if (name === 'pickupLocationId' || name === 'dropoffLocationId') {
+            const otherFieldName = name === 'pickupLocationId' ? 'dropoffLocationId' : 'pickupLocationId';
+            const otherFieldValue = formData[otherFieldName as keyof FormData];
+
+            // Eğer her iki lokasyon da seçili ve aynıysa hata ver
+            if (value && otherFieldValue && value === otherFieldValue) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: 'Alım ve teslim lokasyonları aynı olamaz'
+                }));
+            }
+        }
     };
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
 
-        if (!formData.customer_id) newErrors.customer_id = 'Müşteri seçimi zorunludur';
-        if (!formData.desc) newErrors.desc = 'Kargo açıklaması zorunludur';
+        if (!formData.customerId) newErrors.customerId = 'Müşteri seçimi zorunludur';
+        if (!formData.description) newErrors.description = 'Kargo açıklaması zorunludur';
+        if (!formData.cargoType) newErrors.cargoType = 'Kargo tipi zorunludur';
         if (!formData.weight) {
             newErrors.weight = 'Ağırlık zorunludur';
         } else if (isNaN(Number(formData.weight)) || Number(formData.weight) <= 0) {
             newErrors.weight = 'Geçerli bir ağırlık giriniz';
         }
-        if (!formData.dimensions) newErrors.dimensions = 'Boyutlar zorunludur';
-        if (!formData.pickUpLocation) newErrors.pickUpLocation = 'Alım lokasyonu zorunludur';
-        if (!formData.dropOffLocation) newErrors.dropOffLocation = 'Teslim lokasyonu zorunludur';
+        if (!formData.pickupLocationId) newErrors.pickupLocationId = 'Alım lokasyonu zorunludur';
+        if (!formData.dropoffLocationId) newErrors.dropoffLocationId = 'Teslim lokasyonu zorunludur';
+
+        // Aynı lokasyon kontrolü
+        if (formData.pickupLocationId && formData.dropoffLocationId &&
+            formData.pickupLocationId === formData.dropoffLocationId) {
+            newErrors.dropoffLocationId = 'Alım ve teslim lokasyonları aynı olamaz';
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -86,30 +138,29 @@ const CreateCargo: React.FC = () => {
         try {
             // Form verilerini sayısal değerlere dönüştürme
             const cargoData = {
-                customer_id: parseInt(formData.customer_id),
-                desc: formData.desc,
+                customerId: parseInt(formData.customerId),
+                description: formData.description,
                 weight: parseFloat(formData.weight),
-                dimensions: formData.dimensions,
-                pickUpLocation: formData.pickUpLocation,
-                dropOffLocation: formData.dropOffLocation,
-                status: formData.status
+                cargoType: formData.cargoType,
+                pickupLocationId: parseInt(formData.pickupLocationId),
+                dropoffLocationId: parseInt(formData.dropoffLocationId)
             };
 
             // Redux action'ını çağır
-            await dispatch(createCargo(cargoData) as any);
+            await dispatch(createCargo(cargoData));
 
-            // Başarılı mesajı göster
+            // Add alert for successful cargo creation
             setSuccessMessage('Kargo kaydı başarıyla oluşturuldu!');
+            alert('Kargo kaydı başarıyla oluşturuldu!');
 
             // Formu sıfırla
             setFormData({
-                customer_id: '',
-                desc: '',
+                customerId: '',
+                description: '',
                 weight: '',
-                dimensions: '',
-                pickUpLocation: '',
-                dropOffLocation: '',
-                status: 'Beklemede'
+                cargoType: '',
+                pickupLocationId: '',
+                dropoffLocationId: ''
             });
 
             // 3 saniye sonra başarı mesajını kaldır
@@ -125,7 +176,7 @@ const CreateCargo: React.FC = () => {
     };
 
     // Stil tanımlamaları
-    const pageStyle = {
+    const pageStyle: React.CSSProperties = {
         width: '100%',
         minHeight: '100vh',
         display: 'flex',
@@ -135,7 +186,7 @@ const CreateCargo: React.FC = () => {
         fontFamily: 'Arial, sans-serif'
     };
 
-    const containerStyle = {
+    const containerStyle: React.CSSProperties = {
         width: '100%',
         maxWidth: '800px',
         backgroundColor: '#fff',
@@ -144,56 +195,56 @@ const CreateCargo: React.FC = () => {
         padding: '40px'
     };
 
-    const headerStyle = {
+    const headerStyle: React.CSSProperties = {
         fontSize: '28px',
-        fontWeight: 'bold' as const,
+        fontWeight: 'bold',
         color: '#333',
         marginBottom: '30px',
-        textAlign: 'center' as const
+        textAlign: 'center'
     };
 
-    const formStyle = {
+    const formStyle: React.CSSProperties = {
         display: 'flex',
-        flexDirection: 'column' as const,
+        flexDirection: 'column',
         gap: '25px'
     };
 
-    const formGroupStyle = {
+    const formGroupStyle: React.CSSProperties = {
         display: 'flex',
-        flexDirection: 'column' as const,
+        flexDirection: 'column',
         gap: '8px'
     };
 
-    const labelStyle = {
+    const labelStyle: React.CSSProperties = {
         fontSize: '16px',
-        fontWeight: 'bold' as const,
+        fontWeight: 'bold',
         color: '#333'
     };
 
-    const inputStyle = {
+    const inputStyle: React.CSSProperties = {
         padding: '15px',
         fontSize: '16px',
         borderRadius: '10px',
         border: '1px solid #ddd',
         backgroundColor: '#f9f9f9',
         width: '100%',
-        boxSizing: 'border-box' as const
+        boxSizing: 'border-box'
     };
 
-    const selectStyle = {
+    const selectStyle: React.CSSProperties = {
         ...inputStyle
     };
 
-    const textareaStyle = {
+    const textareaStyle: React.CSSProperties = {
         ...inputStyle,
         minHeight: '100px',
-        resize: 'vertical' as const
+        resize: 'vertical'
     };
 
-    const buttonStyle = {
+    const buttonStyle: React.CSSProperties = {
         padding: '16px',
         fontSize: '16px',
-        fontWeight: 'bold' as const,
+        fontWeight: 'bold',
         backgroundColor: '#e63946',
         color: 'white',
         border: 'none',
@@ -203,25 +254,45 @@ const CreateCargo: React.FC = () => {
         marginTop: '15px'
     };
 
-    const buttonHoverStyle = {
+    const buttonHoverStyle: React.CSSProperties = {
         backgroundColor: '#d90429'
     };
 
-    const errorStyle = {
+    const errorStyle: React.CSSProperties = {
         color: '#e63946',
         fontSize: '14px',
         marginTop: '5px'
     };
 
-    const successStyle = {
+    const successStyle: React.CSSProperties = {
         backgroundColor: '#57cc99',
         color: 'white',
         padding: '15px',
         borderRadius: '10px',
-        textAlign: 'center' as const,
+        textAlign: 'center',
         marginBottom: '20px',
-        fontWeight: 'bold' as const
+        fontWeight: 'bold'
     };
+
+    const loadingStyle: React.CSSProperties = {
+        textAlign: 'center',
+        padding: '20px',
+        color: '#666'
+    };
+
+    // Veriler yükleniyorsa loading göster
+    if (customersLoading || locationsLoading) {
+        return (
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <div style={loadingStyle}>
+                        <h2>Veriler yükleniyor...</h2>
+                        <p>Lütfen bekleyiniz</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={pageStyle}>
@@ -235,121 +306,124 @@ const CreateCargo: React.FC = () => {
                 )}
 
                 {errors.form && (
-                    <div style={{...errorStyle, padding: '15px', backgroundColor: '#ffeeee', marginBottom: '20px'}}>
+                    <div style={{...errorStyle, padding: '15px', backgroundColor: '#ffeeee', marginBottom: '20px'} as React.CSSProperties}>
                         {errors.form}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} style={formStyle}>
                     <div style={formGroupStyle}>
-                        <label style={labelStyle} htmlFor="customer_id">Müşteri</label>
+                        <label style={labelStyle} htmlFor="customerId">Müşteri Adresi</label>
                         <select
-                            id="customer_id"
-                            name="customer_id"
-                            value={formData.customer_id}
+                            id="customerId"
+                            name="customerId"
+                            value={formData.customerId}
                             onChange={handleChange}
                             style={selectStyle}
                             className="select-element"
                         >
-                            <option value="">Müşteri Seçin</option>
-                            {mockCustomers.map(customer => (
-                                <option key={customer.id} value={customer.id}>
-                                    {customer.name}
+                            <option value="">Müşteri Adresi Seçin</option>
+                            {customers && customers.map(customer => (
+                                <option key={customer.customerId} value={customer.customerId}>
+                                    {customer.address}
                                 </option>
                             ))}
                         </select>
-                        {errors.customer_id && <span style={errorStyle}>{errors.customer_id}</span>}
+                        {errors.customerId && <span style={errorStyle}>{errors.customerId}</span>}
                     </div>
 
                     <div style={formGroupStyle}>
-                        <label style={labelStyle} htmlFor="desc">Kargo Açıklaması</label>
+                        <label style={labelStyle} htmlFor="cargoType">Kargo Tipi</label>
+                        <select
+                            id="cargoType"
+                            name="cargoType"
+                            value={formData.cargoType}
+                            onChange={handleChange}
+                            style={selectStyle}
+                            className="select-element"
+                        >
+                            <option value="">Kargo Tipi Seçin</option>
+                            {cargoTypes.map(type => (
+                                <option key={type.id} value={type.id}>
+                                    {type.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.cargoType && <span style={errorStyle}>{errors.cargoType}</span>}
+                    </div>
+
+                    <div style={formGroupStyle}>
+                        <label style={labelStyle} htmlFor="description">Kargo Açıklaması</label>
                         <textarea
-                            id="desc"
-                            name="desc"
-                            value={formData.desc}
+                            id="description"
+                            name="description"
+                            value={formData.description}
                             onChange={handleChange}
                             style={textareaStyle}
                             placeholder="Kargo içeriği hakkında detaylı bilgi giriniz"
                         />
-                        {errors.desc && <span style={errorStyle}>{errors.desc}</span>}
+                        {errors.description && <span style={errorStyle}>{errors.description}</span>}
                     </div>
 
-                    <div style={{display: 'flex', gap: '20px', flexWrap: 'wrap'}}>
-                        <div style={{...formGroupStyle, flex: '1', minWidth: '200px'}}>
-                            <label style={labelStyle} htmlFor="weight">Ağırlık (kg)</label>
-                            <input
-                                type="number"
-                                id="weight"
-                                name="weight"
-                                value={formData.weight}
-                                onChange={handleChange}
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                                style={inputStyle}
-                            />
-                            {errors.weight && <span style={errorStyle}>{errors.weight}</span>}
-                        </div>
-
-                        <div style={{...formGroupStyle, flex: '1', minWidth: '200px'}}>
-                            <label style={labelStyle} htmlFor="dimensions">Boyutlar (En x Boy x Yükseklik)</label>
-                            <input
-                                type="text"
-                                id="dimensions"
-                                name="dimensions"
-                                value={formData.dimensions}
-                                onChange={handleChange}
-                                placeholder="Örn: 30cm x 20cm x 15cm"
-                                style={inputStyle}
-                            />
-                            {errors.dimensions && <span style={errorStyle}>{errors.dimensions}</span>}
-                        </div>
-                    </div>
-
-                    <div style={formGroupStyle}>
-                        <label style={labelStyle} htmlFor="pickUpLocation">Alım Lokasyonu</label>
+                    <div style={{...formGroupStyle}}>
+                        <label style={labelStyle} htmlFor="weight">Ağırlık (kg)</label>
                         <input
-                            type="text"
-                            id="pickUpLocation"
-                            name="pickUpLocation"
-                            value={formData.pickUpLocation}
+                            type="number"
+                            id="weight"
+                            name="weight"
+                            value={formData.weight}
                             onChange={handleChange}
-                            placeholder="Tam adres giriniz"
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
                             style={inputStyle}
                         />
-                        {errors.pickUpLocation && <span style={errorStyle}>{errors.pickUpLocation}</span>}
+                        {errors.weight && <span style={errorStyle}>{errors.weight}</span>}
                     </div>
 
                     <div style={formGroupStyle}>
-                        <label style={labelStyle} htmlFor="dropOffLocation">Teslim Lokasyonu</label>
-                        <input
-                            type="text"
-                            id="dropOffLocation"
-                            name="dropOffLocation"
-                            value={formData.dropOffLocation}
-                            onChange={handleChange}
-                            placeholder="Tam adres giriniz"
-                            style={inputStyle}
-                        />
-                        {errors.dropOffLocation && <span style={errorStyle}>{errors.dropOffLocation}</span>}
-                    </div>
-
-                    <div style={formGroupStyle}>
-                        <label style={labelStyle} htmlFor="status">Durum</label>
+                        <label style={labelStyle} htmlFor="pickupLocationId">Alım Lokasyonu</label>
                         <select
-                            id="status"
-                            name="status"
-                            value={formData.status}
+                            id="pickupLocationId"
+                            name="pickupLocationId"
+                            value={formData.pickupLocationId}
                             onChange={handleChange}
                             style={selectStyle}
                             className="select-element"
                         >
-                            <option value="Beklemede">Beklemede</option>
-                            <option value="Hazırlanıyor">Hazırlanıyor</option>
-                            <option value="Yolda">Yolda</option>
-                            <option value="Teslim Edildi">Teslim Edildi</option>
-                            <option value="İptal Edildi">İptal Edildi</option>
+                            <option value="">Alım Lokasyonu Seçin</option>
+                            {locations && locations.map(location => (
+                                <option key={location.id} value={location.id}>
+                                    {location.city} - {location.address}
+                                </option>
+                            ))}
                         </select>
+                        {errors.pickupLocationId && <span style={errorStyle}>{errors.pickupLocationId}</span>}
+                    </div>
+
+                    <div style={formGroupStyle}>
+                        <label style={labelStyle} htmlFor="dropoffLocationId">Teslim Lokasyonu</label>
+                        <select
+                            id="dropoffLocationId"
+                            name="dropoffLocationId"
+                            value={formData.dropoffLocationId}
+                            onChange={handleChange}
+                            style={selectStyle}
+                            className="select-element"
+                        >
+                            <option value="">Teslim Lokasyonu Seçin</option>
+                            {locations && locations.map(location => (
+                                <option
+                                    key={location.id}
+                                    value={location.id}
+                                    disabled={location.id === parseInt(formData.pickupLocationId)}
+                                >
+                                    {location.city} - {location.address}
+                                    {location.id === parseInt(formData.pickupLocationId) ? ' (Alım lokasyonu ile aynı)' : ''}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.dropoffLocationId && <span style={errorStyle}>{errors.dropoffLocationId}</span>}
                     </div>
 
                     <button

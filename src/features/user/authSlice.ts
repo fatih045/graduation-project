@@ -4,17 +4,31 @@ import { registerUser, loginUser, confirmEmail } from '../../services/AuthServic
 import { decodeToken } from '../../utils/jwt';
 
 // State tipi
-interface AuthState {
+export interface AuthState {
     user: any | null;
     token: string | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
 }
 
+// localStorage'dan token'ı al
+const storedToken = localStorage.getItem('token');
+let decodedUser = null;
+
+// Token varsa kullanıcı bilgisini çöz
+if (storedToken) {
+    try {
+        decodedUser = decodeToken(storedToken);
+    } catch (error) {
+        // Token geçersizse localStorage'dan temizle
+        localStorage.removeItem('token');
+    }
+}
+
 const initialState: AuthState = {
-    user: null,
-    token: null,
-    status: 'idle',
+    user: decodedUser,
+    token: storedToken,
+    status: storedToken ? 'succeeded' : 'idle',
     error: null,
 };
 
@@ -72,6 +86,8 @@ const authSlice = createSlice({
             state.token = null;
             state.status = 'idle';
             state.error = null;
+            // Logout olunca localStorage'dan token'ı temizle
+            localStorage.removeItem('token');
         },
     },
     extraReducers: (builder) => {
@@ -129,4 +145,5 @@ const authSlice = createSlice({
 
 export const { logout } = authSlice.actions;
 
+// Sadece bir default export olmalı
 export default authSlice.reducer;
