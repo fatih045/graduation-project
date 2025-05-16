@@ -72,6 +72,12 @@ const Sidebar: React.FC = () => {
                     <Link to="/transport/history" className="side-bar__item">
                         <i className="fas fa-archive"></i> Geçmiş Taşımalarım
                     </Link>
+                    <Link to="/carrierManagement" className="side-bar__item">
+                        <i className="fas fa-archive"></i>Araç Yönetimi
+                    </Link>
+                    <Link to="/vehicleTypeManagement" className="side-bar__item">
+                        <i className="fas fa-archive"></i>Araç  Türü Yönetimi
+                    </Link>
 
                 </div>
 

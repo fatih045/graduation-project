@@ -2,7 +2,7 @@ import axiosInstance from './axios.ts';
 
 export const getAllVehicles = async () => {
     try {
-        const response = await axiosInstance.get('/Vehicles');
+        const response = await axiosInstance.get('api/Vehicle');
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Veriler alınamadı');
@@ -11,7 +11,7 @@ export const getAllVehicles = async () => {
 
 export const getVehicleById = async (id: number) => {
     try {
-        const response = await axiosInstance.get(`/Vehicles/${id}`);
+        const response = await axiosInstance.get(`api/Vehicle/${id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Araç bulunamadı');
@@ -19,14 +19,15 @@ export const getVehicleById = async (id: number) => {
 };
 
 export const createVehicle = async (data: {
-    carrier_id: number;
-    vehicleType_id: number;
+    carrierId: number;
+    vehicleTypeId: number;
     capacity: number;
-    license_palete: string;
-    availability_status: boolean;
+    licensePlate: string;
+    availabilityStatus: boolean;
+    model: string;
 }) => {
     try {
-        const response = await axiosInstance.post('/Vehicles', data);
+        const response = await axiosInstance.post('api/Vehicle', data);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Araç eklenemedi');
@@ -36,15 +37,16 @@ export const createVehicle = async (data: {
 export const updateVehicle = async (
     id: number,
     data: {
-        carrier_id: number;
-        vehicleType_id: number;
+        carrierId: number;
+        vehicleTypeId: number;
         capacity: number;
-        license_palete: string;
-        availability_status: boolean;
+        licensePlate: string;
+        availabilityStatus: boolean;
+        model: string;
     }
 ) => {
     try {
-        const response = await axiosInstance.put(`/Vehicles/${id}`, data);
+        const response = await axiosInstance.put(`api/Vehicle/${id}`, { id, ...data });
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Güncelleme başarısız');
@@ -53,9 +55,21 @@ export const updateVehicle = async (
 
 export const deleteVehicle = async (id: number) => {
     try {
-        const response = await axiosInstance.delete(`/Vehicles/${id}`);
+        const response = await axiosInstance.delete(`api/Vehicle/${id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Silme başarısız');
     }
 };
+
+export const getVehiclesByCarrier = async (carrierId: number) => {
+    try {
+        const response = await axiosInstance.get(`api/Vehicle/by-carrier/${carrierId}`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Araçlar getirilemedi');
+    }
+};
+
+
+

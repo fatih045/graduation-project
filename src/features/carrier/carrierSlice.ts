@@ -5,121 +5,144 @@ import {
     createCarrier,
     updateCarrier,
     deleteCarrier,
+    getCarrierByUserId,
 } from '../../services/carrierService';
 
+// 🎯 Types
 export interface Carrier {
-    carrier_id: number;
-    vehicleType_id: number;
-    license_number: string;
-    availability_Status: boolean;
+    carrierId: number;
+    userId: number;
+    licenseNumber: string;
+    availabilityStatus: boolean;
+    id: number;
 }
 
 interface CarrierState {
-    items: Carrier[];
-    selected: Carrier | null;
-    status: 'idle' | 'loading' | 'succeeded' | 'failed';
+    carriers: Carrier[];
+    selectedCarrier: Carrier | null;
+    loading: boolean;
     error: string | null;
 }
 
+// 🧊 Initial State
 const initialState: CarrierState = {
-    items: [],
-    selected: null,
-    status: 'idle',
+    carriers: [],
+    selectedCarrier: null,
+    loading: false,
     error: null,
 };
 
-// Thunks
-export const fetchCarriers = createAsyncThunk('carrier/fetchAll', async (_, { rejectWithValue }) => {
+// 🔄 Thunks
+export const fetchAllCarriers = createAsyncThunk('carrier/fetchAll', async (_, thunkAPI) => {
     try {
-        const response = await getAllCarriers();
-        return response;
+        return await getAllCarriers();
     } catch (error: any) {
-        return rejectWithValue(error.message);
+        return thunkAPI.rejectWithValue(error.message);
     }
 });
 
-export const fetchCarrierById = createAsyncThunk('carrier/fetchById', async (id: number, { rejectWithValue }) => {
+export const fetchCarrierById = createAsyncThunk('carrier/fetchById', async (id: number, thunkAPI) => {
     try {
-        const response = await getCarrierById(id);
-        return response;
+        return await getCarrierById(id);
     } catch (error: any) {
-        return rejectWithValue(error.message);
+        return thunkAPI.rejectWithValue(error.message);
     }
 });
 
-export const addCarrier = createAsyncThunk('carrier/add', async (data: Omit<Carrier, 'carrier_id'>, { rejectWithValue }) => {
+export const fetchCarrierByUserId = createAsyncThunk('carrier/fetchByUserId', async (userId: number, thunkAPI) => {
     try {
-        const response = await createCarrier(data);
-        return response;
+        return await getCarrierByUserId(userId);
     } catch (error: any) {
-        return rejectWithValue(error.message);
+        return thunkAPI.rejectWithValue(error.message);
     }
 });
 
-export const editCarrier = createAsyncThunk(
-    'carrier/edit',
-    async ({ id, data }: { id: number; data: Omit<Carrier, 'carrier_id'> }, { rejectWithValue }) => {
-        try {
-            const response = await updateCarrier(id, data);
-            return response;
-        } catch (error: any) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-export const removeCarrier = createAsyncThunk('carrier/remove', async (id: number, { rejectWithValue }) => {
+export const addCarrier = createAsyncThunk('carrier/create', async (data: {
+    userId: number;
+    licenseNumber: string;
+    availabilityStatus: boolean;
+}, thunkAPI) => {
     try {
-        const response = await deleteCarrier(id);
-        return response;
+        return await createCarrier(data);
     } catch (error: any) {
-        return rejectWithValue(error.message);
+        return thunkAPI.rejectWithValue(error.message);
     }
 });
 
-// Slice
+export const editCarrier = createAsyncThunk('carrier/update', async (data: {
+    carrierId: number;
+    licenseNumber: string;
+    availabilityStatus: boolean;
+}, thunkAPI) => {
+    try {
+        return await updateCarrier(data);
+    } catch (error: any) {
+        return thunkAPI.rejectWithValue(error.message);
+    }
+});
+
+export const removeCarrier = createAsyncThunk('carrier/delete', async (id: number, thunkAPI) => {
+    try {
+        await deleteCarrier(id);
+        return id;
+    } catch (error: any) {
+        return thunkAPI.rejectWithValue(error.message);
+    }
+});
+
+// 🧩 Slice
 const carrierSlice = createSlice({
     name: 'carrier',
     initialState,
     reducers: {
-        clearSelectedCarrier: (state) => {
-            state.selected = null;
+        clearSelectedCarrier(state) {
+            state.selectedCarrier = null;
         },
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchCarriers.pending, (state) => {
-                state.status = 'loading';
+            // fetchAllCarriers
+            .addCase(fetchAllCarriers.pending, (state) => {
+                state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchCarriers.fulfilled, (state, action: PayloadAction<Carrier[]>) => {
-                state.status = 'succeeded';
-                state.items = action.payload;
+            .addCase(fetchAllCarriers.fulfilled, (state, action: PayloadAction<Carrier[]>) => {
+                state.loading = false;
+                state.carriers = action.payload;
             })
-            .addCase(fetchCarriers.rejected, (state, action) => {
-                state.status = 'failed';
+            .addCase(fetchAllCarriers.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.payload as string;
             })
 
+            // fetchCarrierById
             .addCase(fetchCarrierById.fulfilled, (state, action: PayloadAction<Carrier>) => {
-                state.selected = action.payload;
+                state.selectedCarrier = action.payload;
             })
 
+            // fetchCarrierByUserId
+            .addCase(fetchCarrierByUserId.fulfilled, (state, action: PayloadAction<Carrier>) => {
+                state.selectedCarrier = action.payload;
+            })
+
+            // addCarrier
             .addCase(addCarrier.fulfilled, (state, action: PayloadAction<Carrier>) => {
-                state.items.push(action.payload);
+                state.carriers.push(action.payload);
             })
 
+            // editCarrier
             .addCase(editCarrier.fulfilled, (state, action: PayloadAction<Carrier>) => {
-                const index = state.items.findIndex(c => c.carrier_id === action.payload.carrier_id);
-                if (index !== -1) state.items[index] = action.payload;
+                const index = state.carriers.findIndex(c => c.carrierId === action.payload.carrierId);
+                if (index !== -1) state.carriers[index] = action.payload;
             })
 
-            .addCase(removeCarrier.fulfilled, (state, action: PayloadAction<any>) => {
-                state.items = state.items.filter(c => c.carrier_id !== action.payload.carrier_id);
+            // removeCarrier
+            .addCase(removeCarrier.fulfilled, (state, action: PayloadAction<number>) => {
+                state.carriers = state.carriers.filter(c => c.carrierId !== action.payload);
             });
     },
 });
 
+// 📤 Export
 export const { clearSelectedCarrier } = carrierSlice.actions;
-
 export default carrierSlice.reducer;

@@ -1,3 +1,4 @@
+
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
     getAllVehicleTypes,
@@ -7,9 +8,9 @@ import {
     deleteVehicleType
 } from '../../services/vehicleTypeService';
 
-// Tip tanımı
+// Tip tanımı - VehicleType interface'i API yanıtına uygun olarak güncellenmiştir
 export interface VehicleType {
-    id: number;
+    vehicleTypeId: number; // id yerine vehicleTypeId kullanılıyor
     name: string;
     description: string;
 }
@@ -47,7 +48,7 @@ export const fetchVehicleTypeById = createAsyncThunk('vehicleType/fetchById', as
     }
 });
 
-export const addVehicleType = createAsyncThunk('vehicleType/add', async (data: { name: string; desc: string }, { rejectWithValue }) => {
+export const addVehicleType = createAsyncThunk('vehicleType/add', async (data: { name: string; description: string }, { rejectWithValue }) => {
     try {
         const response = await createVehicleType(data);
         return response;
@@ -56,19 +57,26 @@ export const addVehicleType = createAsyncThunk('vehicleType/add', async (data: {
     }
 });
 
-export const editVehicleType = createAsyncThunk('vehicleType/edit', async ({ id, data }: { id: number; data: { name: string; desc: string } }, { rejectWithValue }) => {
-    try {
-        const response = await updateVehicleType(id, data);
-        return response;
-    } catch (error: any) {
-        return rejectWithValue(error.message);
+export const editVehicleType = createAsyncThunk(
+    'vehicleType/edit',
+    async ({ id, data }: { id: number; data: { name: string; description: string } }, { rejectWithValue }) => {
+        try {
+            const payload = {
+                vehicleTypeId: id,
+                ...data,
+            };
+            const response = await updateVehicleType(id, payload);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(error.message);
+        }
     }
-});
+);
 
 export const removeVehicleType = createAsyncThunk('vehicleType/remove', async (id: number, { rejectWithValue }) => {
     try {
         const response = await deleteVehicleType(id);
-        return response;
+        return { id }; // API response yerine direkt id döndürüyoruz
     } catch (error: any) {
         return rejectWithValue(error.message);
     }
@@ -107,12 +115,14 @@ const vehicleTypeSlice = createSlice({
             })
 
             .addCase(editVehicleType.fulfilled, (state, action: PayloadAction<VehicleType>) => {
-                const index = state.items.findIndex((x) => x.id === action.payload.id);
+                // vehicleTypeId ile eşleştirilerek düzenlenen öğe bulunur
+                const index = state.items.findIndex((x) => x.vehicleTypeId === action.payload.vehicleTypeId);
                 if (index !== -1) state.items[index] = action.payload;
             })
 
-            .addCase(removeVehicleType.fulfilled, (state, action: PayloadAction<any>) => {
-                state.items = state.items.filter((x) => x.id !== action.payload.id);
+            .addCase(removeVehicleType.fulfilled, (state, action: PayloadAction<{ id: number }>) => {
+                // Silinen öğe vehicleTypeId ile filtrelenir
+                state.items = state.items.filter((x) => x.vehicleTypeId !== action.payload.id);
             });
     },
 });

@@ -14,6 +14,8 @@ import CargoList from "../pages/CargoListPage.tsx"
 import MyCargoList from "../pages/MyCargoList.tsx"
 import LocationsPage from "../pages/LocationsPage.tsx";
 import CustomerPage from "../pages/CustomerPage.tsx";
+import CarrierPage from "../pages/CarrierPage.tsx";
+import VehicleTypesPage from "../pages/VehicleTypesPage.tsx";
 
 
 const AppRoutes = () => {
@@ -33,6 +35,8 @@ const AppRoutes = () => {
             <Route path="/mycargo" element={<MyCargoList/>} />
             <Route path="/mylocations" element={<LocationsPage/>} />
             <Route path="/customer-management" element={<CustomerPage/>} />
+            <Route path="/carrierManagement" element={<CarrierPage/>} />
+            <Route path="/vehicleTypeManagement" element={<VehicleTypesPage/>} />
 
 
 
