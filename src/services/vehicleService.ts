@@ -19,11 +19,11 @@ export const getVehicleById = async (id: number) => {
 };
 
 export const createVehicle = async (data: {
-    carrierId: number;
-    vehicleTypeId: number;
+    carrierId: string;
+    title: string;
+    vehicleType: string;
     capacity: number;
     licensePlate: string;
-    availabilityStatus: boolean;
     model: string;
 }) => {
     try {
@@ -37,11 +37,11 @@ export const createVehicle = async (data: {
 export const updateVehicle = async (
     id: number,
     data: {
-        carrierId: number;
-        vehicleTypeId: number;
+        carrierId: string;
+        title: string;
+        vehicleType: string;
         capacity: number;
         licensePlate: string;
-        availabilityStatus: boolean;
         model: string;
     }
 ) => {
@@ -70,6 +70,3 @@ export const getVehiclesByCarrier = async (carrierId: number) => {
         throw new Error(error.response?.data?.message || 'Araçlar getirilemedi');
     }
 };
-
-
-

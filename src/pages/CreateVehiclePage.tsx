@@ -1,291 +1,68 @@
-// import React, { useState } from 'react';
-// import { useAppDispatch } from '../store/store.ts';
-// import { addVehicle } from '../features/vehicle/vehicleSlice.ts';
-//
-// interface VehicleType {
-//     id: number;
-//     name: string;
-// }
-//
-// const dummyVehicleTypes: VehicleType[] = [
-//     { id: 1, name: 'Tır' },
-//     { id: 2, name: 'Kamyon' },
-// ];
-//
-// const CreateVehiclePage = () => {
-//     const dispatch = useAppDispatch();
-//
-//     const [vehicleTypeId, setVehicleTypeId] = useState<number | 'new' | null>(null);
-//     const [newVehicleType, setNewVehicleType] = useState('');
-//     const [capacity, setCapacity] = useState('');
-//     const [licensePalete, setLicensePalete] = useState('');
-//     const [availabilityStatus, setAvailabilityStatus] = useState(true);
-//
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//
-//         const selectedVehicleTypeId =
-//             vehicleTypeId === 'new'
-//                 ? Math.floor(Math.random() * 1000) + 100
-//                 : vehicleTypeId;
-//
-//         dispatch(addVehicle({
-//             carrier_id: 1,
-//             vehicleType_id: selectedVehicleTypeId as number,
-//             capacity: parseFloat(capacity),
-//             license_palete: licensePalete,
-//             availability_status: availabilityStatus
-//         }));
-//     };
-//
-//     return (
-//         <div className="main-content" style={{
-//             width: '100%',
-//             minHeight: '100vh',
-//             display: 'flex',
-//             alignItems: 'center',
-//             justifyContent: 'center',
-//             padding: '5%'
-//         }}>
-//             <div className="form-container" style={{
-//                 width: '100%',
-//                 maxWidth: '800px',
-//                 backgroundColor: '#fff',
-//                 borderRadius: '20px',
-//                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-//                 padding: '40px',
-//                 margin: '0 auto'
-//             }}>
-//                 <h1 style={{
-//                     fontSize: '32px',
-//                     fontWeight: 'bold',
-//                     color: '#333',
-//                     marginBottom: '30px',
-//                     textAlign: 'center'
-//                 }}>Araç Oluştur</h1>
-//
-//                 <form onSubmit={handleSubmit} style={{
-//                     display: 'flex',
-//                     flexDirection: 'column',
-//                     gap: '25px'
-//                 }}>
-//                     {/* Araç Türü */}
-//                     <div className="form-group">
-//                         <label style={{
-//                             display: 'block',
-//                             fontSize: '18px',
-//                             fontWeight: '500',
-//                             marginBottom: '10px'
-//                         }}>Araç Türü</label>
-//                         <select
-//                             style={{
-//                                 width: '100%',
-//                                 padding: '15px',
-//                                 fontSize: '16px',
-//                                 border: '1px solid #ddd',
-//                                 borderRadius: '10px',
-//                                 backgroundColor: '#f9f9f9',
-//                                 outline: 'none',
-//                                 transition: 'border-color 0.3s, box-shadow 0.3s'
-//                             }}
-//                             value={vehicleTypeId ?? ''}
-//                             onChange={(e) => {
-//                                 const value = e.target.value;
-//                                 if (value === 'new') {
-//                                     setVehicleTypeId('new');
-//                                 } else if (value === '') {
-//                                     setVehicleTypeId(null);
-//                                 } else {
-//                                     setVehicleTypeId(Number(value));
-//                                 }
-//                             }}
-//                             required
-//                         >
-//                             <option value="">Seçiniz</option>
-//                             {dummyVehicleTypes.map((type) => (
-//                                 <option key={type.id} value={type.id}>{type.name}</option>
-//                             ))}
-//                             <option value="new">+ Yeni Tür Ekle</option>
-//                         </select>
-//
-//                         {vehicleTypeId === 'new' && (
-//                             <input
-//                                 type="text"
-//                                 style={{
-//                                     width: '100%',
-//                                     padding: '15px',
-//                                     fontSize: '16px',
-//                                     border: '1px solid #ddd',
-//                                     borderRadius: '10px',
-//                                     backgroundColor: '#f9f9f9',
-//                                     outline: 'none',
-//                                     marginTop: '15px',
-//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
-//                                 }}
-//                                 placeholder="Yeni araç türü girin"
-//                                 value={newVehicleType}
-//                                 onChange={(e) => setNewVehicleType(e.target.value)}
-//                                 required
-//                             />
-//                         )}
-//                     </div>
-//
-//                     {/* Kapasite */}
-//                     <div className="form-group">
-//                         <label style={{
-//                             display: 'block',
-//                             fontSize: '18px',
-//                             fontWeight: '500',
-//                             marginBottom: '10px'
-//                         }}>Kapasite (ton)</label>
-//                         <input
-//                             type="number"
-//                             style={{
-//                                 width: '100%',
-//                                 padding: '15px',
-//                                 fontSize: '16px',
-//                                 border: '1px solid #ddd',
-//                                 borderRadius: '10px',
-//                                 backgroundColor: '#f9f9f9',
-//                                 outline: 'none',
-//                                 transition: 'border-color 0.3s, box-shadow 0.3s'
-//                             }}
-//                             value={capacity}
-//                             onChange={(e) => setCapacity(e.target.value)}
-//                             required
-//                             step="0.1"
-//                             min="0"
-//                         />
-//                     </div>
-//
-//                     {/* Plaka */}
-//                     <div className="form-group">
-//                         <label style={{
-//                             display: 'block',
-//                             fontSize: '18px',
-//                             fontWeight: '500',
-//                             marginBottom: '10px'
-//                         }}>Plaka</label>
-//                         <input
-//                             type="text"
-//                             style={{
-//                                 width: '100%',
-//                                 padding: '15px',
-//                                 fontSize: '16px',
-//                                 border: '1px solid #ddd',
-//                                 borderRadius: '10px',
-//                                 backgroundColor: '#f9f9f9',
-//                                 outline: 'none',
-//                                 transition: 'border-color 0.3s, box-shadow 0.3s'
-//                             }}
-//                             value={licensePalete}
-//                             onChange={(e) => setLicensePalete(e.target.value)}
-//                             required
-//                         />
-//                     </div>
-//
-//                     {/* Müsaitlik */}
-//                     <div className="form-group checkbox" style={{
-//                         display: 'flex',
-//                         alignItems: 'center',
-//                         gap: '10px'
-//                     }}>
-//                         <input
-//                             type="checkbox"
-//                             style={{
-//                                 width: '24px',
-//                                 height: '24px',
-//                                 accentColor: '#e63946',
-//                                 cursor: 'pointer'
-//                             }}
-//                             checked={availabilityStatus}
-//                             onChange={(e) => setAvailabilityStatus(e.target.checked)}
-//                             id="availability"
-//                         />
-//                         <label
-//                             htmlFor="availability"
-//                             style={{
-//                                 fontSize: '18px',
-//                                 fontWeight: '500',
-//                                 cursor: 'pointer'
-//                             }}
-//                         >
-//                             Müsait
-//                         </label>
-//                     </div>
-//
-//                     {/* Submit Buton */}
-//                     <button
-//                         type="submit"
-//                         style={{
-//                             backgroundColor: '#e63946',
-//                             color: 'white',
-//                             padding: '16px',
-//                             fontSize: '18px',
-//                             fontWeight: '600',
-//                             border: 'none',
-//                             borderRadius: '10px',
-//                             cursor: 'pointer',
-//                             marginTop: '15px',
-//                             transition: 'background-color 0.3s'
-//                         }}
-//                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d62838'}
-//                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e63946'}
-//                     >
-//                         Araç Ekle
-//                     </button>
-//                 </form>
-//             </div>
-//         </div>
-//     );
-// };
-//
-// export default CreateVehiclePage;
-
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/store.ts';
 import { addVehicle } from '../features/vehicle/vehicleSlice.ts';
-import { fetchVehicleTypes } from '../features/vehicleType/vehicleTypeSlice.ts';
-
-interface VehicleType {
-    vehicleTypeId: number;
-    name: string;
-    description: string;
-}
 
 const CreateVehiclePage = () => {
     const dispatch = useAppDispatch();
 
-    // Get vehicle types from the store
-    const vehicleTypes = useAppSelector(state => state.vehicleType.items);
-    const carrierId = useAppSelector(state => state.auth.user?.carrierId || 1); // Assuming the carrier ID is stored in auth state
+    // Get state from vehicle slice
+    const carrierId = useAppSelector(state => state.auth.user?.carrierId || "1");
+    const vehicleStatus = useAppSelector(state => state.vehicle.status);
+    const vehicleError = useAppSelector(state => state.vehicle.error);
 
-    // Local state
-    const [vehicleTypeId, setVehicleTypeId] = useState<number | null>(null);
+    // Local state - slice'daki Vehicle interface'ine tam uygun
+    const [title, setTitle] = useState('');
+    const [vehicleType, setVehicleType] = useState('');
     const [capacity, setCapacity] = useState('');
     const [licensePlate, setLicensePlate] = useState('');
     const [model, setModel] = useState('');
-    const [availabilityStatus, setAvailabilityStatus] = useState(true);
 
-    // Fetch vehicle types when component mounts
-    useEffect(() => {
-        dispatch(fetchVehicleTypes());
-    }, [dispatch]);
+    // Araç türü seçenekleri (hardcoded string array)
+    const vehicleTypeOptions = [
+        'TarpaulinTruck',
+        'BoxTruck',
+        'RefrigeratedTruck',
+        'SemiTrailer',
+        'LightTruck',
+        'ContainerCarrier',
+        'TankTruck',
+        'LowbedTrailer',
+        'DumpTruck',
+        'PanelVan',
+        'Others'
+
+    ];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (vehicleTypeId === null) return;
+        if (!vehicleType || !title || !capacity || !licensePlate || !model) {
+            alert('Lütfen tüm alanları doldurun');
+            return;
+        }
 
+        // Slice'daki Vehicle interface'ine tam uygun veri gönder
         dispatch(addVehicle({
             carrierId: carrierId,
-            vehicleTypeId: vehicleTypeId,
+            title: title,
+            vehicleType: vehicleType,
             capacity: parseFloat(capacity),
             licensePlate: licensePlate,
-            availabilityStatus: availabilityStatus,
             model: model
         }));
     };
+
+    // Success durumunda form temizle
+    useEffect(() => {
+        if (vehicleStatus === 'succeeded') {
+            setTitle('');
+            setVehicleType('');
+            setCapacity('');
+            setLicensePlate('');
+            setModel('');
+            alert('Araç başarıyla eklendi!');
+        }
+    }, [vehicleStatus]);
 
     return (
         <div className="main-content" style={{
@@ -313,11 +90,51 @@ const CreateVehiclePage = () => {
                     textAlign: 'center'
                 }}>Araç Oluştur</h1>
 
+                {vehicleError && (
+                    <div style={{
+                        backgroundColor: '#fee',
+                        color: '#c33',
+                        padding: '10px',
+                        borderRadius: '5px',
+                        marginBottom: '20px',
+                        textAlign: 'center'
+                    }}>
+                        Hata: {vehicleError}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '25px'
                 }}>
+                    {/* Araç Başlığı */}
+                    <div className="form-group">
+                        <label style={{
+                            display: 'block',
+                            fontSize: '18px',
+                            fontWeight: '500',
+                            marginBottom: '10px'
+                        }}>Araç Başlığı</label>
+                        <input
+                            type="text"
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                fontSize: '16px',
+                                border: '1px solid #ddd',
+                                borderRadius: '10px',
+                                backgroundColor: '#f9f9f9',
+                                outline: 'none',
+                                transition: 'border-color 0.3s, box-shadow 0.3s'
+                            }}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Örn: Kamyon 1"
+                            required
+                        />
+                    </div>
+
                     {/* Araç Türü */}
                     <div className="form-group">
                         <label style={{
@@ -337,21 +154,14 @@ const CreateVehiclePage = () => {
                                 outline: 'none',
                                 transition: 'border-color 0.3s, box-shadow 0.3s'
                             }}
-                            value={vehicleTypeId ?? ''}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === '') {
-                                    setVehicleTypeId(null);
-                                } else {
-                                    setVehicleTypeId(Number(value));
-                                }
-                            }}
+                            value={vehicleType}
+                            onChange={(e) => setVehicleType(e.target.value)}
                             required
                         >
                             <option value="">Seçiniz</option>
-                            {vehicleTypes.map((type) => (
-                                <option key={type.vehicleTypeId} value={type.vehicleTypeId}>
-                                    {type.name}
+                            {vehicleTypeOptions.map((type) => (
+                                <option key={type} value={type}>
+                                    {type}
                                 </option>
                             ))}
                         </select>
@@ -379,6 +189,7 @@ const CreateVehiclePage = () => {
                             }}
                             value={model}
                             onChange={(e) => setModel(e.target.value)}
+                            placeholder="Örn: Mercedes Actros"
                             required
                         />
                     </div>
@@ -408,6 +219,7 @@ const CreateVehiclePage = () => {
                             required
                             step="0.1"
                             min="0"
+                            placeholder="25.5"
                         />
                     </div>
 
@@ -433,59 +245,39 @@ const CreateVehiclePage = () => {
                             }}
                             value={licensePlate}
                             onChange={(e) => setLicensePlate(e.target.value)}
+                            placeholder="34 ABC 123"
                             required
                         />
-                    </div>
-
-                    {/* Müsaitlik */}
-                    <div className="form-group checkbox" style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}>
-                        <input
-                            type="checkbox"
-                            style={{
-                                width: '24px',
-                                height: '24px',
-                                accentColor: '#e63946',
-                                cursor: 'pointer'
-                            }}
-                            checked={availabilityStatus}
-                            onChange={(e) => setAvailabilityStatus(e.target.checked)}
-                            id="availability"
-                        />
-                        <label
-                            htmlFor="availability"
-                            style={{
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Müsait
-                        </label>
                     </div>
 
                     {/* Submit Buton */}
                     <button
                         type="submit"
+                        disabled={vehicleStatus === 'loading'}
                         style={{
-                            backgroundColor: '#e63946',
+                            backgroundColor: vehicleStatus === 'loading' ? '#ccc' : '#e63946',
                             color: 'white',
                             padding: '16px',
                             fontSize: '18px',
                             fontWeight: '600',
                             border: 'none',
                             borderRadius: '10px',
-                            cursor: 'pointer',
+                            cursor: vehicleStatus === 'loading' ? 'not-allowed' : 'pointer',
                             marginTop: '15px',
                             transition: 'background-color 0.3s'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d62838'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e63946'}
+                        onMouseOver={(e) => {
+                            if (vehicleStatus !== 'loading') {
+                                e.currentTarget.style.backgroundColor = '#d62838';
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            if (vehicleStatus !== 'loading') {
+                                e.currentTarget.style.backgroundColor = '#e63946';
+                            }
+                        }}
                     >
-                        Araç Ekle
+                        {vehicleStatus === 'loading' ? 'Ekleniyor...' : 'Araç Ekle'}
                     </button>
                 </form>
             </div>

@@ -4,16 +4,18 @@ import {
     getVehicleById,
     createVehicle,
     updateVehicle,
-    deleteVehicle, getVehiclesByCarrier
+    deleteVehicle,
+    getVehiclesByCarrier
 } from '../../services/vehicleService';
 
+// Yeni Vehicle tipi
 export interface Vehicle {
     id: number;
-    carrierId: number;
-    vehicleTypeId: number;
+    carrierId: string;
+    title: string;
+    vehicleType: string;
     capacity: number;
     licensePlate: string;
-    availabilityStatus: boolean;
     model: string;
 }
 
@@ -34,8 +36,7 @@ const initialState: VehicleState = {
 // Thunks
 export const fetchVehicles = createAsyncThunk('vehicle/fetchAll', async (_, { rejectWithValue }) => {
     try {
-        const response = await getAllVehicles();
-        return response;
+        return await getAllVehicles();
     } catch (error: any) {
         return rejectWithValue(error.message);
     }
@@ -43,8 +44,7 @@ export const fetchVehicles = createAsyncThunk('vehicle/fetchAll', async (_, { re
 
 export const fetchVehicleById = createAsyncThunk('vehicle/fetchById', async (id: number, { rejectWithValue }) => {
     try {
-        const response = await getVehicleById(id);
-        return response;
+        return await getVehicleById(id);
     } catch (error: any) {
         return rejectWithValue(error.message);
     }
@@ -54,8 +54,7 @@ export const addVehicle = createAsyncThunk(
     'vehicle/add',
     async (data: Omit<Vehicle, 'id'>, { rejectWithValue }) => {
         try {
-            const response = await createVehicle(data);
-            return response;
+            return await createVehicle(data);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -66,8 +65,7 @@ export const editVehicle = createAsyncThunk(
     'vehicle/edit',
     async ({ id, data }: { id: number; data: Omit<Vehicle, 'id'> }, { rejectWithValue }) => {
         try {
-            const response = await updateVehicle(id, data);
-            return response;
+            return await updateVehicle(id, data);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
@@ -76,24 +74,23 @@ export const editVehicle = createAsyncThunk(
 
 export const removeVehicle = createAsyncThunk('vehicle/remove', async (id: number, { rejectWithValue }) => {
     try {
-        const response = await deleteVehicle(id);
+        await deleteVehicle(id);
         return { id };
     } catch (error: any) {
         return rejectWithValue(error.message);
     }
 });
+
 export const fetchVehiclesByCarrier = createAsyncThunk(
     'vehicle/fetchByCarrier',
     async (carrierId: number, { rejectWithValue }) => {
         try {
-            const response = await getVehiclesByCarrier(carrierId);
-            return response;
+            return await getVehiclesByCarrier(carrierId);
         } catch (error: any) {
             return rejectWithValue(error.message);
         }
     }
 );
-
 
 // Slice
 const vehicleSlice = createSlice({
@@ -135,6 +132,7 @@ const vehicleSlice = createSlice({
             .addCase(removeVehicle.fulfilled, (state, action: PayloadAction<{ id: number }>) => {
                 state.items = state.items.filter(v => v.id !== action.payload.id);
             })
+
             .addCase(fetchVehiclesByCarrier.pending, (state) => {
                 state.status = 'loading';
                 state.error = null;
@@ -147,11 +145,8 @@ const vehicleSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload as string;
             });
-
-
     },
 });
 
 export const { clearSelectedVehicle } = vehicleSlice.actions;
-
 export default vehicleSlice.reducer;
