@@ -46,7 +46,8 @@ export const updateLocation = async (id: number, updatedData: {
     coordinates: string;
 }) => {
     try {
-        const response = await axiosInstance.put(`api/Location/${id}`, updatedData);
+        const body = { id, ...updatedData }; // API gövdesi id istiyor
+        const response = await axiosInstance.put(`api/Location/${id}`, body);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon güncellenemedi');
@@ -61,8 +62,7 @@ export const deleteLocation = async (id: number) => {
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Lokasyon silinemedi');
     }
-};
-
+}
 export default {
     fetchAllLocations,
     getLocationById,

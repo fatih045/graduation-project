@@ -1,16 +1,5 @@
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import cargoService from '../../services/cargoService';
-
-export interface Cargo {
-    id: number;
-    customerId: number;
-    description: string;
-    weight: number;
-    cargoType: string;
-    pickupLocationId: number;
-    dropoffLocationId: number;
-}
+import cargoService, { Cargo } from '../../services/cargoService';
 
 interface CargoState {
     cargos: Cargo[];
@@ -18,6 +7,7 @@ interface CargoState {
     loading: boolean;
     error: string | null;
 }
+
 
 const initialState: CargoState = {
     cargos: [],
@@ -40,9 +30,9 @@ export const fetchAllCargos = createAsyncThunk(
 
 export const fetchMyCargos = createAsyncThunk(
     'cargo/fetchMy',
-    async (customerId:number, thunkAPI) => {
+    async (userId: string, thunkAPI) => {
         try {
-            return await cargoService.fetchMyCargos(customerId);
+            return await cargoService.fetchMyCargos(userId);
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -62,7 +52,7 @@ export const getCargoById = createAsyncThunk(
 
 export const createCargo = createAsyncThunk(
     'cargo/create',
-    async (cargoData: Omit<Cargo, 'id'>, thunkAPI) => {
+    async (cargoData: Omit<Cargo, 'id' | 'isExpired'>, thunkAPI) => {
         try {
             return await cargoService.createCargo(cargoData);
         } catch (error: any) {
@@ -73,13 +63,12 @@ export const createCargo = createAsyncThunk(
 
 export const updateCargo = createAsyncThunk(
     'cargo/update',
-    async ({ id, updatedData }: { id: number; updatedData: Omit<Cargo, 'id'> }, thunkAPI) => {
+    async (updatedData: Cargo, thunkAPI) => {
         try {
-            const result = await cargoService.updateCargo(id, updatedData);
+            const result = await cargoService.updateCargo(updatedData.id, updatedData);
             return result;
         } catch (error: any) {
-            const errorMessage = error.message || 'Kargo güncellenirken bir hata oluştu';
-            return thunkAPI.rejectWithValue(errorMessage);
+            return thunkAPI.rejectWithValue(error.message);
         }
     }
 );
@@ -120,6 +109,19 @@ const cargoSlice = createSlice({
                 state.error = action.payload as string;
             })
 
+            .addCase(fetchMyCargos.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchMyCargos.fulfilled, (state, action) => {
+                state.loading = false;
+                state.cargos = action.payload;
+            })
+            .addCase(fetchMyCargos.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+
             .addCase(getCargoById.fulfilled, (state, action) => {
                 state.selectedCargo = action.payload;
             })
@@ -129,12 +131,12 @@ const cargoSlice = createSlice({
             })
 
             .addCase(updateCargo.fulfilled, (state, action) => {
-                const index = state.cargos.findIndex(c => c.id === action.payload.id);
+                const index = state.cargos.findIndex((c) => c.id === action.payload.id);
                 if (index !== -1) state.cargos[index] = action.payload;
             })
 
             .addCase(deleteCargo.fulfilled, (state, action) => {
-                state.cargos = state.cargos.filter(c => c.id !== action.payload);
+                state.cargos = state.cargos.filter((c) => c.id !== action.payload);
             });
     },
 });

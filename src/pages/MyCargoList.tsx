@@ -5,43 +5,15 @@ import {
     fetchMyCargos,
     updateCargo,
     deleteCargo,
-    Cargo
-} from '../features/cargo/cargoSlice'; // Adjust path as needed
-import {
-    fetchCustomerByUserIdThunk,
-    clearSelectedCustomer
-} from '../features/customer/customerSlice'; // Add this import
 
-// Status mapping for display purposes
-const STATUS_MAP = {
-    0: 'Beklemede',     // Pending
-    1: 'Yolda',         // InTransit
-    2: 'Teslim Edildi', // Delivered
-    3: 'İptal Edildi'   // Cancelled
-};
-
-// Updated Cargo interface to match the API response
-interface CargoWithStatus extends Cargo {
-    status: number;
-    statusText?: string;
-}
-
-// Type for the cargo form data
-interface CargoFormData {
-    id: number;
-    description: string;
-    weight: number;
-    pickupLocationId?: number;
-    dropoffLocationId?: number;
-    status: number;
-}
+} from '../features/cargo/cargoSlice';
+import {Cargo} from "../services/cargoService.ts"; // Adjust path as needed
 
 const UserCargoManagement: React.FC = () => {
     // Redux hooks
     const dispatch = useDispatch();
     const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
     const auth = useSelector((state: RootState) => state.auth); // Get auth state
-    const { selectedCustomer, status: customerStatus } = useSelector((state: RootState) => state.customer); // Get customer state
 
     // Local state
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -51,12 +23,12 @@ const UserCargoManagement: React.FC = () => {
 
     // Modal state
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
-    const [currentCargo, setCurrentCargo] = useState<CargoFormData | null>(null);
+    const [currentCargo, setCurrentCargo] = useState<Cargo | null>(null);
 
     // Debug state
     const [debug, setDebug] = useState<string>('');
 
-    // Add CSS styles for the component (same as before)
+    // Add CSS styles for the component
     useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = `
@@ -184,84 +156,55 @@ const UserCargoManagement: React.FC = () => {
         };
     }, []);
 
-    // Fetch customer data when component mounts
+    // Load cargo data when component mounts
     useEffect(() => {
-        // If user is logged in, fetch customer data
         if (auth?.user?.uid) {
-            dispatch(fetchCustomerByUserIdThunk() as any);
+            dispatch(fetchMyCargos(auth.user.uid) as any);
+            setDebug(`Fetching cargos for user ID: ${auth.user.uid}`);
         }
-
-        // Cleanup function
-        return () => {
-            dispatch(clearSelectedCustomer() as any);
-        };
-    }, [dispatch, auth?.user]);
-
-    // Load cargo data when customer data is available
-    useEffect(() => {
-        if (selectedCustomer?.customerId) {
-            // Kullanıcı ID ile kargo verileri getiriliyor
-            dispatch(fetchMyCargos(selectedCustomer.customerId) as any);
-            setDebug(`Fetching cargos for customer ID: ${selectedCustomer.customerId}`);
-        } else if (selectedCustomer?.customerId) {
-            // Alternatif ID kullanımı
-            dispatch(fetchMyCargos(selectedCustomer.customerId) as any);
-            setDebug(`Fetching cargos for customer ID (fallback): ${selectedCustomer.customerId}`);
-        }
-    }, [dispatch, selectedCustomer]);
+    }, [dispatch, auth?.user?.uid]);
 
     // Filtering and sorting
     const filteredAndSortedCargos = React.useMemo(() => {
-        // İlk önce filtrele
         let result = [...cargos];
 
         if (searchTerm) {
             const lowercasedSearch = searchTerm.toLowerCase();
             result = result.filter(cargo =>
-                cargo.description.toLowerCase().includes(lowercasedSearch) ||
-                (cargo.status !== undefined && STATUS_MAP[cargo.status as keyof typeof STATUS_MAP]?.toLowerCase().includes(lowercasedSearch))
+                cargo.description?.toLowerCase().includes(lowercasedSearch) ||
+                cargo.cargoType?.toLowerCase().includes(lowercasedSearch)
             );
         }
 
-        if (filterStatus !== '') {
-            const statusNumber = parseInt(filterStatus);
-            result = result.filter(cargo => cargo.status === statusNumber);
-        }
 
-        // Sonra sırala
+
+        // Sort
         result.sort((a, b) => {
-            // Sayısal alanları işle
+            // Handle numeric fields
             if (['id', 'weight', 'status'].includes(sortBy)) {
-                return sortOrder === 'asc'
-                    ? (a[sortBy as keyof Cargo] as number) - (b[sortBy as keyof Cargo] as number)
-                    : (b[sortBy as keyof Cargo] as number) - (a[sortBy as keyof Cargo] as number);
+                const aValue = a[sortBy as keyof Cargo] as number || 0;
+                const bValue = b[sortBy as keyof Cargo] as number || 0;
+                return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
             }
 
-            // Metin alanlarını işle
+            // Handle text fields
             if (['description', 'cargoType'].includes(sortBy)) {
-                const valueA = String(a[sortBy as keyof Cargo] || '');
-                const valueB = String(b[sortBy as keyof Cargo] || '');
+                const aValue = String(a[sortBy as keyof Cargo] || '');
+                const bValue = String(b[sortBy as keyof Cargo] || '');
                 return sortOrder === 'asc'
-                    ? valueA.localeCompare(valueB)
-                    : valueB.localeCompare(valueA);
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
             }
 
             return 0;
         });
 
-        return result as CargoWithStatus[];
+        return result;
     }, [cargos, searchTerm, filterStatus, sortBy, sortOrder]);
 
     // Update cargo handler
-    const handleUpdateCargo = (cargo: CargoWithStatus) => {
-        setCurrentCargo({
-            id: cargo.id,
-            description: cargo.description,
-            weight: cargo.weight,
-            pickupLocationId: cargo.pickupLocationId || 0,
-            dropoffLocationId: cargo.dropoffLocationId || 0,
-            status: cargo.status
-        });
+    const handleUpdateCargo = (cargo: Cargo) => {
+        setCurrentCargo(cargo);
         setShowUpdateModal(true);
     };
 
@@ -279,15 +222,13 @@ const UserCargoManagement: React.FC = () => {
     };
 
     // Form change handler
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (currentCargo) {
             setCurrentCargo({
                 ...currentCargo,
-                [name]: name === 'weight' ? parseFloat(value) :
-                    name === 'status' ? parseInt(value) :
-                        name === 'pickupLocationId' || name === 'dropoffLocationId' ? parseInt(value) :
-                            value
+                [name]: name === 'weight' || name === 'status' ?
+                    (value === '' ? 0 : Number(value)) : value
             });
         }
     };
@@ -296,9 +237,7 @@ const UserCargoManagement: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (currentCargo) {
-            const { id, ...updatedData } = currentCargo;
-
-            dispatch(updateCargo({ id, updatedData }) as any)
+            dispatch(updateCargo(currentCargo) as any)
                 .then(() => {
                     setShowUpdateModal(false);
                     setCurrentCargo(null);
@@ -317,28 +256,6 @@ const UserCargoManagement: React.FC = () => {
         } else {
             setSortBy(field);
             setSortOrder('asc');
-        }
-    };
-
-    // Status style handler
-    const getStatusStyle = (statusCode: number) => {
-        // Status 4 için (hatalı olabilir) varsayılan stil kullanılır
-        if (statusCode > 3 || statusCode < 0) {
-            return { backgroundColor: '#e2e3e5', color: '#383d41', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-        }
-
-        const status = STATUS_MAP[statusCode as keyof typeof STATUS_MAP];
-        switch (status) {
-            case 'Beklemede':
-                return { backgroundColor: '#ffeeba', color: '#856404', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            case 'Yolda':
-                return { backgroundColor: '#c3e6cb', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            case 'Teslim Edildi':
-                return { backgroundColor: '#d4edda', color: '#155724', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            case 'İptal Edildi':
-                return { backgroundColor: '#f5c6cb', color: '#721c24', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
-            default:
-                return { backgroundColor: '#e2e3e5', color: '#383d41', padding: '5px 10px', borderRadius: '15px', fontSize: '14px' };
         }
     };
 
@@ -510,19 +427,6 @@ const UserCargoManagement: React.FC = () => {
         marginLeft: '5px'
     };
 
-    // Display loading state when customer data is being fetched
-    if (customerStatus === 'loading') {
-        return (
-            <div style={pageStyle}>
-                <div style={containerStyle}>
-                    <h1 style={headerStyle}>Kargo Yönetimim</h1>
-                    <div style={loadingStyle}>Kullanıcı bilgileri yükleniyor...</div>
-                </div>
-            </div>
-        );
-    }
-
-    // Konsola cargos'un içeriğini yazalım
     console.log("Mevcut kargo verileri:", cargos);
 
     return (
@@ -534,10 +438,12 @@ const UserCargoManagement: React.FC = () => {
                 {/* User info section */}
                 <div style={userInfoStyle}>
                     <div>
-                        <span style={userNameStyle}>Hoş geldiniz, {selectedCustomer?.customerId || auth?.user?.displayName || 'Kullanıcı'}</span>
+                        <span style={userNameStyle}>
+                            Hoş geldiniz, {auth?.user?.displayName || auth?.user?.email || 'Kullanıcı'}
+                        </span>
                         <p style={{ margin: '5px 0 0', color: '#666' }}>{auth?.user?.email}</p>
-                        {selectedCustomer && (
-                            <p style={{ margin: '5px 0 0', color: '#666' }}>Müşteri ID: {selectedCustomer.customerId || selectedCustomer.customerId}</p>
+                        {auth?.user?.uid && (
+                            <p style={{ margin: '5px 0 0', color: '#666' }}>User ID: {auth.user.uid}</p>
                         )}
                     </div>
                     <div>
@@ -570,7 +476,7 @@ const UserCargoManagement: React.FC = () => {
                 {/* Search and filter */}
                 <input
                     type="text"
-                    placeholder="Arama yap... (Açıklama, Durum)"
+                    placeholder="Arama yap... (Açıklama, Kargo Tipi)"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={inputStyle}
@@ -585,10 +491,10 @@ const UserCargoManagement: React.FC = () => {
                             className="select-element"
                         >
                             <option value="">Tüm Durumlar</option>
-                            <option value="0">Beklemede</option>
-                            <option value="1">Yolda</option>
-                            <option value="2">Teslim Edildi</option>
-                            <option value="3">İptal Edildi</option>
+                            <option value="0">Durum 0</option>
+                            <option value="1">Durum 1</option>
+                            <option value="2">Durum 2</option>
+                            <option value="3">Durum 3</option>
                         </select>
                     </div>
 
@@ -609,8 +515,8 @@ const UserCargoManagement: React.FC = () => {
                             <option value="weight-desc">Ağırlık (Azalan)</option>
                             <option value="description-asc">Açıklama (A-Z)</option>
                             <option value="description-desc">Açıklama (Z-A)</option>
-                            <option value="status-asc">Durum (A-Z)</option>
-                            <option value="status-desc">Durum (Z-A)</option>
+                            <option value="status-asc">Durum (Artan)</option>
+                            <option value="status-desc">Durum (Azalan)</option>
                         </select>
                     </div>
                 </div>
@@ -621,8 +527,7 @@ const UserCargoManagement: React.FC = () => {
 
                 {!loading && !error && (
                     <>
-                        {/* Eğer hiç kargo verisi yoksa veya filtrelenmiş sonuç boşsa */}
-                        {(!cargos || cargos.length === 0 || filteredAndSortedCargos.length === 0) ? (
+                        {filteredAndSortedCargos.length === 0 ? (
                             <div style={noDataStyle}>
                                 Uygun kargo bulunamadı. Filtreleri değiştirerek tekrar deneyebilirsiniz.
                             </div>
@@ -690,14 +595,7 @@ const UserCargoManagement: React.FC = () => {
                                             </td>
                                             <td style={tdStyle}>{cargo.weight} kg</td>
                                             <td style={tdStyle}>{cargo.cargoType}</td>
-                                            <td style={tdStyle}>
-                                                <span style={getStatusStyle(cargo.status)}>
-                                                    {/* Hatalı status kodları için alternatif gösterim */}
-                                                    {cargo.status > 3 || cargo.status < 0
-                                                        ? (cargo.statusText || 'Bilinmeyen')
-                                                        : STATUS_MAP[cargo.status as keyof typeof STATUS_MAP]}
-                                                </span>
-                                            </td>
+
                                             <td style={tdLastStyle}>
                                                 <div className="action-buttons">
                                                     <button
@@ -742,21 +640,14 @@ const UserCargoManagement: React.FC = () => {
                         </div>
 
                         <form onSubmit={handleSubmit}>
-                            {/* Hidden ID field - automatically filled */}
-                            <input
-                                type="hidden"
-                                name="id"
-                                value={currentCargo.id}
-                            />
-
                             <div className="form-group">
                                 <label className="form-label">Açıklama</label>
-                                <input
-                                    type="text"
+                                <textarea
                                     name="description"
                                     className="form-control"
-                                    value={currentCargo.description}
+                                    value={currentCargo.description || ''}
                                     onChange={handleFormChange}
+                                    rows={3}
                                     required
                                 />
                             </div>
@@ -769,27 +660,25 @@ const UserCargoManagement: React.FC = () => {
                                     min="0.1"
                                     name="weight"
                                     className="form-control"
-                                    value={currentCargo.weight}
+                                    value={currentCargo.weight || ''}
                                     onChange={handleFormChange}
                                     required
                                 />
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Durum</label>
-                                <select
-                                    name="status"
+                                <label className="form-label">Kargo Tipi</label>
+                                <input
+                                    type="text"
+                                    name="cargoType"
                                     className="form-control"
-                                    value={currentCargo.status}
+                                    value={currentCargo.cargoType || ''}
                                     onChange={handleFormChange}
                                     required
-                                >
-                                    <option value={0}>Beklemede</option>
-                                    <option value={1}>Yolda</option>
-                                    <option value={2}>Teslim Edildi</option>
-                                    <option value={3}>İptal Edildi</option>
-                                </select>
+                                />
                             </div>
+
+
 
                             <div className="btn-container">
                                 <button

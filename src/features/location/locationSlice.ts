@@ -1,7 +1,6 @@
 // src/features/location/locationSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import locationService from '../../services/locationService';
-
 export interface Location {
     id: number;
     address: string;
@@ -63,7 +62,7 @@ export const updateLocation = createAsyncThunk(
     'location/update',
     async ({ id, updatedData }: { id: number; updatedData: Omit<Location, 'id'> }, thunkAPI) => {
         try {
-            return await locationService.updateLocation(id, updatedData);
+            return await locationService.updateLocation(id, updatedData); // body + id
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -115,12 +114,12 @@ const locationSlice = createSlice({
             })
 
             .addCase(updateLocation.fulfilled, (state, action) => {
-                const index = state.locations.findIndex(l => l.id === action.payload.id);
+                const index = state.locations.findIndex(loc => loc.id === action.payload.id);
                 if (index !== -1) state.locations[index] = action.payload;
             })
 
             .addCase(deleteLocation.fulfilled, (state, action) => {
-                state.locations = state.locations.filter(l => l.id !== action.payload);
+                state.locations = state.locations.filter(loc => loc.id !== action.payload);
             });
     },
 });
