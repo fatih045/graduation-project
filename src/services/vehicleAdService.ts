@@ -1,0 +1,55 @@
+import axiosInstance from './axios.ts';
+
+// Tüm araç ilanlarını getir
+export const fetchAllVehicleAds = async () => {
+    const response = await axiosInstance.get('api/VehicleAd');
+    return response.data;
+};
+
+// ID'ye göre araç ilanı getir
+export const getVehicleAdById = async (id: number) => {
+    const response = await axiosInstance.get(`api/VehicleAd/${id}`);
+    return response.data;
+};
+
+// Yeni araç ilanı oluştur
+export const createVehicleAd = async (adData: {
+    title: string;
+    description: string;
+    pickUpLocationId: number;
+    carrierId: string;
+    vehicleType: string;
+    capacity: number;
+}) => {
+    const response = await axiosInstance.post('api/VehicleAd', adData);
+    return response.data;
+};
+
+// Araç ilanını güncelle
+export const updateVehicleAd = async (
+    id: number,
+    updatedData: {
+        title: string;
+        description: string;
+        pickUpLocationId: number;
+        vehicleType: string;
+        capacity: number;
+    }
+) => {
+    const response = await axiosInstance.put(`api/VehicleAd/${id}`, updatedData);
+    return response.data;
+};
+
+// Araç ilanını sil
+export const deleteVehicleAd = async (id: number) => {
+    const response = await axiosInstance.delete(`api/VehicleAd/${id}`);
+    return response.data;
+};
+
+export default {
+    fetchAllVehicleAds,
+    getVehicleAdById,
+    createVehicleAd,
+    updateVehicleAd,
+    deleteVehicleAd,
+};
