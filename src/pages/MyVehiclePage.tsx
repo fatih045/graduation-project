@@ -10,7 +10,7 @@ import {
 const MyVehiclesPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const { items: vehicles, status, error } = useAppSelector((state) => state.vehicle);
-    const carrierId = useAppSelector(state => state.auth.user?.carrierId || "1"); // String olarak
+    const carrierId = useAppSelector(state => state.auth.user?.uid || "");
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -38,9 +38,38 @@ const MyVehiclesPage: React.FC = () => {
         'Others'
     ];
 
+    // UUID format kontrolü (basit regex)
+    const isValidUUID = (uuid: string): boolean => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    };
+
+    // carrierId'nin geçerli olup olmadığını kontrol et
+    const isValidCarrierId = (id: string): boolean => {
+        // Boş string kontrolü
+        if (!id || id.trim() === "") return false;
+
+        // UUID formatında mı kontrol et
+        if (isValidUUID(id)) return true;
+
+        // Sayı formatında mı kontrol et (eski sistemler için)
+        if (!isNaN(Number(id)) && Number(id) > 0) return true;
+
+        return false;
+    };
+
     // Sayfa yüklendiğinde carrier ID'ye göre araçları getir
     useEffect(() => {
-        dispatch(fetchVehiclesByCarrier(Number(carrierId)));
+        if (isValidCarrierId(carrierId)) {
+            // UUID ise string olarak gönder, sayı ise number olarak gönder
+            if (isValidUUID(carrierId)) {
+                dispatch(fetchVehiclesByCarrier(carrierId)); // String olarak gönder
+            } else {
+                dispatch(fetchVehiclesByCarrier(Number(carrierId))); // Number olarak gönder
+            }
+        } else {
+            console.error('Geçersiz carrierId:', carrierId);
+        }
     }, [dispatch, carrierId]);
 
     // Form verilerini güncelle
@@ -56,7 +85,13 @@ const MyVehiclesPage: React.FC = () => {
                 .unwrap()
                 .then(() => {
                     // Silme işlemi başarılı olduğunda araçları yeniden çek
-                    dispatch(fetchVehiclesByCarrier(Number(carrierId)));
+                    if (isValidCarrierId(carrierId)) {
+                        if (isValidUUID(carrierId)) {
+                            dispatch(fetchVehiclesByCarrier(carrierId));
+                        } else {
+                            dispatch(fetchVehiclesByCarrier(Number(carrierId)));
+                        }
+                    }
                     alert('Araç başarıyla silindi!');
                 })
                 .catch((error) => {
@@ -88,7 +123,7 @@ const MyVehiclesPage: React.FC = () => {
             const updatedData = {
                 id: selectedVehicle.id,
                 data: {
-                    carrierId: carrierId,
+                    carrierId: carrierId, // UUID string olarak gönder
                     title: formData.title,
                     vehicleType: formData.vehicleType,
                     capacity: parseFloat(formData.capacity),
@@ -101,7 +136,13 @@ const MyVehiclesPage: React.FC = () => {
                 .unwrap()
                 .then(() => {
                     // İşlem başarılı oldu, araçları yeniden çek
-                    dispatch(fetchVehiclesByCarrier(Number(carrierId)));
+                    if (isValidCarrierId(carrierId)) {
+                        if (isValidUUID(carrierId)) {
+                            dispatch(fetchVehiclesByCarrier(carrierId));
+                        } else {
+                            dispatch(fetchVehiclesByCarrier(Number(carrierId)));
+                        }
+                    }
                     setIsModalOpen(false);
                     alert('Araç başarıyla güncellendi!');
                 })
@@ -114,6 +155,35 @@ const MyVehiclesPage: React.FC = () => {
                 });
         }
     };
+
+    // carrierId yoksa veya geçersizse hata mesajı göster
+    if (!isValidCarrierId(carrierId)) {
+        return (
+            <div className="main-content" style={{
+                width: '100%',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '5%'
+            }}>
+                <div style={{
+                    padding: '20px',
+                    backgroundColor: '#ffeeee',
+                    color: '#e63946',
+                    borderRadius: '10px',
+                    textAlign: 'center'
+                }}>
+                    <h2>Hata!</h2>
+                    <p>Kullanıcı kimliği bulunamadı veya geçersiz. Lütfen giriş yapın.</p>
+                    <p style={{ fontSize: '14px', color: '#666' }}>carrierId: {String(carrierId)}</p>
+                    <p style={{ fontSize: '12px', color: '#888' }}>
+                        Desteklenen formatlar: UUID (örn: 4a7f976c-96a0-45a6-8ea0-0c335b0c4ab1) veya sayı
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     // Yükleme durumunda spinner göster
     if (status === 'loading') {

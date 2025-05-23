@@ -13,6 +13,8 @@ import CreateCargo from  "../pages/CreateCargoPage.tsx"
 import CargoList from "../pages/CargoListPage.tsx"
 import MyCargoList from "../pages/MyCargoList.tsx"
 import LocationsPage from "../pages/LocationsPage.tsx";
+import AllVehicleAdPage from "../pages/AllVehicleAdPage.tsx";
+import MyVehicleAdPage from "../pages/MyVehicleAdPage.tsx";
 
 
 
@@ -34,6 +36,12 @@ const AppRoutes = () => {
             <Route path="/cargoList" element={<CargoList/>} />
             <Route path="/mycargo" element={<MyCargoList/>} />
             <Route path="/mylocations" element={<LocationsPage/>} />
+
+
+
+            <Route path="/allVehicleAd" element={<AllVehicleAdPage/>} />
+            <Route path="/myVehicleAd" element={<MyVehicleAdPage/>} />
+            {/*<Route path="/newVehicleAd" element={<LocationsPage/>} />*/}
 
 
 

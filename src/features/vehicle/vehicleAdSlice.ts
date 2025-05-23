@@ -1,4 +1,3 @@
-// src/features/vehicleAd/vehicleAdSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import vehicleAdService from '../../services/vehicleAdService';
 
@@ -7,7 +6,7 @@ export interface VehicleAd {
     title: string;
     description: string;
     pickUpLocationId: number;
-    carrierId: string; // zorunlu
+    carrierId: string;
     vehicleType: string;
     capacity: number;
 }
@@ -89,6 +88,18 @@ export const deleteVehicleAd = createAsyncThunk(
     }
 );
 
+// 🚛 Yeni thunk: Fetch by carrierId
+export const fetchVehicleAdsByCarrier = createAsyncThunk(
+    'vehicleAd/fetchByCarrier',
+    async (carrierId: string, thunkAPI) => {
+        try {
+            return await vehicleAdService.getVehicleAdsByCarrierId(carrierId);
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue(error.message);
+        }
+    }
+);
+
 // Slice
 const vehicleAdSlice = createSlice({
     name: 'vehicleAd',
@@ -124,6 +135,18 @@ const vehicleAdSlice = createSlice({
             })
             .addCase(deleteVehicleAd.fulfilled, (state, action) => {
                 state.vehicleAds = state.vehicleAds.filter((v) => v.id !== action.payload);
+            })
+            .addCase(fetchVehicleAdsByCarrier.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchVehicleAdsByCarrier.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vehicleAds = action.payload;
+            })
+            .addCase(fetchVehicleAdsByCarrier.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });

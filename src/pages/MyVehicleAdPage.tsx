@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Edit2, Trash2, Truck, Users, MapPin, X, Save, Loader, AlertTriangle } from 'lucide-react';
 import {
     fetchAllVehicleAds,
     updateVehicleAd,
@@ -14,7 +13,7 @@ const MyVehicleAdsPage: React.FC = () => {
     const { vehicleAds, loading, error } = useSelector((state: RootState) => state.vehicleAd);
 
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const [selectedVehicle, setSelectedVehicle] = useState<VehicleAd | null>(null);
     const [formData, setFormData] = useState({
         title: '',
@@ -26,9 +25,34 @@ const MyVehicleAdsPage: React.FC = () => {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Araç türü seçenekleri
+    const vehicleTypeOptions = [
+        'Van',
+        'Truck',
+        'Trailer',
+        'Pickup',
+        'TarpaulinTruck',
+        'BoxTruck',
+        'RefrigeratedTruck',
+        'SemiTrailer',
+        'LightTruck',
+        'ContainerCarrier',
+        'TankTruck',
+        'LowbedTrailer',
+        'DumpTruck',
+        'PanelVan',
+        'Others'
+    ];
+
     useEffect(() => {
         dispatch(fetchAllVehicleAds());
     }, [dispatch]);
+
+    // Form verilerini güncelle
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
     const handleEdit = (vehicle: VehicleAd) => {
         setSelectedVehicle(vehicle);
@@ -43,391 +67,532 @@ const MyVehicleAdsPage: React.FC = () => {
     };
 
     const handleDeleteClick = (vehicle: VehicleAd) => {
-        setSelectedVehicle(vehicle);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (!selectedVehicle) return;
-
-        setIsDeleting(true);
-        try {
-            await dispatch(deleteVehicleAd(selectedVehicle.id));
-            setIsDeleteModalOpen(false);
-            setSelectedVehicle(null);
-        } catch (error) {
-            console.error('Failed to delete vehicle ad:', error);
-        } finally {
-            setIsDeleting(false);
+        if (window.confirm('Bu araç ilanını silmek istediğinize emin misiniz?')) {
+            setIsDeleting(true);
+            dispatch(deleteVehicleAd(vehicle.id))
+                .unwrap()
+                .then(() => {
+                    alert('Araç ilanı başarıyla silindi!');
+                })
+                .catch((error) => {
+                    console.error('Araç ilanı silinirken hata oluştu:', error);
+                    alert('Araç ilanı silinirken bir hata oluştu!');
+                })
+                .finally(() => {
+                    setIsDeleting(false);
+                });
         }
     };
 
-    const handleUpdate = async () => {
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
         if (!selectedVehicle) return;
 
         setIsUpdating(true);
 
-        try {
-            const updatedData = {
-                title: formData.title,
-                description: formData.description,
-                pickUpLocationId: parseInt(formData.pickUpLocationId),
-                vehicleType: formData.vehicleType,
-                capacity: parseInt(formData.capacity)
-            };
+        const updatedData = {
+            title: formData.title,
+            description: formData.description,
+            pickUpLocationId: parseInt(formData.pickUpLocationId),
+            vehicleType: formData.vehicleType,
+            capacity: parseInt(formData.capacity)
+        };
 
-            await dispatch(updateVehicleAd({
-                id: selectedVehicle.id,
-                updatedData
-            }));
-
-            closeUpdateModal();
-        } catch (error) {
-            console.error('Failed to update vehicle ad:', error);
-        } finally {
-            setIsUpdating(false);
-        }
+        dispatch(updateVehicleAd({
+            id: selectedVehicle.id,
+            updatedData
+        }))
+            .unwrap()
+            .then(() => {
+                setIsUpdateModalOpen(false);
+                setSelectedVehicle(null);
+                alert('Araç ilanı başarıyla güncellendi!');
+            })
+            .catch((error) => {
+                console.error('Araç ilanı güncellenirken hata oluştu:', error);
+                alert('Araç ilanı güncellenirken bir hata oluştu!');
+            })
+            .finally(() => {
+                setIsUpdating(false);
+            });
     };
 
-    const closeUpdateModal = () => {
-        setIsUpdateModalOpen(false);
-        setSelectedVehicle(null);
-        setFormData({
-            title: '',
-            description: '',
-            pickUpLocationId: '',
-            vehicleType: '',
-            capacity: ''
-        });
-    };
-
-    const closeDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        setSelectedVehicle(null);
-    };
-
-    const getVehicleIcon = (type: string) => {
-        switch (type.toLowerCase()) {
-            case 'truck':
-            case 'trailer':
-                return <Truck className="w-6 h-6 text-blue-600" />;
-            default:
-                return <Truck className="w-6 h-6 text-green-600" />;
-        }
-    };
-
-    const getAvailabilityStatus = () => {
-        return Math.random() > 0.5;
-    };
-
+    // Yükleme durumunda spinner göster
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
-                <div className="flex items-center space-x-3 text-blue-600">
-                    <Loader className="w-8 h-8 animate-spin" />
-                    <span className="text-lg font-medium">Loading your vehicle ads...</span>
+            <div className="main-content" style={{
+                width: '100%',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '5%'
+            }}>
+                <div style={{ fontSize: '24px', color: '#333' }}>Yükleniyor...</div>
+            </div>
+        );
+    }
+
+    // Hata durumunda hata mesajı göster
+    if (error) {
+        return (
+            <div className="main-content" style={{
+                width: '100%',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '5%'
+            }}>
+                <div style={{
+                    padding: '20px',
+                    backgroundColor: '#ffeeee',
+                    color: '#e63946',
+                    borderRadius: '10px'
+                }}>
+                    <h2>Hata!</h2>
+                    <p>{error}</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            {/* Main Container */}
-            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden" style={{ margin: '5%', maxWidth: '800px' }}>
-                {/* Header */}
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
-                    <h1 className="text-3xl font-bold mb-2">My Vehicle Ads</h1>
-                    <p className="text-blue-100">Manage your vehicle advertisements</p>
-                </div>
+        <div className="main-content" style={{
+            width: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: '5%'
+        }}>
+            <div className="vehicle-ads-container" style={{
+                width: '100%',
+                maxWidth: '800px',
+                backgroundColor: '#fff',
+                borderRadius: '20px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                padding: '40px',
+                margin: '0 auto'
+            }}>
+                <h1 style={{
+                    fontSize: '32px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '30px',
+                    textAlign: 'center'
+                }}>Araç İlanlarım</h1>
 
-                {/* Content */}
-                <div className="p-8">
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-                            <p className="font-medium">Error loading vehicle ads</p>
-                            <p className="text-sm mt-1">{error}</p>
-                        </div>
-                    )}
+                {vehicleAds.length === 0 ? (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '40px 0',
+                        color: '#666'
+                    }}>
+                        <p style={{ fontSize: '18px' }}>Henüz araç ilanı eklenmemiş.</p>
+                    </div>
+                ) : (
+                    <div className="vehicle-ads-list" style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '20px'
+                    }}>
+                        {vehicleAds.map((vehicle) => (
+                            <div key={vehicle.id} className="vehicle-ad-card" style={{
+                                backgroundColor: '#f9f9f9',
+                                borderRadius: '12px',
+                                padding: '20px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '15px',
+                                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                }}>
+                                    <h3 style={{
+                                        fontSize: '22px',
+                                        fontWeight: '600',
+                                        color: '#333',
+                                        margin: '0'
+                                    }}>
+                                        {vehicle.title}
+                                    </h3>
+                                    <div style={{
+                                        display: 'flex',
+                                        gap: '15px'
+                                    }}>
+                                        {/* Güncelle butonu */}
+                                        <button
+                                            onClick={() => handleEdit(vehicle)}
+                                            style={{
+                                                backgroundColor: '#4a6fa5',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                padding: '8px 12px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '5px'
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/>
+                                            </svg>
+                                            <span>Düzenle</span>
+                                        </button>
 
-                    {vehicleAds.length === 0 ? (
-                        <div className="text-center py-16">
-                            <Truck className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-600 mb-2">No Vehicle Ads Found</h3>
-                            <p className="text-gray-500">You haven't created any vehicle advertisements yet.</p>
-                        </div>
-                    ) : (
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {vehicleAds.map((vehicle: VehicleAd) => {
-                                const isAvailable = getAvailabilityStatus();
-                                return (
-                                    <div
-                                        key={vehicle.id}
-                                        className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-                                    >
-                                        {/* Card Header */}
-                                        <div className="p-6 border-b border-gray-100">
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center space-x-3">
-                                                    {getVehicleIcon(vehicle.vehicleType)}
-                                                    <div>
-                                                        <h3 className="font-bold text-lg text-gray-800 leading-tight">
-                                                            {vehicle.title}
-                                                        </h3>
-                                                        <div className="flex items-center space-x-2 mt-1">
-                                                            <div
-                                                                className={`w-2 h-2 rounded-full ${
-                                                                    isAvailable ? 'bg-green-400' : 'bg-red-400'
-                                                                }`}
-                                                            />
-                                                            <span
-                                                                className={`text-xs font-medium ${
-                                                                    isAvailable ? 'text-green-600' : 'text-red-600'
-                                                                }`}
-                                                            >
-                                {isAvailable ? 'Available' : 'Unavailable'}
-                              </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                                                {vehicle.description}
-                                            </p>
-                                        </div>
-
-                                        {/* Card Body */}
-                                        <div className="p-6 space-y-3">
-                                            <div className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center space-x-2 text-gray-600">
-                                                    <Truck className="w-4 h-4" />
-                                                    <span>Type:</span>
-                                                </div>
-                                                <span className="font-semibold text-gray-800 bg-blue-50 px-2 py-1 rounded-lg">
-                          {vehicle.vehicleType}
-                        </span>
-                                            </div>
-
-                                            <div className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center space-x-2 text-gray-600">
-                                                    <Users className="w-4 h-4" />
-                                                    <span>Capacity:</span>
-                                                </div>
-                                                <span className="font-semibold text-gray-800 bg-green-50 px-2 py-1 rounded-lg">
-                          {vehicle.capacity.toLocaleString()} kg
-                        </span>
-                                            </div>
-
-                                            <div className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center space-x-2 text-gray-600">
-                                                    <MapPin className="w-4 h-4" />
-                                                    <span>Location ID:</span>
-                                                </div>
-                                                <span className="font-semibold text-gray-800 bg-purple-50 px-2 py-1 rounded-lg">
-                          #{vehicle.pickUpLocationId}
-                        </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="p-6 bg-gray-50 flex space-x-3">
-                                            <button
-                                                onClick={() => handleEdit(vehicle)}
-                                                className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                                <span className="font-medium">Edit</span>
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleDeleteClick(vehicle)}
-                                                className="flex-1 flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                <span className="font-medium">Delete</span>
-                                            </button>
-                                        </div>
+                                        {/* Sil butonu */}
+                                        <button
+                                            onClick={() => handleDeleteClick(vehicle)}
+                                            style={{
+                                                backgroundColor: '#e63946',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                padding: '8px 12px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '5px'
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                            </svg>
+                                            <span>Sil</span>
+                                        </button>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
+                                </div>
+
+                                {/* Açıklama */}
+                                <div style={{
+                                    backgroundColor: '#fff',
+                                    padding: '15px',
+                                    borderRadius: '8px',
+                                    marginBottom: '10px'
+                                }}>
+                                    <p style={{
+                                        margin: '0',
+                                        fontSize: '14px',
+                                        color: '#666',
+                                        marginBottom: '5px'
+                                    }}>Açıklama</p>
+                                    <p style={{
+                                        margin: '0',
+                                        fontSize: '16px',
+                                        color: '#333',
+                                        lineHeight: '1.5'
+                                    }}>
+                                        {vehicle.description}
+                                    </p>
+                                </div>
+
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                    gap: '15px'
+                                }}>
+                                    <div className="info-item">
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '14px',
+                                            color: '#666',
+                                            marginBottom: '3px'
+                                        }}>Araç Tipi</p>
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '16px',
+                                            fontWeight: '500'
+                                        }}>
+                                            {vehicle.vehicleType}
+                                        </p>
+                                    </div>
+
+                                    <div className="info-item">
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '14px',
+                                            color: '#666',
+                                            marginBottom: '3px'
+                                        }}>Kapasite</p>
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '16px',
+                                            fontWeight: '500'
+                                        }}>{vehicle.capacity.toLocaleString()} kg</p>
+                                    </div>
+
+                                    <div className="info-item">
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '14px',
+                                            color: '#666',
+                                            marginBottom: '3px'
+                                        }}>Lokasyon ID</p>
+                                        <p style={{
+                                            margin: '0',
+                                            fontSize: '16px',
+                                            fontWeight: '500'
+                                        }}>#{vehicle.pickUpLocationId}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Update Modal */}
+            {/* Güncelleme Modal */}
             {isUpdateModalOpen && selectedVehicle && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white rounded-t-3xl">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold">Update Vehicle Ad</h2>
-                                <button
-                                    onClick={closeUpdateModal}
-                                    className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '5%',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        width: '100%',
+                        maxWidth: '500px',
+                        backgroundColor: '#fff',
+                        borderRadius: '15px',
+                        padding: '30px',
+                        position: 'relative',
+                        maxHeight: '90vh',
+                        overflowY: 'auto'
+                    }}>
+                        <button
+                            onClick={() => setIsUpdateModalOpen(false)}
+                            style={{
+                                position: 'absolute',
+                                top: '15px',
+                                right: '15px',
+                                backgroundColor: 'transparent',
+                                border: 'none',
+                                fontSize: '20px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            ✕
+                        </button>
 
-                        {/* Modal Body */}
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Title
+                        <h2 style={{
+                            fontSize: '24px',
+                            fontWeight: 'bold',
+                            marginBottom: '25px',
+                            color: '#333'
+                        }}>
+                            Araç İlanı Güncelle
+                        </h2>
+
+                        <form onSubmit={handleUpdate} style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '20px'
+                        }}>
+                            {/* Başlık */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    İlan Başlığı
                                 </label>
                                 <input
                                     type="text"
+                                    name="title"
                                     value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    onChange={handleChange}
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none'
+                                    }}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Description
+                            {/* Açıklama */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    Açıklama
                                 </label>
                                 <textarea
+                                    name="description"
                                     value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    rows={3}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                    onChange={handleChange}
                                     required
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        resize: 'vertical'
+                                    }}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Vehicle Type
+                            {/* Araç Tipi */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    Araç Tipi
                                 </label>
                                 <select
+                                    name="vehicleType"
                                     value={formData.vehicleType}
-                                    onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                    onChange={handleChange}
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none'
+                                    }}
                                 >
-                                    <option value="">Select vehicle type</option>
-                                    <option value="Van">Van</option>
-                                    <option value="Truck">Truck</option>
-                                    <option value="Trailer">Trailer</option>
-                                    <option value="Pickup">Pickup</option>
+                                    <option value="">Seçiniz</option>
+                                    {vehicleTypeOptions.map((type) => (
+                                        <option key={type} value={type}>
+                                            {type}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Capacity (kg)
+                            {/* Kapasite */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    Kapasite (kg)
                                 </label>
                                 <input
                                     type="number"
+                                    name="capacity"
                                     value={formData.capacity}
-                                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                    min="1"
+                                    onChange={handleChange}
                                     required
+                                    min="1"
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none'
+                                    }}
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                    Pickup Location ID
+                            {/* Lokasyon ID */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    Lokasyon ID
                                 </label>
                                 <input
                                     type="number"
+                                    name="pickUpLocationId"
                                     value={formData.pickUpLocationId}
-                                    onChange={(e) => setFormData({ ...formData, pickUpLocationId: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                    min="1"
+                                    onChange={handleChange}
                                     required
+                                    min="1"
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none'
+                                    }}
                                 />
                             </div>
 
-                            {/* Modal Actions */}
-                            <div className="flex space-x-3 pt-4">
+                            {/* Butonlar */}
+                            <div style={{
+                                display: 'flex',
+                                gap: '15px',
+                                marginTop: '10px',
+                                justifyContent: 'flex-end'
+                            }}>
                                 <button
                                     type="button"
-                                    onClick={closeUpdateModal}
-                                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium"
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                    style={{
+                                        backgroundColor: '#f1f1f1',
+                                        color: '#333',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '12px 20px',
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        cursor: 'pointer'
+                                    }}
                                     disabled={isUpdating}
                                 >
-                                    Cancel
+                                    İptal
                                 </button>
                                 <button
-                                    type="button"
-                                    onClick={handleUpdate}
+                                    type="submit"
+                                    style={{
+                                        backgroundColor: '#4a6fa5',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '10px',
+                                        padding: '12px 20px',
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        cursor: isUpdating ? 'not-allowed' : 'pointer',
+                                        opacity: isUpdating ? 0.7 : 1
+                                    }}
                                     disabled={isUpdating}
-                                    className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-colors font-medium disabled:opacity-50"
                                 >
-                                    {isUpdating ? (
-                                        <Loader className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Save className="w-4 h-4" />
-                                    )}
-                                    <span>{isUpdating ? 'Updating...' : 'Update'}</span>
+                                    {isUpdating ? 'Güncelleniyor...' : 'Güncelle'}
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Delete Confirmation Modal */}
-            {isDeleteModalOpen && selectedVehicle && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full">
-                        {/* Modal Header */}
-                        <div className="bg-gradient-to-r from-red-600 to-red-700 p-6 text-white rounded-t-3xl">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <AlertTriangle className="w-6 h-6" />
-                                    <h2 className="text-xl font-bold">Delete Vehicle Ad</h2>
-                                </div>
-                                <button
-                                    onClick={closeDeleteModal}
-                                    className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6">
-                            <p className="text-gray-700 mb-4">
-                                Are you sure you want to delete "<span className="font-semibold">{selectedVehicle.title}</span>"?
-                            </p>
-                            <p className="text-sm text-gray-500 mb-6">
-                                This action cannot be undone. The vehicle ad will be permanently removed from your listings.
-                            </p>
-
-                            {/* Modal Actions */}
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={closeDeleteModal}
-                                    className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium"
-                                    disabled={isDeleting}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDeleteConfirm}
-                                    disabled={isDeleting}
-                                    className="flex-1 flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl transition-colors font-medium disabled:opacity-50"
-                                >
-                                    {isDeleting ? (
-                                        <Loader className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        <Trash2 className="w-4 h-4" />
-                                    )}
-                                    <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
-                                </button>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             )}

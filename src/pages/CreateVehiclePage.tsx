@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/store.ts';
 import { addVehicle } from '../features/vehicle/vehicleSlice.ts';
 
@@ -6,7 +7,7 @@ const CreateVehiclePage = () => {
     const dispatch = useAppDispatch();
 
     // Get state from vehicle slice
-    const carrierId = useAppSelector(state => state.auth.user?.carrierId || "1");
+    const carrierId = useAppSelector(state => state.auth.user.uid || "1");
     const vehicleStatus = useAppSelector(state => state.vehicle.status);
     const vehicleError = useAppSelector(state => state.vehicle.error);
 
@@ -16,6 +17,10 @@ const CreateVehiclePage = () => {
     const [capacity, setCapacity] = useState('');
     const [licensePlate, setLicensePlate] = useState('');
     const [model, setModel] = useState('');
+
+    // Form submit durumunu takip etmek için ref (artık gerekli değil ama bırakıyoruz)
+    const isFormSubmitted = useRef(false);
+
 
     // Araç türü seçenekleri (hardcoded string array)
     const vehicleTypeOptions = [
@@ -30,10 +35,9 @@ const CreateVehiclePage = () => {
         'DumpTruck',
         'PanelVan',
         'Others'
-
     ];
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!vehicleType || !title || !capacity || !licensePlate || !model) {
@@ -41,28 +45,39 @@ const CreateVehiclePage = () => {
             return;
         }
 
-        // Slice'daki Vehicle interface'ine tam uygun veri gönder
-        dispatch(addVehicle({
-            carrierId: carrierId,
-            title: title,
-            vehicleType: vehicleType,
-            capacity: parseFloat(capacity),
-            licensePlate: licensePlate,
-            model: model
-        }));
-    };
+        try {
+            // Slice'daki Vehicle interface'ine tam uygun veri gönder
+            await dispatch(addVehicle({
+                carrierId: carrierId,
+                title: title,
+                vehicleType: vehicleType,
+                capacity: parseFloat(capacity),
+                licensePlate: licensePlate,
+                model: model
+            })).unwrap();
 
-    // Success durumunda form temizle
-    useEffect(() => {
-        if (vehicleStatus === 'succeeded') {
+            // Başarılı olduğunda form temizle
             setTitle('');
             setVehicleType('');
             setCapacity('');
             setLicensePlate('');
             setModel('');
+
             alert('Araç başarıyla eklendi!');
+        } catch (error) {
+            // Hata durumunda bir şey yapmaya gerek yok, slice zaten error state'i yönetiyor
+            console.error('Araç eklenirken hata:', error);
         }
-    }, [vehicleStatus]);
+    };
+
+
+
+    // Component unmount olduğunda ref'i temizle
+    useEffect(() => {
+        return () => {
+            isFormSubmitted.current = false;
+        };
+    }, []);
 
     return (
         <div className="main-content" style={{

@@ -7,43 +7,40 @@ export interface Cargo {
     description: string;
     weight: number;
     cargoType: string;
-    pickupLocationId: number;
-    dropoffLocationId: number;
+    pickupCountry: string;
+    pickupCity: string;
+    dropoffCountry: string;
+    dropoffCity: string;
     price: number;
-    isExpired?: boolean;  // sadece update için opsiyonel
+    currency: 'TRY' | 'USD' | 'EUR';
+    isExpired?: boolean;
 }
 
-// Tüm kargoları getir
 const fetchAllCargos = async () => {
-    const response = await axiosInstance.get('api/Cargo');
+    const response = await axiosInstance.get('api/CargoAd');
     return response.data;
 };
 
-// Kullanıcının kargolarını getir
-const fetchMyCargos = async (userId: string) => {
-    const response = await axiosInstance.get(`api/Cargo/by-user/${userId}`);
+const fetchMyCargos = async (customerId: string) => {
+    const response = await axiosInstance.get(`api/CargoAd/by-customer/${customerId}`);
     return response.data;
 };
 
-// ID'ye göre kargo getir
 const getCargoById = async (id: number) => {
-    const response = await axiosInstance.get(`api/Cargo/${id}`);
+    const response = await axiosInstance.get(`api/CargoAd/${id}`);
     return response.data;
 };
 
-// Yeni kargo oluştur
 const createCargo = async (data: Omit<Cargo, 'id' | 'isExpired'>) => {
-    const response = await axiosInstance.post('api/Cargo', data);
+    const response = await axiosInstance.post('api/CargoAd', data);
     return response.data;
 };
 
-// Varolan kargoyu güncelle
 const updateCargo = async (id: number, data: Omit<Cargo, 'id'>) => {
-    const response = await axiosInstance.put(`api/Cargo/${id}`, data);
+    const response = await axiosInstance.put(`api/CargoAd/${id}`, data);
     return response.data;
 };
 
-// Kargoyu sil
 const deleteCargo = async (id: number) => {
     const response = await axiosInstance.delete(`api/Cargo/${id}`);
     return response.data;

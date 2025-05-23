@@ -8,7 +8,6 @@ interface CargoState {
     error: string | null;
 }
 
-
 const initialState: CargoState = {
     cargos: [],
     selectedCargo: null,
@@ -65,8 +64,7 @@ export const updateCargo = createAsyncThunk(
     'cargo/update',
     async (updatedData: Cargo, thunkAPI) => {
         try {
-            const result = await cargoService.updateCargo(updatedData.id, updatedData);
-            return result;
+            return await cargoService.updateCargo(updatedData.id, updatedData);
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -131,12 +129,12 @@ const cargoSlice = createSlice({
             })
 
             .addCase(updateCargo.fulfilled, (state, action) => {
-                const index = state.cargos.findIndex((c) => c.id === action.payload.id);
+                const index = state.cargos.findIndex(c => c.id === action.payload.id);
                 if (index !== -1) state.cargos[index] = action.payload;
             })
 
             .addCase(deleteCargo.fulfilled, (state, action) => {
-                state.cargos = state.cargos.filter((c) => c.id !== action.payload);
+                state.cargos = state.cargos.filter(c => c.id !== action.payload);
             });
     },
 });

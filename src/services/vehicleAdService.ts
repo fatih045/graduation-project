@@ -11,6 +11,12 @@ export const getVehicleAdById = async (id: number) => {
     const response = await axiosInstance.get(`api/VehicleAd/${id}`);
     return response.data;
 };
+// Taşıyıcı ID'sine göre araç ilanlarını getir
+export const getVehicleAdsByCarrierId = async (carrierId: string) => {
+    const response = await axiosInstance.get(`api/VehicleAd/by-carrier/${carrierId}`);
+    return response.data;
+};
+
 
 // Yeni araç ilanı oluştur
 export const createVehicleAd = async (adData: {
@@ -52,4 +58,5 @@ export default {
     createVehicleAd,
     updateVehicleAd,
     deleteVehicleAd,
+    getVehicleAdsByCarrierId
 };
