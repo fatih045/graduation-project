@@ -39,7 +39,7 @@ export const loginUser = async (data: {
 export  const getUser = async (id:string) => {
     try {
        // const response = await axiosInstance.get('/GetUser?id='+id);
-        const response = await axiosInstance.get(`/GetUser?id=${encodeURIComponent(id)}`);
+        const response = await axiosInstance.get(`/${id}`);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || 'User fetch failed');

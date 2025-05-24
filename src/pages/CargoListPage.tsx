@@ -1,200 +1,14 @@
-// import React, { useEffect } from 'react';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { Package, MapPin, Weight, Loader, AlertCircle, User } from 'lucide-react';
-// import { fetchAllCargos } from '../features/cargo/cargoSlice';
-// import type { RootState, AppDispatch } from '../store/store';
-//
-// const CargoListPage: React.FC = () => {
-//     const dispatch = useDispatch<AppDispatch>();
-//     const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
-//
-//     useEffect(() => {
-//         dispatch(fetchAllCargos());
-//     }, [dispatch]);
-//
-//     const getCurrencySymbol = (currency: string) => {
-//         switch (currency?.toUpperCase()) {
-//             case 'USD': return '$';
-//             case 'EUR': return '€';
-//             case 'TRY': return '₺';
-//             default: return currency || '';
-//         }
-//     };
-//
-//     if (loading) {
-//         return (
-//             <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 flex items-center justify-center">
-//                 <div className="flex items-center space-x-3 text-blue-600">
-//                     <Loader className="w-8 h-8 animate-spin" />
-//                     <span className="text-lg font-medium">Kargo ilanları yükleniyor...</span>
-//                 </div>
-//             </div>
-//         );
-//     }
-//
-//     return (
-//         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-//             <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
-//                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white">
-//                     <h1 className="text-3xl font-bold mb-2">Kargo İlanları</h1>
-//                     <p className="text-blue-100">Mevcut kargo taşıma taleplerini inceleyin</p>
-//                     <div className="mt-4 text-blue-100">
-//                         <span className="text-sm">Toplam İlan: {cargos?.length || 0}</span>
-//                     </div>
-//                 </div>
-//
-//                 <div className="p-8">
-//                     {error && (
-//                         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-//                             <div className="flex items-center space-x-2">
-//                                 <AlertCircle className="w-5 h-5" />
-//                                 <p className="font-medium">İlanlar yüklenirken hata oluştu</p>
-//                             </div>
-//                             <p className="text-sm mt-1">{error}</p>
-//                         </div>
-//                     )}
-//
-//                     {!cargos || cargos.length === 0 ? (
-//                         <div className="text-center py-16">
-//                             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-//                             <h3 className="text-xl font-semibold text-gray-600 mb-2">Henüz İlan Bulunamadı</h3>
-//                             <p className="text-gray-500">Şu anda gösterilecek kargo ilanı bulunmamaktadır.</p>
-//                         </div>
-//                     ) : (
-//                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-//                             {cargos.map((cargo) => (
-//                                 <div
-//                                     key={cargo.id}
-//                                     className="bg-gradient-to-br from-white to-gray-50 rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-//                                 >
-//                                     {/* Header - Title & Price */}
-//                                     <div className="p-6 border-b border-gray-100">
-//                                         <div className="flex items-start justify-between mb-4">
-//                                             <div className="flex-1">
-//                                                 <h3 className="font-bold text-lg text-gray-800 leading-tight mb-2">
-//                                                     {cargo.title || 'Başlıksız Kargo'}
-//                                                 </h3>
-//                                                 <div className="flex items-center space-x-2">
-//                                                     <User className="w-4 h-4 text-gray-500" />
-//                                                     <span className="text-sm text-gray-600">
-//                                                         {cargo.customerName || 'Anonim Müşteri'}
-//                                                     </span>
-//                                                 </div>
-//                                             </div>
-//                                             <div className="text-right ml-4">
-//                                                 <div className="text-2xl font-bold text-green-600">
-//                                                     {getCurrencySymbol(cargo.currency)}{cargo.price?.toLocaleString() || '0'}
-//                                                 </div>
-//                                                 <div className="text-xs text-gray-500 uppercase">
-//                                                     {cargo.currency || 'TRY'}
-//                                                 </div>
-//                                             </div>
-//                                         </div>
-//
-//                                         {cargo.description && (
-//                                             <p className="text-gray-600 text-sm leading-relaxed">
-//                                                 {cargo.description}
-//                                             </p>
-//                                         )}
-//                                     </div>
-//
-//                                     {/* Body - Details */}
-//                                     <div className="p-6 space-y-4">
-//                                         {/* Weight */}
-//                                         <div className="flex items-center justify-between">
-//                                             <div className="flex items-center space-x-2 text-gray-600">
-//                                                 <Weight className="w-4 h-4" />
-//                                                 <span className="text-sm">Ağırlık:</span>
-//                                             </div>
-//                                             <span className="font-semibold text-gray-800 bg-green-50 px-3 py-1 rounded-lg">
-//                                                 {cargo.weight?.toLocaleString() || '0'} kg
-//                                             </span>
-//                                         </div>
-//
-//                                         {/* Cargo Type */}
-//                                         <div className="flex items-center justify-between">
-//                                             <div className="flex items-center space-x-2 text-gray-600">
-//                                                 <Package className="w-4 h-4" />
-//                                                 <span className="text-sm">Tip:</span>
-//                                             </div>
-//                                             <span className="font-semibold text-gray-800 bg-blue-50 px-3 py-1 rounded-lg capitalize">
-//                                                 {cargo.cargoType || 'Genel'}
-//                                             </span>
-//                                         </div>
-//
-//                                         {/* Route */}
-//                                         <div className="space-y-2">
-//                                             <div className="flex items-center space-x-2 text-gray-600">
-//                                                 <MapPin className="w-4 h-4" />
-//                                                 <span className="text-sm">Güzergah:</span>
-//                                             </div>
-//                                             <div className="bg-purple-50 p-3 rounded-lg">
-//                                                 <div className="flex items-center justify-between">
-//                                                     <div className="text-center">
-//                                                         <div className="text-xs text-gray-500 mb-1">Başlangıç</div>
-//                                                         <div className="font-medium text-gray-800">
-//                                                             {cargo.pickCity || 'Belirtilmemiş'}
-//                                                         </div>
-//                                                         <div className="text-xs text-gray-600">
-//                                                             {cargo.pickCountry || ''}
-//                                                         </div>
-//                                                     </div>
-//                                                     <div className="mx-4">
-//                                                         <div className="w-8 h-0.5 bg-purple-300"></div>
-//                                                         <div className="text-center text-purple-600 text-xs mt-1">→</div>
-//                                                     </div>
-//                                                     <div className="text-center">
-//                                                         <div className="text-xs text-gray-500 mb-1">Varış</div>
-//                                                         <div className="font-medium text-gray-800">
-//                                                             {cargo.dropCity || 'Belirtilmemiş'}
-//                                                         </div>
-//                                                         <div className="text-xs text-gray-600">
-//                                                             {cargo.dropCountry || ''}
-//                                                         </div>
-//                                                     </div>
-//                                                 </div>
-//                                             </div>
-//                                         </div>
-//
-//                                         {/* Status */}
-//                                         {cargo.isExpired !== undefined && (
-//                                             <div className="pt-2 border-t border-gray-100">
-//                                                 <div className="flex items-center justify-center">
-//                                                     <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-sm font-medium ${
-//                                                         cargo.isExpired
-//                                                             ? 'bg-red-100 text-red-700'
-//                                                             : 'bg-green-100 text-green-700'
-//                                                     }`}>
-//                                                         <div className={`w-2 h-2 rounded-full ${
-//                                                             cargo.isExpired ? 'bg-red-400' : 'bg-green-400'
-//                                                         }`}></div>
-//                                                         <span>{cargo.isExpired ? 'Süresi Dolmuş' : 'Aktif'}</span>
-//                                                     </div>
-//                                                 </div>
-//                                             </div>
-//                                         )}
-//                                     </div>
-//                                 </div>
-//                             ))}
-//                         </div>
-//                     )}
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-//
-// export default CargoListPage;
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Package,  Weight, Loader, AlertCircle, User, Eye, Filter, Search } from 'lucide-react';
+import { Package,  Weight, Loader, AlertCircle, User, Eye, Filter, Search, Mail, Phone } from 'lucide-react';
 import { fetchAllCargos } from '../features/cargo/cargoSlice';
+import { getUserById } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
 
 const CargoListPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
+    const { user: userData } = useSelector((state: RootState) => state.auth);
 
     // Filter and search states
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -206,6 +20,7 @@ const CargoListPage: React.FC = () => {
     // Modal state
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
     const [selectedCargo, setSelectedCargo] = useState<any>(null);
+    const [customerDetails, setCustomerDetails] = useState<any>(null);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -221,7 +36,7 @@ const CargoListPage: React.FC = () => {
         transform: translateY(-4px);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
       }
-      
+
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -234,7 +49,7 @@ const CargoListPage: React.FC = () => {
         align-items: center;
         z-index: 1000;
       }
-      
+
       .modal-content {
         background-color: white;
         padding: 30px;
@@ -246,7 +61,7 @@ const CargoListPage: React.FC = () => {
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         position: relative;
       }
-      
+
       .modal-header {
         display: flex;
         justify-content: space-between;
@@ -255,7 +70,7 @@ const CargoListPage: React.FC = () => {
         padding-bottom: 15px;
         border-bottom: 2px solid #f0f0f0;
       }
-      
+
       .close-button {
         background: none;
         border: none;
@@ -266,31 +81,31 @@ const CargoListPage: React.FC = () => {
         border-radius: 50%;
         transition: all 0.2s;
       }
-      
+
       .close-button:hover {
         background-color: #f0f0f0;
         color: #333;
       }
-      
+
       .detail-section {
         margin-bottom: 20px;
         padding: 15px;
         background-color: #f8f9fa;
         border-radius: 10px;
       }
-      
+
       .detail-label {
         font-weight: bold;
         color: #333;
         margin-bottom: 5px;
         display: block;
       }
-      
+
       .detail-value {
         color: #666;
         font-size: 15px;
       }
-      
+
       .route-container {
         display: flex;
         align-items: center;
@@ -301,11 +116,11 @@ const CargoListPage: React.FC = () => {
         color: white;
         margin: 15px 0;
       }
-      
+
       .route-point {
         text-align: center;
       }
-      
+
       .route-arrow {
         font-size: 24px;
         margin: 0 15px;
@@ -395,6 +210,20 @@ const CargoListPage: React.FC = () => {
     const handleViewDetails = (cargo: any) => {
         setSelectedCargo(cargo);
         setShowDetailModal(true);
+        
+        // If cargo has userId, fetch user details
+        if (cargo.userId) {
+            dispatch(getUserById(cargo.userId))
+                .unwrap()
+                .then((userData) => {
+                    setCustomerDetails(userData);
+                })
+                .catch((error) => {
+                    console.error('Failed to fetch user details:', error);
+                });
+        } else {
+            setCustomerDetails(null);
+        }
     };
 
     const handleSort = (field: string) => {
@@ -829,10 +658,22 @@ const CargoListPage: React.FC = () => {
                             <div className="detail-section">
                                 <span className="detail-label">Müşteri Bilgileri</span>
                                 <div className="detail-value">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                         <User size={16} />
                                         {selectedCargo.customerName || 'Anonim Müşteri'}
                                     </div>
+                                    {customerDetails && (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <Phone size={16} />
+                                                {customerDetails.phoneNumber || 'Telefon bilgisi yok'}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Mail size={16} />
+                                                {customerDetails.email || 'E-posta bilgisi yok'}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 

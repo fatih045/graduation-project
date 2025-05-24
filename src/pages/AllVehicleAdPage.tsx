@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Truck, Users, MapPin, Loader, AlertCircle, User, Eye, Filter, Search } from 'lucide-react';
+import { Truck, Users, MapPin, Loader, AlertCircle, User, Eye, Filter, Search, Mail, Phone } from 'lucide-react';
 import { fetchAllVehicleAds, VehicleAd } from '../features/vehicle/vehicleAdSlice';
+import { getUserById } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
 
 const VehicleAdsList: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { vehicleAds, loading, error } = useSelector((state: RootState) => state.vehicleAd);
+    const { user: userData } = useSelector((state: RootState) => state.auth);
 
     // Filter and search states
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -18,6 +20,7 @@ const VehicleAdsList: React.FC = () => {
     // Modal state
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
     const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+    const [carrierDetails, setCarrierDetails] = useState<any>(null);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -193,6 +196,20 @@ const VehicleAdsList: React.FC = () => {
     const handleViewDetails = (vehicle: VehicleAd) => {
         setSelectedVehicle(vehicle);
         setShowDetailModal(true);
+        
+        // If vehicle has carrierId, fetch carrier details
+        if (vehicle.carrierId) {
+            dispatch(getUserById(vehicle.carrierId.toString()))
+                .unwrap()
+                .then((userData) => {
+                    setCarrierDetails(userData);
+                })
+                .catch((error) => {
+                    console.error('Failed to fetch carrier details:', error);
+                });
+        } else {
+            setCarrierDetails(null);
+        }
     };
 
     // Component styles
@@ -637,6 +654,29 @@ const VehicleAdsList: React.FC = () => {
                                         <User size={16} />
                                         #{selectedVehicle.carrierId}
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Carrier Details */}
+                            <div className="detail-section">
+                                <span className="detail-label">Taşıyıcı Bilgileri</span>
+                                <div className="detail-value">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <User size={16} />
+                                        {carrierDetails?.name ? `${carrierDetails.name} ${carrierDetails.surname}` : `#${selectedVehicle.carrierId}`}
+                                    </div>
+                                    {carrierDetails && (
+                                        <>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <Phone size={16} />
+                                                {carrierDetails.phoneNumber || 'Telefon bilgisi yok'}
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Mail size={16} />
+                                                {carrierDetails.email || 'E-posta bilgisi yok'}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
