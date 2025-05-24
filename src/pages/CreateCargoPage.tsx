@@ -1,7 +1,813 @@
+//
+//
+// import React, { useState, useEffect, useRef } from 'react';
+// import { useDispatch } from 'react-redux';
+//  // useAppSelector import edildi
+// import { createCargo } from '../features/cargo/cargoSlice';
+// import { AppDispatch,useAppSelector } from '../store/store';
+//
+// // Google Places API'yi yükle
+// declare global {
+//     interface Window {
+//         google: any;
+//         initGooglePlaces: () => void;
+//     }
+// }
+//
+// // Avrupa ülkeleri listesi (value: İngilizce, label: Türkçe)
+// const EUROPEAN_COUNTRIES = [
+//     { value: 'Albania', label: 'Arnavutluk' },
+//     { value: 'Andorra', label: 'Andorra' },
+//     { value: 'Austria', label: 'Avusturya' },
+//     { value: 'Belarus', label: 'Belarus' },
+//     { value: 'Belgium', label: 'Belçika' },
+//     { value: 'Bosnia and Herzegovina', label: 'Bosna Hersek' },
+//     { value: 'Bulgaria', label: 'Bulgaristan' },
+//     { value: 'Croatia', label: 'Hırvatistan' },
+//     { value: 'Cyprus', label: 'Kıbrıs' },
+//     { value: 'Czech Republic', label: 'Çek Cumhuriyeti' },
+//     { value: 'Denmark', label: 'Danimarka' },
+//     { value: 'Estonia', label: 'Estonya' },
+//     { value: 'Finland', label: 'Finlandiya' },
+//     { value: 'France', label: 'Fransa' },
+//     { value: 'Germany', label: 'Almanya' },
+//     { value: 'Greece', label: 'Yunanistan' },
+//     { value: 'Hungary', label: 'Macaristan' },
+//     { value: 'Iceland', label: 'İzlanda' },
+//     { value: 'Ireland', label: 'İrlanda' },
+//     { value: 'Italy', label: 'İtalya' },
+//     { value: 'Latvia', label: 'Letonya' },
+//     { value: 'Liechtenstein', label: 'Lihtenştayn' },
+//     { value: 'Lithuania', label: 'Litvanya' },
+//     { value: 'Luxembourg', label: 'Lüksemburg' },
+//     { value: 'Malta', label: 'Malta' },
+//     { value: 'Moldova', label: 'Moldova' },
+//     { value: 'Monaco', label: 'Monako' },
+//     { value: 'Montenegro', label: 'Karadağ' },
+//     { value: 'Netherlands', label: 'Hollanda' },
+//     { value: 'North Macedonia', label: 'Kuzey Makedonya' },
+//     { value: 'Norway', label: 'Norveç' },
+//     { value: 'Poland', label: 'Polonya' },
+//     { value: 'Portugal', label: 'Portekiz' },
+//     { value: 'Romania', label: 'Romanya' },
+//     { value: 'San Marino', label: 'San Marino' },
+//     { value: 'Serbia', label: 'Sırbistan' },
+//     { value: 'Slovakia', label: 'Slovakya' },
+//     { value: 'Slovenia', label: 'Slovenya' },
+//     { value: 'Spain', label: 'İspanya' },
+//     { value: 'Sweden', label: 'İsveç' },
+//     { value: 'Switzerland', label: 'İsviçre' },
+//     { value: 'Turkey', label: 'Türkiye' },
+//     { value: 'Ukraine', label: 'Ukrayna' },
+//     { value: 'United Kingdom', label: 'Birleşik Krallık' },
+//     { value: 'Vatican City', label: 'Vatikan' },
+//     { value: 'Kosovo', label: 'Kosova' },
+//     { value: 'Gibraltar', label: 'Cebelitarık' },
+//     { value: 'Faroe Islands', label: 'Faroe Adaları' },
+//     { value: 'Greenland', label: 'Grönland' },
+//     { value: 'Isle of Man', label: 'Man Adası' },
+//     { value: 'Jersey', label: 'Jersey' }
+// ];
+//
+// // Kargo türleri
+// const CARGO_TYPES = [
+//     { value: 'TarpaulinTruck', label: 'Tenteli Kamyon' },
+//     { value: 'BoxTruck', label: 'Kapalı Kasa Kamyon' },
+//     { value: 'RefrigeratedTruck', label: 'Soğutmalı Kamyon' },
+//     { value: 'SemiTrailer', label: 'Yarı Römork' },
+//     { value: 'LightTruck', label: 'Hafif Kamyon' },
+//     { value: 'ContainerCarrier', label: 'Konteyner Taşıyıcı' },
+//     { value: 'TankTruck', label: 'Tanker' },
+//     { value: 'LowbedTrailer', label: 'Lowbed Römork' },
+//     { value: 'DumpTruck', label: 'Damperli Kamyon' },
+//     { value: 'PanelVan', label: 'Panel Van' },
+//     { value: 'Others', label: 'Diğer' }
+// ];
+//
+// interface CargoFormData {
+//     title: string;
+//     description: string;
+//     weight: number;
+//     cargoType: string;
+//     pickupCountry: string;
+//     pickupCity: string;
+//     dropoffCountry: string;
+//     dropoffCity: string;
+//     price: number;
+//     currency: 'TRY' | 'USD' | 'EUR';
+// }
+//
+// const CreateCargoPage: React.FC = () => {
+//     const dispatch = useDispatch<AppDispatch>();
+//
+//     // Redux store'dan userId'yi al
+//     const userId = useAppSelector(state => state.auth.user?.uid || "");
+//
+//     const [formData, setFormData] = useState<CargoFormData>({
+//         title: '',
+//         description: '',
+//         weight: 0,
+//         cargoType: '',
+//         pickupCountry: '',
+//         pickupCity: '',
+//         dropoffCountry: '',
+//         dropoffCity: '',
+//         price: 0,
+//         currency: 'TRY'
+//     });
+//
+//     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+//     const [isLoading, setIsLoading] = useState(false);
+//     const [error, setError] = useState<string | null>(null);
+//
+//     const pickupInputRef = useRef<HTMLInputElement>(null);
+//     const dropoffInputRef = useRef<HTMLInputElement>(null);
+//     const pickupAutocompleteRef = useRef<any>(null);
+//     const dropoffAutocompleteRef = useRef<any>(null);
+//
+//     // Google Places API'yi yükle ve initialize et
+//     useEffect(() => {
+//         const loadGooglePlaces = () => {
+//             if (window.google && window.google.maps && window.google.maps.places) {
+//                 setIsGoogleLoaded(true);
+//                 initializeAutocomplete();
+//                 return;
+//             }
+//
+//             // Google Places API script'ini yükle (yeni API)
+//             const script = document.createElement('script');
+//             script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&libraries=places`;
+//             script.async = true;
+//             script.defer = true;
+//             script.onload = () => {
+//                 setIsGoogleLoaded(true);
+//                 initializeAutocomplete();
+//             };
+//             script.onerror = () => {
+//                 console.error('Google Places API yüklenemedi');
+//                 setIsGoogleLoaded(false);
+//             };
+//
+//             document.head.appendChild(script);
+//         };
+//
+//         loadGooglePlaces();
+//
+//         return () => {
+//             const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+//             if (existingScript && existingScript.parentNode) {
+//                 existingScript.parentNode.removeChild(existingScript);
+//             }
+//         };
+//     }, []);
+//
+//     // Autocomplete'leri initialize et
+//     const initializeAutocomplete = () => {
+//         if (!window.google || !window.google.maps || !window.google.maps.places) {
+//             console.error('Google Places API henüz yüklenmedi');
+//             return;
+//         }
+//
+//         try {
+//             // Pickup autocomplete
+//             if (pickupInputRef.current && !pickupAutocompleteRef.current) {
+//                 const pickupOptions = {
+//                     types: ['(cities)'],
+//                     fields: ['name', 'place_id', 'geometry'],
+//                 };
+//
+//                 if (formData.pickupCountry) {
+//                     pickupOptions.componentRestrictions = { country: getCountryCode(formData.pickupCountry) };
+//                 }
+//
+//                 pickupAutocompleteRef.current = new window.google.maps.places.Autocomplete(
+//                     pickupInputRef.current,
+//                     pickupOptions
+//                 );
+//
+//                 pickupAutocompleteRef.current.addListener('place_changed', () => {
+//                     const place = pickupAutocompleteRef.current.getPlace();
+//                     if (place && place.name) {
+//                         setFormData(prev => ({ ...prev, pickupCity: place.name }));
+//                     } else if (place && place.formatted_address) {
+//                         const cityName = place.formatted_address.split(',')[0];
+//                         setFormData(prev => ({ ...prev, pickupCity: cityName }));
+//                     }
+//                 });
+//             }
+//
+//             // Dropoff autocomplete
+//             if (dropoffInputRef.current && !dropoffAutocompleteRef.current) {
+//                 const dropoffOptions = {
+//                     types: ['(cities)'],
+//                     fields: ['name', 'place_id', 'geometry'],
+//                 };
+//
+//                 if (formData.dropoffCountry) {
+//                     dropoffOptions.componentRestrictions = { country: getCountryCode(formData.dropoffCountry) };
+//                 }
+//
+//                 dropoffAutocompleteRef.current = new window.google.maps.places.Autocomplete(
+//                     dropoffInputRef.current,
+//                     dropoffOptions
+//                 );
+//
+//                 dropoffAutocompleteRef.current.addListener('place_changed', () => {
+//                     const place = dropoffAutocompleteRef.current.getPlace();
+//                     if (place && place.name) {
+//                         setFormData(prev => ({ ...prev, dropoffCity: place.name }));
+//                     } else if (place && place.formatted_address) {
+//                         const cityName = place.formatted_address.split(',')[0];
+//                         setFormData(prev => ({ ...prev, dropoffCity: cityName }));
+//                     }
+//                 });
+//             }
+//         } catch (error) {
+//             console.error('Autocomplete initialize edilirken hata:', error);
+//             setIsGoogleLoaded(false);
+//         }
+//     };
+//
+//     // Ülke değiştiğinde autocomplete'i güncelle
+//     useEffect(() => {
+//         if (isGoogleLoaded && pickupAutocompleteRef.current && formData.pickupCountry) {
+//             try {
+//                 pickupAutocompleteRef.current.setComponentRestrictions({
+//                     country: getCountryCode(formData.pickupCountry)
+//                 });
+//                 if (pickupInputRef.current) {
+//                     pickupInputRef.current.value = '';
+//                     setFormData(prev => ({ ...prev, pickupCity: '' }));
+//                 }
+//             } catch (error) {
+//                 console.error('Pickup autocomplete güncellenirken hata:', error);
+//             }
+//         }
+//     }, [formData.pickupCountry, isGoogleLoaded]);
+//
+//     useEffect(() => {
+//         if (isGoogleLoaded && dropoffAutocompleteRef.current && formData.dropoffCountry) {
+//             try {
+//                 dropoffAutocompleteRef.current.setComponentRestrictions({
+//                     country: getCountryCode(formData.dropoffCountry)
+//                 });
+//                 if (dropoffInputRef.current) {
+//                     dropoffInputRef.current.value = '';
+//                     setFormData(prev => ({ ...prev, dropoffCity: '' }));
+//                 }
+//             } catch (error) {
+//                 console.error('Dropoff autocomplete güncellenirken hata:', error);
+//             }
+//         }
+//     }, [formData.dropoffCountry, isGoogleLoaded]);
+//
+//     // Ülke kodlarını döndür (Google Places API için)
+//     const getCountryCode = (country: string): string => {
+//         const countryCodes: { [key: string]: string } = {
+//             'Turkey': 'tr',
+//             'Germany': 'de',
+//             'France': 'fr',
+//             'Italy': 'it',
+//             'Spain': 'es',
+//             'United Kingdom': 'gb',
+//             'Netherlands': 'nl',
+//             'Belgium': 'be',
+//             'Austria': 'at',
+//             'Switzerland': 'ch',
+//             'Poland': 'pl',
+//             'Czech Republic': 'cz',
+//             'Hungary': 'hu',
+//             'Romania': 'ro',
+//             'Bulgaria': 'bg',
+//             'Croatia': 'hr',
+//             'Serbia': 'rs',
+//             'Bosnia and Herzegovina': 'ba',
+//             'Slovenia': 'si',
+//             'Slovakia': 'sk',
+//             'Portugal': 'pt',
+//             'Greece': 'gr',
+//             'Albania': 'al',
+//             'Montenegro': 'me',
+//             'North Macedonia': 'mk',
+//             'Moldova': 'md',
+//             'Ukraine': 'ua',
+//             'Belarus': 'by',
+//             'Lithuania': 'lt',
+//             'Latvia': 'lv',
+//             'Estonia': 'ee',
+//             'Finland': 'fi',
+//             'Sweden': 'se',
+//             'Norway': 'no',
+//             'Denmark': 'dk',
+//             'Iceland': 'is',
+//             'Ireland': 'ie',
+//             'Cyprus': 'cy',
+//             'Malta': 'mt',
+//             'Luxembourg': 'lu',
+//             'Liechtenstein': 'li',
+//             'Monaco': 'mc',
+//             'Andorra': 'ad',
+//             'San Marino': 'sm',
+//             'Vatican City': 'va',
+//             'Kosovo': 'xk'
+//         };
+//
+//         return countryCodes[country] || 'tr';
+//     };
+//
+//     // Input değişikliklerini handle et
+//     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+//         const { name, value } = e.target;
+//         setFormData(prev => ({
+//             ...prev,
+//             [name]: name === 'weight' || name === 'price' ? Number(value) : value
+//         }));
+//     };
+//
+//     // Şehir input'larını handle et
+//     const handleCityInputChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'pickup' | 'dropoff') => {
+//         const value = e.target.value;
+//
+//         if (type === 'pickup') {
+//             setFormData(prev => ({ ...prev, pickupCity: value }));
+//         } else {
+//             setFormData(prev => ({ ...prev, dropoffCity: value }));
+//         }
+//     };
+//
+//     // Form submit
+//     const handleSubmit = async (e: React.FormEvent) => {
+//         e.preventDefault();
+//
+//         // userId kontrolü
+//         if (!userId) {
+//             setError('Giriş yapmış bir kullanıcı bulunamadı!');
+//             return;
+//         }
+//
+//         setIsLoading(true);
+//         setError(null);
+//
+//         try {
+//             // formData'ya userId'yi ekle
+//             const cargoData = {
+//                 ...formData,
+//                 userId: userId
+//             };
+//
+//             await dispatch(createCargo(cargoData)).unwrap();
+//             alert('Kargo başarıyla oluşturuldu!');
+//
+//             // Form'u temizle
+//             setFormData({
+//                 title: '',
+//                 description: '',
+//                 weight: 0,
+//                 cargoType: '',
+//                 pickupCountry: '',
+//                 pickupCity: '',
+//                 dropoffCountry: '',
+//                 dropoffCity: '',
+//                 price: 0,
+//                 currency: 'TRY'
+//             });
+//         } catch (error) {
+//             console.error('Kargo oluşturulurken hata:', error);
+//             setError('Kargo oluşturulurken bir hata oluştu!');
+//         } finally {
+//             setIsLoading(false);
+//         }
+//     };
+//
+//     // Kullanıcı giriş yapmamışsa uyarı göster
+//     if (!userId) {
+//         return (
+//             <div className="main-content" style={{
+//                 width: '100%',
+//                 minHeight: '100vh',
+//                 display: 'flex',
+//                 alignItems: 'center',
+//                 justifyContent: 'center',
+//                 padding: '5%'
+//             }}>
+//                 <div style={{
+//                     backgroundColor: '#fee',
+//                     color: '#c33',
+//                     padding: '20px',
+//                     borderRadius: '10px',
+//                     textAlign: 'center',
+//                     fontSize: '18px'
+//                 }}>
+//                     Kargo oluşturmak için giriş yapmanız gerekiyor!
+//                 </div>
+//             </div>
+//         );
+//     }
+//
+//     return (
+//         <div className="main-content" style={{
+//             width: '100%',
+//             minHeight: '100vh',
+//             display: 'flex',
+//             alignItems: 'center',
+//             justifyContent: 'center',
+//             padding: '5%'
+//         }}>
+//             <div className="form-container" style={{
+//                 width: '100%',
+//                 maxWidth: '800px',
+//                 backgroundColor: '#fff',
+//                 borderRadius: '20px',
+//                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+//                 padding: '40px',
+//                 margin: '0 auto'
+//             }}>
+//                 <h1 style={{
+//                     fontSize: '32px',
+//                     fontWeight: 'bold',
+//                     color: '#333',
+//                     marginBottom: '30px',
+//                     textAlign: 'center'
+//                 }}>Yeni Kargo Oluştur</h1>
+//
+//                 {error && (
+//                     <div style={{
+//                         backgroundColor: '#fee',
+//                         color: '#c33',
+//                         padding: '10px',
+//                         borderRadius: '5px',
+//                         marginBottom: '20px',
+//                         textAlign: 'center'
+//                     }}>
+//                         Hata: {error}
+//                     </div>
+//                 )}
+//
+//                 <form onSubmit={handleSubmit} style={{
+//                     display: 'flex',
+//                     flexDirection: 'column',
+//                     gap: '25px'
+//                 }}>
+//                     {/* Başlık */}
+//                     <div className="form-group">
+//                         <label style={{
+//                             display: 'block',
+//                             fontSize: '18px',
+//                             fontWeight: '500',
+//                             marginBottom: '10px'
+//                         }}>Başlık</label>
+//                         <input
+//                             type="text"
+//                             name="title"
+//                             value={formData.title}
+//                             onChange={handleInputChange}
+//                             style={{
+//                                 width: '100%',
+//                                 padding: '15px',
+//                                 fontSize: '16px',
+//                                 border: '1px solid #ddd',
+//                                 borderRadius: '10px',
+//                                 backgroundColor: '#f9f9f9',
+//                                 outline: 'none',
+//                                 transition: 'border-color 0.3s, box-shadow 0.3s'
+//                             }}
+//                             placeholder="Kargo başlığı"
+//                             required
+//                         />
+//                     </div>
+//
+//                     {/* Açıklama */}
+//                     <div className="form-group">
+//                         <label style={{
+//                             display: 'block',
+//                             fontSize: '18px',
+//                             fontWeight: '500',
+//                             marginBottom: '10px'
+//                         }}>Açıklama</label>
+//                         <textarea
+//                             name="description"
+//                             value={formData.description}
+//                             onChange={handleInputChange}
+//                             rows={3}
+//                             style={{
+//                                 width: '100%',
+//                                 padding: '15px',
+//                                 fontSize: '16px',
+//                                 border: '1px solid #ddd',
+//                                 borderRadius: '10px',
+//                                 backgroundColor: '#f9f9f9',
+//                                 outline: 'none',
+//                                 transition: 'border-color 0.3s, box-shadow 0.3s',
+//                                 resize: 'vertical'
+//                             }}
+//                             placeholder="Kargo hakkında detaylı bilgi"
+//                             required
+//                         />
+//                     </div>
+//
+//                     {/* Ağırlık ve Kargo Türü */}
+//                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Ağırlık (kg)</label>
+//                             <input
+//                                 type="number"
+//                                 name="weight"
+//                                 value={formData.weight}
+//                                 onChange={handleInputChange}
+//                                 min="0"
+//                                 step="0.1"
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 placeholder="0.0"
+//                                 required
+//                             />
+//                         </div>
+//
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Kargo Türü</label>
+//                             <select
+//                                 name="cargoType"
+//                                 value={formData.cargoType}
+//                                 onChange={handleInputChange}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 required
+//                             >
+//                                 <option value="">Kargo Türü Seçin</option>
+//                                 {CARGO_TYPES.map(type => (
+//                                     <option key={type.value} value={type.value}>{type.label}</option>
+//                                 ))}
+//                             </select>
+//                         </div>
+//                     </div>
+//
+//                     {/* Alım Lokasyonu */}
+//                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Alım Ülkesi</label>
+//                             <select
+//                                 name="pickupCountry"
+//                                 value={formData.pickupCountry}
+//                                 onChange={handleInputChange}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 required
+//                             >
+//                                 <option value="">Ülke Seçin</option>
+//                                 {EUROPEAN_COUNTRIES.map(country => (
+//                                     <option key={country.value} value={country.value}>{country.label}</option>
+//                                 ))}
+//                             </select>
+//                         </div>
+//
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Alım Şehri</label>
+//                             <input
+//                                 ref={pickupInputRef}
+//                                 type="text"
+//                                 value={formData.pickupCity}
+//                                 onChange={(e) => handleCityInputChange(e, 'pickup')}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: formData.pickupCountry ? '#f9f9f9' : '#f0f0f0',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+//                                 required
+//                                 disabled={!formData.pickupCountry}
+//                             />
+//                         </div>
+//                     </div>
+//
+//                     {/* Teslim Lokasyonu */}
+//                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Teslim Ülkesi</label>
+//                             <select
+//                                 name="dropoffCountry"
+//                                 value={formData.dropoffCountry}
+//                                 onChange={handleInputChange}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 required
+//                             >
+//                                 <option value="">Ülke Seçin</option>
+//                                 {EUROPEAN_COUNTRIES.map(country => (
+//                                     <option key={country.value} value={country.value}>{country.label}</option>
+//                                 ))}
+//                             </select>
+//                         </div>
+//
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Teslim Şehri</label>
+//                             <input
+//                                 ref={dropoffInputRef}
+//                                 type="text"
+//                                 value={formData.dropoffCity}
+//                                 onChange={(e) => handleCityInputChange(e, 'dropoff')}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: formData.dropoffCountry ? '#f9f9f9' : '#f0f0f0',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+//                                 required
+//                                 disabled={!formData.dropoffCountry}
+//                             />
+//                         </div>
+//                     </div>
+//
+//                     {/* Fiyat ve Para Birimi */}
+//                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px' }}>
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Fiyat</label>
+//                             <input
+//                                 type="number"
+//                                 name="price"
+//                                 value={formData.price}
+//                                 onChange={handleInputChange}
+//                                 min="0"
+//                                 step="0.01"
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 placeholder="0.00"
+//                                 required
+//                             />
+//                         </div>
+//
+//                         <div className="form-group">
+//                             <label style={{
+//                                 display: 'block',
+//                                 fontSize: '18px',
+//                                 fontWeight: '500',
+//                                 marginBottom: '10px'
+//                             }}>Para Birimi</label>
+//                             <select
+//                                 name="currency"
+//                                 value={formData.currency}
+//                                 onChange={handleInputChange}
+//                                 style={{
+//                                     width: '100%',
+//                                     padding: '15px',
+//                                     fontSize: '16px',
+//                                     border: '1px solid #ddd',
+//                                     borderRadius: '10px',
+//                                     backgroundColor: '#f9f9f9',
+//                                     outline: 'none',
+//                                     transition: 'border-color 0.3s, box-shadow 0.3s'
+//                                 }}
+//                                 required
+//                             >
+//                                 <option value="TRY">TRY</option>
+//                                 <option value="USD">USD</option>
+//                                 <option value="EUR">EUR</option>
+//                             </select>
+//                         </div>
+//                     </div>
+//
+//                     {/* Google Places API Uyarısı */}
+//                     {!isGoogleLoaded && (
+//                         <div style={{
+//                             backgroundColor: '#fff3cd',
+//                             color: '#856404',
+//                             padding: '12px',
+//                             borderRadius: '10px',
+//                             fontSize: '14px',
+//                             textAlign: 'center'
+//                         }}>
+//                             Google Places API yüklenemedi. Şehir isimlerini manuel olarak girebilirsiniz.
+//                         </div>
+//                     )}
+//
+//                     {/* Submit Button */}
+//                     <button
+//                         type="submit"
+//                         disabled={isLoading}
+//                         style={{
+//                             backgroundColor: isLoading ? '#ccc' : '#e63946',
+//                             color: 'white',
+//                             padding: '16px',
+//                             fontSize: '18px',
+//                             fontWeight: '600',
+//                             border: 'none',
+//                             borderRadius: '10px',
+//                             cursor: isLoading ? 'not-allowed' : 'pointer',
+//                             marginTop: '15px',
+//                             transition: 'background-color 0.3s'
+//                         }}
+//                         onMouseOver={(e) => {
+//                             if (!isLoading) {
+//                                 e.currentTarget.style.backgroundColor = '#d62838';
+//                             }
+//                         }}
+//                         onMouseOut={(e) => {
+//                             if (!isLoading) {
+//                                 e.currentTarget.style.backgroundColor = '#e63946';
+//                             }
+//                         }}
+//                     >
+//                         {isLoading ? 'Oluşturuluyor...' : 'Kargo Oluştur'}
+//                     </button>
+//                 </form>
+//             </div>
+//         </div>
+//     );
+// };
+//
+// export default CreateCargoPage;
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
+// useAppSelector import edildi
 import { createCargo } from '../features/cargo/cargoSlice';
-import { AppDispatch } from '../store/store';
+import { AppDispatch,useAppSelector } from '../store/store';
 
 // Google Places API'yi yükle
 declare global {
@@ -11,29 +817,85 @@ declare global {
     }
 }
 
-// Avrupa ülkeleri listesi
+// Avrupa ülkeleri listesi (value: İngilizce, label: Türkçe)
 const EUROPEAN_COUNTRIES = [
-    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina',
-    'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia',
-    'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Ireland',
-    'Italy', 'Latvia', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Malta',
-    'Moldova', 'Monaco', 'Montenegro', 'Netherlands', 'North Macedonia', 'Norway',
-    'Poland', 'Portugal', 'Romania', 'San Marino', 'Serbia', 'Slovakia',
-    'Slovenia', 'Spain', 'Sweden', 'Switzerland', 'Turkey', 'Ukraine',
-    'United Kingdom', 'Vatican City', 'Kosovo', 'Gibraltar', 'Faroe Islands',
-    'Greenland', 'Isle of Man', 'Jersey'
+    { value: 'Albania', label: 'Arnavutluk' },
+    { value: 'Andorra', label: 'Andorra' },
+    { value: 'Austria', label: 'Avusturya' },
+    { value: 'Belarus', label: 'Belarus' },
+    { value: 'Belgium', label: 'Belçika' },
+    { value: 'Bosnia and Herzegovina', label: 'Bosna Hersek' },
+    { value: 'Bulgaria', label: 'Bulgaristan' },
+    { value: 'Croatia', label: 'Hırvatistan' },
+    { value: 'Cyprus', label: 'Kıbrıs' },
+    { value: 'Czech Republic', label: 'Çek Cumhuriyeti' },
+    { value: 'Denmark', label: 'Danimarka' },
+    { value: 'Estonia', label: 'Estonya' },
+    { value: 'Finland', label: 'Finlandiya' },
+    { value: 'France', label: 'Fransa' },
+    { value: 'Germany', label: 'Almanya' },
+    { value: 'Greece', label: 'Yunanistan' },
+    { value: 'Hungary', label: 'Macaristan' },
+    { value: 'Iceland', label: 'İzlanda' },
+    { value: 'Ireland', label: 'İrlanda' },
+    { value: 'Italy', label: 'İtalya' },
+    { value: 'Latvia', label: 'Letonya' },
+    { value: 'Liechtenstein', label: 'Lihtenştayn' },
+    { value: 'Lithuania', label: 'Litvanya' },
+    { value: 'Luxembourg', label: 'Lüksemburg' },
+    { value: 'Malta', label: 'Malta' },
+    { value: 'Moldova', label: 'Moldova' },
+    { value: 'Monaco', label: 'Monako' },
+    { value: 'Montenegro', label: 'Karadağ' },
+    { value: 'Netherlands', label: 'Hollanda' },
+    { value: 'North Macedonia', label: 'Kuzey Makedonya' },
+    { value: 'Norway', label: 'Norveç' },
+    { value: 'Poland', label: 'Polonya' },
+    { value: 'Portugal', label: 'Portekiz' },
+    { value: 'Romania', label: 'Romanya' },
+    { value: 'San Marino', label: 'San Marino' },
+    { value: 'Serbia', label: 'Sırbistan' },
+    { value: 'Slovakia', label: 'Slovakya' },
+    { value: 'Slovenia', label: 'Slovenya' },
+    { value: 'Spain', label: 'İspanya' },
+    { value: 'Sweden', label: 'İsveç' },
+    { value: 'Switzerland', label: 'İsviçre' },
+    { value: 'Turkey', label: 'Türkiye' },
+    { value: 'Ukraine', label: 'Ukrayna' },
+    { value: 'United Kingdom', label: 'Birleşik Krallık' },
+    { value: 'Vatican City', label: 'Vatikan' },
+    { value: 'Kosovo', label: 'Kosova' },
+    { value: 'Gibraltar', label: 'Cebelitarık' },
+    { value: 'Faroe Islands', label: 'Faroe Adaları' },
+    { value: 'Greenland', label: 'Grönland' },
+    { value: 'Isle of Man', label: 'Man Adası' },
+    { value: 'Jersey', label: 'Jersey' }
+];
+
+// Kargo türleri
+const CARGO_TYPES = [
+    { value: 'TarpaulinTruck', label: 'Tenteli Kamyon' },
+    { value: 'BoxTruck', label: 'Kapalı Kasa Kamyon' },
+    { value: 'RefrigeratedTruck', label: 'Soğutmalı Kamyon' },
+    { value: 'SemiTrailer', label: 'Yarı Römork' },
+    { value: 'LightTruck', label: 'Hafif Kamyon' },
+    { value: 'ContainerCarrier', label: 'Konteyner Taşıyıcı' },
+    { value: 'TankTruck', label: 'Tanker' },
+    { value: 'LowbedTrailer', label: 'Lowbed Römork' },
+    { value: 'DumpTruck', label: 'Damperli Kamyon' },
+    { value: 'PanelVan', label: 'Panel Van' },
+    { value: 'Others', label: 'Diğer' }
 ];
 
 interface CargoFormData {
-    userId: string;
     title: string;
     description: string;
     weight: number;
     cargoType: string;
-    pickupCountry: string;
-    pickupCity: string;
-    dropoffCountry: string;
-    dropoffCity: string;
+    pickCountry: string;
+    pickCity: string;
+    dropCountry: string;
+    dropCity: string;
     price: number;
     currency: 'TRY' | 'USD' | 'EUR';
 }
@@ -41,21 +903,25 @@ interface CargoFormData {
 const CreateCargoPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
 
+    // Redux store'dan userId'yi al
+    const userId = useAppSelector(state => state.auth.user?.uid || "");
+
     const [formData, setFormData] = useState<CargoFormData>({
-        userId: '', // Bu normalde auth'dan gelecek
         title: '',
         description: '',
         weight: 0,
         cargoType: '',
-        pickupCountry: '',
-        pickupCity: '',
-        dropoffCountry: '',
-        dropoffCity: '',
+        pickCountry: '',
+        pickCity: '',
+        dropCountry: '',
+        dropCity: '',
         price: 0,
         currency: 'TRY'
     });
 
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const pickupInputRef = useRef<HTMLInputElement>(null);
     const dropoffInputRef = useRef<HTMLInputElement>(null);
@@ -82,7 +948,6 @@ const CreateCargoPage: React.FC = () => {
             };
             script.onerror = () => {
                 console.error('Google Places API yüklenemedi');
-                // Fallback olarak basit city listesi kullanabiliriz
                 setIsGoogleLoaded(false);
             };
 
@@ -92,7 +957,6 @@ const CreateCargoPage: React.FC = () => {
         loadGooglePlaces();
 
         return () => {
-            // Cleanup - script'i kaldır
             const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
             if (existingScript && existingScript.parentNode) {
                 existingScript.parentNode.removeChild(existingScript);
@@ -115,8 +979,8 @@ const CreateCargoPage: React.FC = () => {
                     fields: ['name', 'place_id', 'geometry'],
                 };
 
-                if (formData.pickupCountry) {
-                    pickupOptions.componentRestrictions = { country: getCountryCode(formData.pickupCountry) };
+                if (formData.pickCountry) {
+                    pickupOptions.componentRestrictions = { country: getCountryCode(formData.pickCountry) };
                 }
 
                 pickupAutocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -127,11 +991,10 @@ const CreateCargoPage: React.FC = () => {
                 pickupAutocompleteRef.current.addListener('place_changed', () => {
                     const place = pickupAutocompleteRef.current.getPlace();
                     if (place && place.name) {
-                        setFormData(prev => ({ ...prev, pickupCity: place.name }));
+                        setFormData(prev => ({ ...prev, pickCity: place.name }));
                     } else if (place && place.formatted_address) {
-                        // Eğer name yoksa formatted_address'den şehir ismini çıkar
                         const cityName = place.formatted_address.split(',')[0];
-                        setFormData(prev => ({ ...prev, pickupCity: cityName }));
+                        setFormData(prev => ({ ...prev, pickCity: cityName }));
                     }
                 });
             }
@@ -143,8 +1006,8 @@ const CreateCargoPage: React.FC = () => {
                     fields: ['name', 'place_id', 'geometry'],
                 };
 
-                if (formData.dropoffCountry) {
-                    dropoffOptions.componentRestrictions = { country: getCountryCode(formData.dropoffCountry) };
+                if (formData.dropCountry) {
+                    dropoffOptions.componentRestrictions = { country: getCountryCode(formData.dropCountry) };
                 }
 
                 dropoffAutocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -155,11 +1018,10 @@ const CreateCargoPage: React.FC = () => {
                 dropoffAutocompleteRef.current.addListener('place_changed', () => {
                     const place = dropoffAutocompleteRef.current.getPlace();
                     if (place && place.name) {
-                        setFormData(prev => ({ ...prev, dropoffCity: place.name }));
+                        setFormData(prev => ({ ...prev, dropCity: place.name }));
                     } else if (place && place.formatted_address) {
-                        // Eğer name yoksa formatted_address'den şehir ismini çıkar
                         const cityName = place.formatted_address.split(',')[0];
-                        setFormData(prev => ({ ...prev, dropoffCity: cityName }));
+                        setFormData(prev => ({ ...prev, dropCity: cityName }));
                     }
                 });
             }
@@ -171,38 +1033,36 @@ const CreateCargoPage: React.FC = () => {
 
     // Ülke değiştiğinde autocomplete'i güncelle
     useEffect(() => {
-        if (isGoogleLoaded && pickupAutocompleteRef.current && formData.pickupCountry) {
+        if (isGoogleLoaded && pickupAutocompleteRef.current && formData.pickCountry) {
             try {
                 pickupAutocompleteRef.current.setComponentRestrictions({
-                    country: getCountryCode(formData.pickupCountry)
+                    country: getCountryCode(formData.pickCountry)
                 });
-                // Input'u temizle ve yeniden focus et
                 if (pickupInputRef.current) {
                     pickupInputRef.current.value = '';
-                    setFormData(prev => ({ ...prev, pickupCity: '' }));
+                    setFormData(prev => ({ ...prev, pickCity: '' }));
                 }
             } catch (error) {
                 console.error('Pickup autocomplete güncellenirken hata:', error);
             }
         }
-    }, [formData.pickupCountry, isGoogleLoaded]);
+    }, [formData.pickCountry, isGoogleLoaded]);
 
     useEffect(() => {
-        if (isGoogleLoaded && dropoffAutocompleteRef.current && formData.dropoffCountry) {
+        if (isGoogleLoaded && dropoffAutocompleteRef.current && formData.dropCountry) {
             try {
                 dropoffAutocompleteRef.current.setComponentRestrictions({
-                    country: getCountryCode(formData.dropoffCountry)
+                    country: getCountryCode(formData.dropCountry)
                 });
-                // Input'u temizle ve yeniden focus et
                 if (dropoffInputRef.current) {
                     dropoffInputRef.current.value = '';
-                    setFormData(prev => ({ ...prev, dropoffCity: '' }));
+                    setFormData(prev => ({ ...prev, dropCity: '' }));
                 }
             } catch (error) {
                 console.error('Dropoff autocomplete güncellenirken hata:', error);
             }
         }
-    }, [formData.dropoffCountry, isGoogleLoaded]);
+    }, [formData.dropCountry, isGoogleLoaded]);
 
     // Ülke kodlarını döndür (Google Places API için)
     const getCountryCode = (country: string): string => {
@@ -267,14 +1127,14 @@ const CreateCargoPage: React.FC = () => {
         }));
     };
 
-    // Şehir input'larını handle et (Google Places API kullanırken manuel değişiklik için)
+    // Şehir input'larını handle et
     const handleCityInputChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'pickup' | 'dropoff') => {
         const value = e.target.value;
 
         if (type === 'pickup') {
-            setFormData(prev => ({ ...prev, pickupCity: value }));
+            setFormData(prev => ({ ...prev, pickCity: value }));
         } else {
-            setFormData(prev => ({ ...prev, dropoffCity: value }));
+            setFormData(prev => ({ ...prev, dropCity: value }));
         }
     };
 
@@ -282,248 +1142,461 @@ const CreateCargoPage: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // userId kontrolü
+        if (!userId) {
+            setError('Giriş yapmış bir kullanıcı bulunamadı!');
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
         try {
-            await dispatch(createCargo(formData)).unwrap();
+            // formData'ya userId'yi ekle
+            const cargoData = {
+                ...formData,
+                userId: userId
+            };
+
+            await dispatch(createCargo(cargoData)).unwrap();
             alert('Kargo başarıyla oluşturuldu!');
 
             // Form'u temizle
             setFormData({
-                userId: '',
                 title: '',
                 description: '',
                 weight: 0,
                 cargoType: '',
-                pickupCountry: '',
-                pickupCity: '',
-                dropoffCountry: '',
-                dropoffCity: '',
+                pickCountry: '',
+                pickCity: '',
+                dropCountry: '',
+                dropCity: '',
                 price: 0,
                 currency: 'TRY'
             });
         } catch (error) {
             console.error('Kargo oluşturulurken hata:', error);
-            alert('Kargo oluşturulurken bir hata oluştu!');
+            setError('Kargo oluşturulurken bir hata oluştu!');
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    // Dışarı tıklanınca önerileri kapat - artık gerekli değil
-    useEffect(() => {
-        // Google Places API kendi dropdown'ını yönetiyor
-        // Bu kısım artık gerekli değil
-    }, []);
+    // Kullanıcı giriş yapmamışsa uyarı göster
+    if (!userId) {
+        return (
+            <div className="main-content" style={{
+                width: '100%',
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '5%'
+            }}>
+                <div style={{
+                    backgroundColor: '#fee',
+                    color: '#c33',
+                    padding: '20px',
+                    borderRadius: '10px',
+                    textAlign: 'center',
+                    fontSize: '18px'
+                }}>
+                    Kargo oluşturmak için giriş yapmanız gerekiyor!
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-6 text-center">Yeni Kargo Oluştur</h1>
+        <div className="main-content" style={{
+            width: '100%',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '5%'
+        }}>
+            <div className="form-container" style={{
+                width: '100%',
+                maxWidth: '800px',
+                backgroundColor: '#fff',
+                borderRadius: '20px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                padding: '40px',
+                margin: '0 auto'
+            }}>
+                <h1 style={{
+                    fontSize: '32px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '30px',
+                    textAlign: 'center'
+                }}>Yeni Kargo Oluştur</h1>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                {/* User ID - normalde auth'dan gelecek */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Kullanıcı ID
-                    </label>
-                    <input
-                        type="text"
-                        name="userId"
-                        value={formData.userId}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                {/* Title */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Başlık
-                    </label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                {/* Description */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Açıklama
-                    </label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                {/* Weight */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ağırlık (kg)
-                    </label>
-                    <input
-                        type="number"
-                        name="weight"
-                        value={formData.weight}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.1"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                {/* Cargo Type */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Kargo Türü
-                    </label>
-                    <input
-                        type="text"
-                        name="cargoType"
-                        value={formData.cargoType}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                {/* Pickup Location */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Alım Ülkesi
-                        </label>
-                        <select
-                            name="pickupCountry"
-                            value={formData.pickupCountry}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
-                        >
-                            <option value="">Ülke Seçin</option>
-                            {EUROPEAN_COUNTRIES.map(country => (
-                                <option key={country} value={country}>{country}</option>
-                            ))}
-                        </select>
+                {error && (
+                    <div style={{
+                        backgroundColor: '#fee',
+                        color: '#c33',
+                        padding: '10px',
+                        borderRadius: '5px',
+                        marginBottom: '20px',
+                        textAlign: 'center'
+                    }}>
+                        Hata: {error}
                     </div>
+                )}
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Alım Şehri
-                        </label>
+                <form onSubmit={handleSubmit} style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '25px'
+                }}>
+                    {/* Başlık */}
+                    <div className="form-group">
+                        <label style={{
+                            display: 'block',
+                            fontSize: '18px',
+                            fontWeight: '500',
+                            marginBottom: '10px'
+                        }}>Başlık</label>
                         <input
-                            ref={pickupInputRef}
                             type="text"
-                            value={formData.pickupCity}
-                            onChange={(e) => handleCityInputChange(e, 'pickup')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
-                            required
-                            disabled={!formData.pickupCountry}
-                        />
-                        {!isGoogleLoaded && (
-                            <p className="text-xs text-red-500 mt-1">
-                                Google Places API yüklenemedi. Google Cloud Console'da Places API'yi etkinleştirin.
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Dropoff Location */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Teslim Ülkesi
-                        </label>
-                        <select
-                            name="dropoffCountry"
-                            value={formData.dropoffCountry}
+                            name="title"
+                            value={formData.title}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            required
-                        >
-                            <option value="">Ülke Seçin</option>
-                            {EUROPEAN_COUNTRIES.map(country => (
-                                <option key={country} value={country}>{country}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Teslim Şehri
-                        </label>
-                        <input
-                            ref={dropoffInputRef}
-                            type="text"
-                            value={formData.dropoffCity}
-                            onChange={(e) => handleCityInputChange(e, 'dropoff')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
-                            required
-                            disabled={!formData.dropoffCountry}
-                        />
-                        {!isGoogleLoaded && (
-                            <p className="text-xs text-red-500 mt-1">
-                                Google Cloud Console'da Places API'yi etkinleştirin.
-                            </p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Price and Currency */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Fiyat
-                        </label>
-                        <input
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleInputChange}
-                            min="0"
-                            step="0.01"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                fontSize: '16px',
+                                border: '1px solid #ddd',
+                                borderRadius: '10px',
+                                backgroundColor: '#f9f9f9',
+                                outline: 'none',
+                                transition: 'border-color 0.3s, box-shadow 0.3s'
+                            }}
+                            placeholder="Kargo başlığı"
                             required
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Para Birimi
-                        </label>
-                        <select
-                            name="currency"
-                            value={formData.currency}
+                    {/* Açıklama */}
+                    <div className="form-group">
+                        <label style={{
+                            display: 'block',
+                            fontSize: '18px',
+                            fontWeight: '500',
+                            marginBottom: '10px'
+                        }}>Açıklama</label>
+                        <textarea
+                            name="description"
+                            value={formData.description}
                             onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={3}
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                fontSize: '16px',
+                                border: '1px solid #ddd',
+                                borderRadius: '10px',
+                                backgroundColor: '#f9f9f9',
+                                outline: 'none',
+                                transition: 'border-color 0.3s, box-shadow 0.3s',
+                                resize: 'vertical'
+                            }}
+                            placeholder="Kargo hakkında detaylı bilgi"
                             required
-                        >
-                            <option value="TRY">TRY</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                        </select>
+                        />
                     </div>
-                </div>
 
-                {/* Submit Button */}
-                <button
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
-                >
-                    Kargo Oluştur
-                </button>
-            </form>
-        </div>
-    );
-};
+                    {/* Ağırlık ve Kargo Türü */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Ağırlık (kg)</label>
+                            <input
+                                type="number"
+                                name="weight"
+                                value={formData.weight}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.1"
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                placeholder="0.0"
+                                required
+                            />
+                        </div>
 
-export default CreateCargoPage;
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Kargo Türü</label>
+                            <select
+                                name="cargoType"
+                                value={formData.cargoType}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            >
+                                <option value="">Kargo Türü Seçin</option>
+                                {CARGO_TYPES.map(type => (
+                                    <option key={type.value} value={type.value}>{type.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Alım Lokasyonu */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Alım Ülkesi</label>
+                            <select
+                                name="pickCountry"
+                                value={formData.pickCountry}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            >
+                                <option value="">Ülke Seçin</option>
+                                {EUROPEAN_COUNTRIES.map(country => (
+                                    <option key={country.value} value={country.value}>{country.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Alım Şehri</label>
+                            <input
+                                ref={pickupInputRef}
+                                type="text"
+                                value={formData.pickCity}
+                                onChange={(e) => handleCityInputChange(e, 'pickup')}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: formData.pickCountry ? '#f9f9f9' : '#f0f0f0',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                required
+                                disabled={!formData.pickCountry}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Teslim Lokasyonu */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Teslim Ülkesi</label>
+                            <select
+                                name="dropCountry"
+                                value={formData.dropCountry}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            >
+                                <option value="">Ülke Seçin</option>
+                                {EUROPEAN_COUNTRIES.map(country => (
+                                    <option key={country.value} value={country.value}>{country.label}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Teslim Şehri</label>
+                            <input
+                                ref={dropoffInputRef}
+                                type="text"
+                                value={formData.dropCity}
+                                onChange={(e) => handleCityInputChange(e, 'dropoff')}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: formData.dropCountry ? '#f9f9f9' : '#f0f0f0',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                required
+                                disabled={!formData.dropCountry}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Fiyat ve Para Birimi */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px' }}>
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Fiyat</label>
+                            <input
+                                type="number"
+                                name="price"
+                                value={formData.price}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.01"
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Para Birimi</label>
+                            <select
+                                name="currency"
+                                value={formData.currency}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            >
+                                <option value="TRY">TRY</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Google Places API Uyarısı */}
+                                        {!isGoogleLoaded && (
+                         <div style={{
+                            backgroundColor: '#fff3cd',
+                             color: '#856404',
+                             padding: '12px',
+                             borderRadius: '10px',
+                             fontSize: '14px',
+                             textAlign: 'center'
+                         }}>Google Places API yüklenemedi. Şehir isimlerini manuel olarak girebilirsiniz.
+                        </div>
+                   )}
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        style={{
+                            backgroundColor: isLoading ? '#ccc' : '#e63946',
+                            color: 'white',
+                            padding: '16px',
+                            fontSize: '18px',
+                            fontWeight: '600',
+                            border: 'none',
+                            borderRadius: '10px',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            marginTop: '15px',
+                            transition: 'background-color 0.3s'
+                        }}
+                        onMouseOver={(e) => {
+                            if (!isLoading) {
+                                e.currentTarget.style.backgroundColor = '#d62838';
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            if (!isLoading) {
+                                e.currentTarget.style.backgroundColor = '#e63946';
+                            }
+                        }}
+                    >
+                        {isLoading ? 'Oluşturuluyor...' : 'Kargo Oluştur'}
+                    </button>
+                </form>
+                             </div>
+                     </div>
+     );
+ };
+
+ export default CreateCargoPage;

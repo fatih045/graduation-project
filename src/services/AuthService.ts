@@ -24,11 +24,25 @@ export const loginUser = async (data: {
     email: string;
     password: string;
 }) => {
+    console.log("Login payload:", data);
     try {
         const response = await axiosInstance.post('/Login', data);
         return response.data;
+
     } catch (error: any) {
+        console.error("Login error:", error.response?.data || error.message);
         throw new Error(error.response?.data?.message || 'Login failed');
+
+    }
+};
+
+export  const getUser = async (id:string) => {
+    try {
+       // const response = await axiosInstance.get('/GetUser?id='+id);
+        const response = await axiosInstance.get(`/GetUser?id=${encodeURIComponent(id)}`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'User fetch failed');
     }
 };
 

@@ -1,6 +1,6 @@
 // src/store/slices/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { registerUser, loginUser, confirmEmail } from '../../services/AuthService';
+import {registerUser, loginUser, confirmEmail, getUser} from '../../services/AuthService';
 import { decodeToken } from '../../utils/jwt';
 
 // State tipi
@@ -64,6 +64,17 @@ export const login = createAsyncThunk(
         }
     }
 );
+export const getUserById = createAsyncThunk(
+    'auth/getUserById',
+    async (id: string, { rejectWithValue }) => {
+        try {
+            const response = await getUser(id);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(error?.message || 'Kullanıcı alınamadı');
+        }
+    }
+);
 
 export const confirmEmailAction = createAsyncThunk(
     'auth/confirmEmail',
@@ -121,7 +132,23 @@ const authSlice = createSlice({
                     localStorage.setItem('token', action.payload.jwToken);
                 }
             })
-            .addCase(login.rejected, (state, action) => {
+            // extraReducers bloğunun sonuna ekle
+            .addCase(getUserById.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(getUserById.fulfilled, (state, action: PayloadAction<any>) => {
+                state.status = 'succeeded';
+                state.user = action.payload;
+                state.error = null;
+            })
+            .addCase(getUserById.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload as string;
+            })
+
+
+    .addCase(login.rejected, (state, action) => {
                 state.status = 'failed';
                 state.error = action.payload as string;
             })

@@ -3,14 +3,16 @@ import axiosInstance from './axios.ts';
 export interface Cargo {
     id: number;
     userId: string;
+    customerName?: string;
     title: string;
     description: string;
     weight: number;
     cargoType: string;
-    pickupCountry: string;
-    pickupCity: string;
-    dropoffCountry: string;
-    dropoffCity: string;
+    pickCountry: string;
+    createdDate?: string;
+    pickCity: string;
+    dropCountry: string;
+    dropCity: string;
     price: number;
     currency: 'TRY' | 'USD' | 'EUR';
     isExpired?: boolean;
@@ -42,7 +44,7 @@ const updateCargo = async (id: number, data: Omit<Cargo, 'id'>) => {
 };
 
 const deleteCargo = async (id: number) => {
-    const response = await axiosInstance.delete(`api/Cargo/${id}`);
+    const response = await axiosInstance.delete(`api/CargoAd/${id}`);
     return response.data;
 };
 

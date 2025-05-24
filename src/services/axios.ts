@@ -1,12 +1,17 @@
-// src/api/axios.ts
+
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'https://localhost:7063',  // API base URL
+    baseURL: 'https://evrenblackbird.com/',  // API base URL
     headers: {
+        'accept': '*/*',
         'Content-Type': 'application/json',  // JSON olarak veri gönderiyoruz
     },
 });
+
+
+
+
 
 // Authorization header'ı otomatik ekle
 axiosInstance.interceptors.request.use(
