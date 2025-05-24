@@ -9,6 +9,10 @@ import cargoReducer from '../features/cargo/cargoSlice';
 
 import locationReducer from '../features/location/locationSlice';
 
+import cargoOfferReducer from '../features/cargoOffer/cargoOfferSlice';
+
+import vehicleOfferReducer from '../features/vehicleOffer/vehicleOfferSlice';
+
 
 import vehicleAdReducer from '../features/vehicle/vehicleAdSlice';
 import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
@@ -24,6 +28,12 @@ const store = configureStore({
         cargo: cargoReducer,
 
         location: locationReducer,
+
+        cargoOffer:cargoOfferReducer,
+
+        vehicleOffer:vehicleOfferReducer,
+
+
 
 
 
