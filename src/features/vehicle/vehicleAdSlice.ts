@@ -5,10 +5,13 @@ export interface VehicleAd {
     id: number;
     title: string;
     description: string;
-    pickUpLocationId: number;
+    country: string,
+    city: string,
     carrierId: string;
     vehicleType: string;
     capacity: number;
+    createdDate: string;
+    carrierName: string;
 }
 
 interface VehicleAdState {

@@ -45,7 +45,7 @@ const Sidebar: React.FC = () => {
 
                 <div className="side-bar__section">
                     <div className="side-bar__heading">Araç İşlemleri</div>
-                    <Link to="/vehicle/create" className="side-bar__item">
+                    <Link to="/addVehicleAd" className="side-bar__item">
                         <i className="fas fa-plus"></i> İlan Oluştur
                     </Link>
                     <Link to="/myVehicleAd" className="side-bar__item">

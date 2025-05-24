@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-    fetchAllVehicleAds,
+    fetchVehicleAdsByCarrier,
     updateVehicleAd,
     deleteVehicleAd,
     VehicleAd
@@ -11,6 +11,7 @@ import type { RootState, AppDispatch } from '../store/store.ts';
 const MyVehicleAdsPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { vehicleAds, loading, error } = useSelector((state: RootState) => state.vehicleAd);
+    const { user } = useSelector((state: RootState) => state.auth);
 
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
@@ -45,8 +46,10 @@ const MyVehicleAdsPage: React.FC = () => {
     ];
 
     useEffect(() => {
-        dispatch(fetchAllVehicleAds());
-    }, [dispatch]);
+        if (user && user.uid) {
+            dispatch(fetchVehicleAdsByCarrier(user.uid));
+        }
+    }, [dispatch, user]);
 
     // Form verilerini güncelle
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -59,7 +62,7 @@ const MyVehicleAdsPage: React.FC = () => {
         setFormData({
             title: vehicle.title,
             description: vehicle.description,
-            pickUpLocationId: vehicle.pickUpLocationId.toString(),
+            pickUpLocationId: vehicle.city,
             vehicleType: vehicle.vehicleType,
             capacity: vehicle.capacity.toString()
         });
@@ -327,19 +330,7 @@ const MyVehicleAdsPage: React.FC = () => {
                                         }}>{vehicle.capacity.toLocaleString()} kg</p>
                                     </div>
 
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Lokasyon ID</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>#{vehicle.pickUpLocationId}</p>
-                                    </div>
+
                                 </div>
                             </div>
                         ))}

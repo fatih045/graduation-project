@@ -9,6 +9,7 @@ export interface AuthState {
     token: string | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
+    carrierDetails: any | null; 
 }
 
 // localStorage'dan token'ı al
@@ -30,6 +31,7 @@ const initialState: AuthState = {
     token: storedToken,
     status: storedToken ? 'succeeded' : 'idle',
     error: null,
+    carrierDetails: null, 
 };
 
 // Async thunk işlemleri
@@ -76,6 +78,18 @@ export const getUserById = createAsyncThunk(
     }
 );
 
+export const getCarrierDetails = createAsyncThunk(
+    'auth/getCarrierDetails',
+    async (id: string, { rejectWithValue }) => {
+        try {
+            const response = await getUser(id);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(error?.message || 'Taşıyıcı bilgileri alınamadı');
+        }
+    }
+);
+
 export const confirmEmailAction = createAsyncThunk(
     'auth/confirmEmail',
     async ({ email, token }: { email: string; token: string }, { rejectWithValue }) => {
@@ -99,6 +113,9 @@ const authSlice = createSlice({
             state.error = null;
             // Logout olunca localStorage'dan token'ı temizle
             localStorage.removeItem('token');
+        },
+        clearCarrierDetails: (state) => {
+            state.carrierDetails = null;
         },
     },
     extraReducers: (builder) => {
@@ -132,6 +149,10 @@ const authSlice = createSlice({
                     localStorage.setItem('token', action.payload.jwToken);
                 }
             })
+            .addCase(login.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload as string;
+            })
             // extraReducers bloğunun sonuna ekle
             .addCase(getUserById.pending, (state) => {
                 state.status = 'loading';
@@ -146,10 +167,16 @@ const authSlice = createSlice({
                 state.status = 'failed';
                 state.error = action.payload as string;
             })
-
-
-    .addCase(login.rejected, (state, action) => {
-                state.status = 'failed';
+            .addCase(getCarrierDetails.pending, (state) => {
+                // Don't change the main status since this is a secondary operation
+                state.error = null;
+            })
+            .addCase(getCarrierDetails.fulfilled, (state, action: PayloadAction<any>) => {
+                // Store carrier details separately from the current user
+                state.carrierDetails = action.payload;
+                state.error = null;
+            })
+            .addCase(getCarrierDetails.rejected, (state, action) => {
                 state.error = action.payload as string;
             })
             // Email doğrulama işlemi
@@ -170,7 +197,7 @@ const authSlice = createSlice({
     },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearCarrierDetails } = authSlice.actions;
 
 // Sadece bir default export olmalı
 export default authSlice.reducer;

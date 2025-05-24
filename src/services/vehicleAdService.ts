@@ -22,7 +22,9 @@ export const getVehicleAdsByCarrierId = async (carrierId: string) => {
 export const createVehicleAd = async (adData: {
     title: string;
     description: string;
-    pickUpLocationId: number;
+
+    country: string,
+    city: string,
     carrierId: string;
     vehicleType: string;
     capacity: number;
@@ -37,8 +39,9 @@ export const updateVehicleAd = async (
     updatedData: {
         title: string;
         description: string;
-        pickUpLocationId: number;
-        vehicleType: string;
+        country: string,
+        city: string,
+        vehicleType: string,
         capacity: number;
     }
 ) => {

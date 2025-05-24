@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Truck, Users, MapPin, Loader, AlertCircle, User, Eye, Filter, Search, Mail, Phone } from 'lucide-react';
 import { fetchAllVehicleAds, VehicleAd } from '../features/vehicle/vehicleAdSlice';
-import { getUserById } from '../features/user/authSlice';
+import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
 
 const VehicleAdsList: React.FC = () => {
@@ -151,8 +151,8 @@ const VehicleAdsList: React.FC = () => {
                 vehicle.title?.toLowerCase().includes(lowercasedSearch) ||
                 vehicle.description?.toLowerCase().includes(lowercasedSearch) ||
                 vehicle.vehicleType?.toLowerCase().includes(lowercasedSearch) ||
-                vehicle.carrierId?.toString().includes(lowercasedSearch) ||
-                vehicle.pickUpLocationId?.toString().includes(lowercasedSearch)
+                vehicle.carrierId?.toString().includes(lowercasedSearch)
+
             );
         }
 
@@ -196,10 +196,10 @@ const VehicleAdsList: React.FC = () => {
     const handleViewDetails = (vehicle: VehicleAd) => {
         setSelectedVehicle(vehicle);
         setShowDetailModal(true);
-        
+
         // If vehicle has carrierId, fetch carrier details
         if (vehicle.carrierId) {
-            dispatch(getUserById(vehicle.carrierId.toString()))
+            dispatch(getCarrierDetails(vehicle.carrierId.toString()))
                 .unwrap()
                 .then((userData) => {
                     setCarrierDetails(userData);
@@ -422,7 +422,7 @@ const VehicleAdsList: React.FC = () => {
                             <option value="capacity-asc">Kapasite (Küçük-Büyük)</option>
                             <option value="title-asc">Başlık (A-Z)</option>
                             <option value="title-desc">Başlık (Z-A)</option>
-                            <option value="carrierId-asc">Taşıyıcı ID</option>
+
                         </select>
 
                         <select
@@ -543,17 +543,12 @@ const VehicleAdsList: React.FC = () => {
                                                 borderRadius: '8px',
                                                 marginBottom: '15px'
                                             }}>
-                                                <div style={{ textAlign: 'center', flex: 1 }}>
-                                                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>Lokasyon ID</div>
-                                                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
-                                                        #{vehicle.pickUpLocationId}
-                                                    </div>
-                                                </div>
+
                                                 <div style={{ margin: '0 10px', color: '#4a6cf7' }}>|</div>
                                                 <div style={{ textAlign: 'center', flex: 1 }}>
-                                                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>Taşıyıcı ID</div>
+                                                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>İl</div>
                                                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
-                                                        #{vehicle.carrierId}
+                                                        {vehicle.city}
                                                     </div>
                                                 </div>
                                             </div>
@@ -641,20 +636,14 @@ const VehicleAdsList: React.FC = () => {
                             {/* IDs */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                 <div className="detail-section">
-                                    <span className="detail-label">Lokasyon ID</span>
+                                    <span className="detail-label">Lokasyon </span>
                                     <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <MapPin size={16} />
-                                        #{selectedVehicle.pickUpLocationId}
+                                        {selectedVehicle.city}
                                     </div>
                                 </div>
 
-                                <div className="detail-section">
-                                    <span className="detail-label">Taşıyıcı ID</span>
-                                    <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <User size={16} />
-                                        #{selectedVehicle.carrierId}
-                                    </div>
-                                </div>
+
                             </div>
 
                             {/* Carrier Details */}
@@ -695,11 +684,7 @@ const VehicleAdsList: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Vehicle ID */}
-                            <div className="detail-section">
-                                <span className="detail-label">Araç No</span>
-                                <div className="detail-value">#{selectedVehicle.id}</div>
-                            </div>
+
                         </div>
                     </div>
                 </div>

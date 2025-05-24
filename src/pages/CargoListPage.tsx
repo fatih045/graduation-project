@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Package,  Weight, Loader, AlertCircle, User, Eye, Filter, Search, Mail, Phone } from 'lucide-react';
 import { fetchAllCargos } from '../features/cargo/cargoSlice';
-import { getUserById } from '../features/user/authSlice';
+import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
 
 const CargoListPage: React.FC = () => {
@@ -213,7 +213,7 @@ const CargoListPage: React.FC = () => {
         
         // If cargo has userId, fetch user details
         if (cargo.userId) {
-            dispatch(getUserById(cargo.userId))
+            dispatch(getCarrierDetails(cargo.userId))
                 .unwrap()
                 .then((userData) => {
                     setCustomerDetails(userData);
