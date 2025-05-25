@@ -4,6 +4,7 @@ import { Truck, Users, MapPin, Loader, AlertCircle, User, Eye, Filter, Search, M
 import { fetchAllVehicleAds, VehicleAd } from '../features/vehicle/vehicleAdSlice';
 import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
+import { createVehicleOffer } from '../features/vehicleOffer/vehicleOfferSlice';
 
 const VehicleAdsList: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -21,6 +22,13 @@ const VehicleAdsList: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
     const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
     const [carrierDetails, setCarrierDetails] = useState<any>(null);
+    
+    // Offer form state
+    const [showOfferForm, setShowOfferForm] = useState<boolean>(false);
+    const [offerMessage, setOfferMessage] = useState<string>('');
+    const [offerSubmitting, setOfferSubmitting] = useState<boolean>(false);
+    const [offerSuccess, setOfferSuccess] = useState<boolean>(false);
+    const [offerError, setOfferError] = useState<string | null>(null);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -196,6 +204,9 @@ const VehicleAdsList: React.FC = () => {
     const handleViewDetails = (vehicle: VehicleAd) => {
         setSelectedVehicle(vehicle);
         setShowDetailModal(true);
+        setShowOfferForm(false);
+        setOfferSuccess(false);
+        setOfferError(null);
 
         // If vehicle has carrierId, fetch carrier details
         if (vehicle.carrierId) {
@@ -210,6 +221,53 @@ const VehicleAdsList: React.FC = () => {
         } else {
             setCarrierDetails(null);
         }
+    };
+
+    // Handle offer submission
+    const handleSubmitOffer = () => {
+        if (!userData || !selectedVehicle || !carrierDetails) return;
+        
+        if (!offerMessage) {
+            setOfferError('Lütfen bir mesaj girin.');
+            return;
+        }
+
+        setOfferSubmitting(true);
+        setOfferError(null);
+
+        // Create expiry date (14 days from now)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 14);
+
+        // Debugging
+        console.log("Current user:", userData);
+
+        const offerData = {
+            senderId: userData.userId || userData.uid, // Try both possible locations for the user ID
+            receiverId: selectedVehicle.carrierId,
+            vehicleAdId: selectedVehicle.id,
+            message: offerMessage,
+            expiryDate: expiryDate.toISOString()
+        };
+
+        // Log the data for debugging
+        console.log("Sending vehicle offer data:", offerData);
+
+        dispatch(createVehicleOffer(offerData))
+            .unwrap()
+            .then((result) => {
+                console.log("Vehicle offer created successfully:", result);
+                setOfferSuccess(true);
+                setShowOfferForm(false);
+                setOfferMessage('');
+            })
+            .catch((error) => {
+                console.error("Error creating vehicle offer:", error);
+                setOfferError(error.message || 'Teklif gönderilirken bir hata oluştu.');
+            })
+            .finally(() => {
+                setOfferSubmitting(false);
+            });
     };
 
     // Component styles
@@ -683,8 +741,135 @@ const VehicleAdsList: React.FC = () => {
                                     {getAvailabilityStatus(selectedVehicle.id) ? 'Şu anda müsait' : 'Şu anda müsait değil'}
                                 </div>
                             </div>
-
-
+                            
+                            {/* Make Offer Button - only show for other users' vehicles and if available */}
+                            {userData && 
+                             selectedVehicle.carrierId && 
+                             userData.userId !== selectedVehicle.carrierId && 
+                             userData.uid !== selectedVehicle.carrierId && 
+                             getAvailabilityStatus(selectedVehicle.id) && (
+                                <div className="detail-section" style={{ marginTop: '20px' }}>
+                                    {!showOfferForm && !offerSuccess && (
+                                        <button
+                                            onClick={() => setShowOfferForm(true)}
+                                            style={{
+                                                backgroundColor: '#4a6cf7',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                padding: '12px 20px',
+                                                fontSize: '16px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                transition: 'background-color 0.2s',
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#3451b2'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4a6cf7'}
+                                        >
+                                            Teklif Ver
+                                        </button>
+                                    )}
+                                    
+                                    {offerSuccess && (
+                                        <div style={{ 
+                                            backgroundColor: '#d1fae5', 
+                                            color: '#059669', 
+                                            padding: '15px', 
+                                            borderRadius: '8px',
+                                            fontWeight: 'bold',
+                                            textAlign: 'center'
+                                        }}>
+                                            Teklifiniz başarıyla gönderildi!
+                                        </div>
+                                    )}
+                                    
+                                    {showOfferForm && (
+                                        <div style={{ marginTop: '15px' }}>
+                                            <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Teklif Detayları</h3>
+                                            
+                                            {offerError && (
+                                                <div style={{ 
+                                                    backgroundColor: '#fee2e2', 
+                                                    color: '#dc2626', 
+                                                    padding: '10px', 
+                                                    borderRadius: '8px',
+                                                    marginBottom: '15px',
+                                                    fontSize: '14px'
+                                                }}>
+                                                    {offerError}
+                                                </div>
+                                            )}
+                                            
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <label style={{ 
+                                                    display: 'block', 
+                                                    marginBottom: '5px', 
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    color: '#333'
+                                                }}>
+                                                    Mesaj
+                                                </label>
+                                                <textarea
+                                                    value={offerMessage}
+                                                    onChange={(e) => setOfferMessage(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '12px',
+                                                        borderRadius: '8px',
+                                                        border: '1px solid #ddd',
+                                                        fontSize: '16px',
+                                                        minHeight: '100px',
+                                                        resize: 'vertical'
+                                                    }}
+                                                    placeholder="Taşıyıcıya iletmek istediğiniz mesajı yazınız"
+                                                    disabled={offerSubmitting}
+                                                />
+                                            </div>
+                                            
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <button
+                                                    onClick={handleSubmitOffer}
+                                                    style={{
+                                                        backgroundColor: '#4a6cf7',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 20px',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold',
+                                                        cursor: offerSubmitting ? 'default' : 'pointer',
+                                                        flex: 1,
+                                                        opacity: offerSubmitting ? 0.7 : 1,
+                                                    }}
+                                                    disabled={offerSubmitting}
+                                                >
+                                                    {offerSubmitting ? 'Gönderiliyor...' : 'Teklifi Gönder'}
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setShowOfferForm(false)}
+                                                    style={{
+                                                        backgroundColor: '#f3f4f6',
+                                                        color: '#666',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 20px',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold',
+                                                        cursor: offerSubmitting ? 'default' : 'pointer',
+                                                        opacity: offerSubmitting ? 0.7 : 1,
+                                                    }}
+                                                    disabled={offerSubmitting}
+                                                >
+                                                    İptal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

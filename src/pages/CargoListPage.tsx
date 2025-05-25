@@ -4,6 +4,7 @@ import { Package,  Weight, Loader, AlertCircle, User, Eye, Filter, Search, Mail,
 import { fetchAllCargos } from '../features/cargo/cargoSlice';
 import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
+import { createCargoOffer } from '../features/cargoOffer/cargoOfferSlice';
 
 const CargoListPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -21,6 +22,14 @@ const CargoListPage: React.FC = () => {
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
     const [selectedCargo, setSelectedCargo] = useState<any>(null);
     const [customerDetails, setCustomerDetails] = useState<any>(null);
+    
+    // Offer form state
+    const [showOfferForm, setShowOfferForm] = useState<boolean>(false);
+    const [offerPrice, setOfferPrice] = useState<string>('');
+    const [offerMessage, setOfferMessage] = useState<string>('');
+    const [offerSubmitting, setOfferSubmitting] = useState<boolean>(false);
+    const [offerSuccess, setOfferSuccess] = useState<boolean>(false);
+    const [offerError, setOfferError] = useState<string | null>(null);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -210,6 +219,9 @@ const CargoListPage: React.FC = () => {
     const handleViewDetails = (cargo: any) => {
         setSelectedCargo(cargo);
         setShowDetailModal(true);
+        setShowOfferForm(false);
+        setOfferSuccess(false);
+        setOfferError(null);
         
         // If cargo has userId, fetch user details
         if (cargo.userId) {
@@ -233,6 +245,55 @@ const CargoListPage: React.FC = () => {
             setSortBy(field);
             setSortOrder('asc');
         }
+    };
+
+    // Handle offer submission
+    const handleSubmitOffer = () => {
+        if (!userData || !selectedCargo || !customerDetails) return;
+        
+        if (!offerPrice || parseFloat(offerPrice) <= 0) {
+            setOfferError('Lütfen geçerli bir teklif fiyatı girin.');
+            return;
+        }
+
+        setOfferSubmitting(true);
+        setOfferError(null);
+
+        // Create expiry date (14 days from now)
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 14);
+
+        // Debugging
+        console.log("Current user:", userData);
+
+        const offerData = {
+            senderId: userData.userId || userData.uid, // Try both possible locations for the user ID
+            receiverId: selectedCargo.userId,
+            cargoAdId: selectedCargo.id,
+            price: parseFloat(offerPrice),
+            message: offerMessage,
+            expiryDate: expiryDate.toISOString()
+        };
+
+        // Log the data for debugging
+        console.log("Sending offer data:", offerData);
+
+        dispatch(createCargoOffer(offerData))
+            .unwrap()
+            .then((result) => {
+                console.log("Offer created successfully:", result);
+                setOfferSuccess(true);
+                setShowOfferForm(false);
+                setOfferPrice('');
+                setOfferMessage('');
+            })
+            .catch((error) => {
+                console.error("Error creating offer:", error);
+                setOfferError(error.message || 'Teklif gönderilirken bir hata oluştu.');
+            })
+            .finally(() => {
+                setOfferSubmitting(false);
+            });
     };
 
     // Component styles
@@ -750,6 +811,161 @@ const CargoListPage: React.FC = () => {
                                 <div className="detail-section">
                                     <span className="detail-label">İlan No</span>
                                     <div className="detail-value">#{selectedCargo.id}</div>
+                                </div>
+                            )}
+                            
+                            {/* Make Offer Button - only show for other users' cargo and if not expired */}
+                            {userData && 
+                             selectedCargo.userId && 
+                             userData.id !== selectedCargo.userId && 
+                             !selectedCargo.isExpired && (
+                                <div className="detail-section" style={{ marginTop: '20px' }}>
+                                    {!showOfferForm && !offerSuccess && (
+                                        <button
+                                            onClick={() => setShowOfferForm(true)}
+                                            style={{
+                                                backgroundColor: '#4a6cf7',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                padding: '12px 20px',
+                                                fontSize: '16px',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer',
+                                                width: '100%',
+                                                transition: 'background-color 0.2s',
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#3451b2'}
+                                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4a6cf7'}
+                                        >
+                                            Teklif Ver
+                                        </button>
+                                    )}
+                                    
+                                    {offerSuccess && (
+                                        <div style={{ 
+                                            backgroundColor: '#d1fae5', 
+                                            color: '#059669', 
+                                            padding: '15px', 
+                                            borderRadius: '8px',
+                                            fontWeight: 'bold',
+                                            textAlign: 'center'
+                                        }}>
+                                            Teklifiniz başarıyla gönderildi!
+                                        </div>
+                                    )}
+                                    
+                                    {showOfferForm && (
+                                        <div style={{ marginTop: '15px' }}>
+                                            <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Teklif Bilgileri</h3>
+                                            
+                                            {offerError && (
+                                                <div style={{ 
+                                                    backgroundColor: '#fee2e2', 
+                                                    color: '#dc2626', 
+                                                    padding: '10px', 
+                                                    borderRadius: '8px',
+                                                    marginBottom: '15px',
+                                                    fontSize: '14px'
+                                                }}>
+                                                    {offerError}
+                                                </div>
+                                            )}
+                                            
+                                            <div style={{ marginBottom: '15px' }}>
+                                                <label style={{ 
+                                                    display: 'block', 
+                                                    marginBottom: '5px', 
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    color: '#333'
+                                                }}>
+                                                    Teklif Fiyatı ({selectedCargo.currency || 'TRY'})
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={offerPrice}
+                                                    onChange={(e) => setOfferPrice(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '12px',
+                                                        borderRadius: '8px',
+                                                        border: '1px solid #ddd',
+                                                        fontSize: '16px'
+                                                    }}
+                                                    placeholder="Teklifinizi girin"
+                                                    min="1"
+                                                    disabled={offerSubmitting}
+                                                />
+                                            </div>
+                                            
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <label style={{ 
+                                                    display: 'block', 
+                                                    marginBottom: '5px', 
+                                                    fontSize: '14px',
+                                                    fontWeight: 'bold',
+                                                    color: '#333'
+                                                }}>
+                                                    Mesaj (İsteğe Bağlı)
+                                                </label>
+                                                <textarea
+                                                    value={offerMessage}
+                                                    onChange={(e) => setOfferMessage(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '12px',
+                                                        borderRadius: '8px',
+                                                        border: '1px solid #ddd',
+                                                        fontSize: '16px',
+                                                        minHeight: '100px',
+                                                        resize: 'vertical'
+                                                    }}
+                                                    placeholder="İsterseniz teklifinizle ilgili bir mesaj yazabilirsiniz"
+                                                    disabled={offerSubmitting}
+                                                />
+                                            </div>
+                                            
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <button
+                                                    onClick={handleSubmitOffer}
+                                                    style={{
+                                                        backgroundColor: '#4a6cf7',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 20px',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold',
+                                                        cursor: offerSubmitting ? 'default' : 'pointer',
+                                                        flex: 1,
+                                                        opacity: offerSubmitting ? 0.7 : 1,
+                                                    }}
+                                                    disabled={offerSubmitting}
+                                                >
+                                                    {offerSubmitting ? 'Gönderiliyor...' : 'Teklifi Gönder'}
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setShowOfferForm(false)}
+                                                    style={{
+                                                        backgroundColor: '#f3f4f6',
+                                                        color: '#666',
+                                                        border: 'none',
+                                                        borderRadius: '8px',
+                                                        padding: '12px 20px',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold',
+                                                        cursor: offerSubmitting ? 'default' : 'pointer',
+                                                        opacity: offerSubmitting ? 0.7 : 1,
+                                                    }}
+                                                    disabled={offerSubmitting}
+                                                >
+                                                    İptal
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
