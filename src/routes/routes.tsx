@@ -12,11 +12,12 @@ import MyVehicle from  "../pages/MyVehiclePage.tsx"
 import CreateCargo from  "../pages/CreateCargoPage.tsx"
 import CargoList from "../pages/CargoListPage.tsx"
 import MyCargoList from "../pages/MyCargoList.tsx"
-import LocationsPage from "../pages/LocationsPage.tsx";
+
 import AllVehicleAdPage from "../pages/AllVehicleAdPage.tsx";
 import MyVehicleAdPage from "../pages/MyVehicleAdPage.tsx";
 import AddVehicleAd from "../pages/CreateVehicleAdPage.tsx";
-
+import ReceivedVehicleOffersPage from "../pages/ReceivedVehicleOffersPage.tsx";
+import SentVehicleOffersPage from "../pages/SentVehicleOffersPage.tsx";
 
 
 
@@ -38,13 +39,13 @@ const AppRoutes = () => {
             <Route path="/createCargo" element={<CreateCargo/>} />
             <Route path="/cargoList" element={<CargoList/>} />
             <Route path="/mycargo" element={<MyCargoList/>} />
-            <Route path="/mylocations" element={<LocationsPage/>} />
 
 
 
             <Route path="/allVehicleAd" element={<AllVehicleAdPage/>} />
             <Route path="/myVehicleAd" element={<MyVehicleAdPage/>} />
-            {/*<Route path="/newVehicleAd" element={<LocationsPage/>} />*/}
+            <Route path="/receivedVehicleOffers" element={<ReceivedVehicleOffersPage/>} />
+            <Route path="/sentVehicleOffers" element={<SentVehicleOffersPage/>} />
 
 
 

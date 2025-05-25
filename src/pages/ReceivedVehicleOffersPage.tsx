@@ -18,6 +18,97 @@ const ReceivedVehicleOffersPage: React.FC = () => {
     const [statusMessages, setStatusMessages] = useState<{ [key: number]: { type: 'success' | 'error', message: string } }>({});
     const [userDetails, setUserDetails] = useState<{ [key: string]: any }>({});
 
+    // Add CSS styles for the component
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+      .select-element {
+        -webkit-appearance: menulist;
+        -moz-appearance: menulist;
+        appearance: menulist;
+      }
+
+      .vehicle-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+      }
+      
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+      
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+      }
+      
+      .close-button {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #666;
+        padding: 5px;
+        border-radius: 50%;
+        transition: all 0.2s;
+      }
+      
+      .close-button:hover {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      
+      .detail-section {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+      }
+      
+      .detail-label {
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+        display: block;
+      }
+      
+      .detail-value {
+        color: #666;
+        font-size: 15px;
+      }
+    `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
     useEffect(() => {
         if (userData && (userData.userId || userData.uid)) {
             const userId = userData.userId || userData.uid;
@@ -128,253 +219,330 @@ const ReceivedVehicleOffersPage: React.FC = () => {
             });
     };
 
-    if (!userData) {
-        return (
-            <div className="container mx-auto p-4">
-                <div className="bg-yellow-100 p-4 rounded-lg shadow text-center">
-                    <AlertCircle className="mx-auto mb-2" size={24} />
-                    <p>Bu sayfayı görüntülemek için giriş yapmalısınız.</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Page styles
+    // Component styles
     const pageStyle = {
-        padding: '20px',
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '3%',
+        backgroundColor: '#f5f7fa',
+        fontFamily: 'Arial, sans-serif'
+    };
+
+    const containerStyle = {
+        width: '100%',
         maxWidth: '1200px',
-        margin: '0 auto',
+        backgroundColor: '#fff',
+        borderRadius: '20px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden'
     };
 
     const headerStyle = {
-        marginBottom: '20px',
-        paddingBottom: '15px',
-        borderBottom: '1px solid #e5e7eb',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '40px',
+        color: 'white',
+        textAlign: 'center' as const
     };
 
-    const cardStyle = {
-        backgroundColor: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-        padding: '20px',
-        marginBottom: '16px',
-        border: '1px solid #e5e7eb',
+    const titleStyle = {
+        fontSize: '32px',
+        fontWeight: 'bold' as const,
+        marginBottom: '10px'
     };
 
-    const cardHeaderStyle = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '15px',
-        paddingBottom: '15px',
-        borderBottom: '1px solid #e5e7eb',
+    const subtitleStyle = {
+        fontSize: '16px',
+        opacity: 0.9,
+        marginBottom: '20px'
+    };
+
+    const statsStyle = {
+        fontSize: '14px',
+        opacity: 0.8
+    };
+
+    const contentStyle = {
+        padding: '40px'
     };
 
     const statusBadgeStyle = (status: OfferStatus) => ({
         display: 'inline-flex',
         alignItems: 'center',
-        padding: '4px 10px',
-        borderRadius: '9999px',
+        padding: '5px 12px',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: 'bold' as const,
         backgroundColor: `${getStatusColor(status)}20`,
-        color: getStatusColor(status),
-        fontWeight: 500,
-        fontSize: '14px',
+        color: getStatusColor(status)
     });
+
+    const cardStyle = {
+        backgroundColor: '#fff',
+        borderRadius: '15px',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        marginBottom: '25px'
+    };
+
+    const cardHeaderStyle = {
+        padding: '20px',
+        borderBottom: '1px solid #f0f0f0'
+    };
+
+    const cardBodyStyle = {
+        padding: '20px'
+    };
 
     const buttonBaseStyle = {
         padding: '8px 16px',
-        borderRadius: '6px',
-        fontWeight: 'bold',
+        borderRadius: '10px',
+        fontWeight: 'bold' as const,
         cursor: 'pointer',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         border: 'none',
         gap: '8px',
-        transition: 'background-color 0.2s',
+        transition: 'all 0.3s ease',
     };
 
     const acceptButtonStyle = {
         ...buttonBaseStyle,
         backgroundColor: '#10b981',
         color: 'white',
+        padding: '12px 20px',
+        fontSize: '16px',
     };
 
     const rejectButtonStyle = {
         ...buttonBaseStyle,
         backgroundColor: '#ef4444',
         color: 'white',
+        padding: '12px 20px',
+        fontSize: '16px',
     };
+
+    const loadingStyle = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '400px',
+        color: '#666'
+    };
+
+    const noDataStyle = {
+        textAlign: 'center' as const,
+        padding: '60px 20px',
+        color: '#999'
+    };
+
+    if (!userData) {
+        return (
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <div style={{...contentStyle, textAlign: 'center'}}>
+                        <AlertCircle size={48} style={{color: '#f59e0b', margin: '0 auto 20px'}} />
+                        <h2 style={{fontSize: '24px', color: '#333', marginBottom: '10px'}}>
+                            Erişim Engellendi
+                        </h2>
+                        <p style={{color: '#666', marginBottom: '20px'}}>
+                            Bu sayfayı görüntülemek için giriş yapmalısınız.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={pageStyle}>
-            <div style={headerStyle}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827' }}>
-                    Araçlarıma Gelen Teklifler
-                </h1>
-                <p style={{ fontSize: '16px', color: '#6b7280', marginTop: '8px' }}>
-                    Araçlarınız için gelen teklifleri burada yönetebilirsiniz.
-                </p>
-            </div>
-
-            {loading && (
-                <div style={{ textAlign: 'center', padding: '40px' }}>
-                    <Loader size={32} className="animate-spin mx-auto mb-4" />
-                    <p>Teklifler yükleniyor...</p>
+            <div style={containerStyle}>
+                {/* Header */}
+                <div style={headerStyle}>
+                    <h1 style={titleStyle}>Araçlarıma Gelen Teklifler</h1>
+                    <p style={subtitleStyle}>Araçlarınız için gelen teklifleri burada yönetebilirsiniz.</p>
+                    <div style={statsStyle}>
+                        Toplam Teklif: {offersByReceiver?.length || 0}
+                    </div>
                 </div>
-            )}
 
-            {error && (
-                <div style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#b91c1c',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    marginBottom: '20px',
-                }}>
-                    <AlertCircle size={20} style={{ display: 'inline', marginRight: '8px' }} />
-                    {error}
-                </div>
-            )}
-
-            {!loading && !error && offersByReceiver.length === 0 && (
-                <div style={{
-                    textAlign: 'center',
-                    padding: '40px',
-                    backgroundColor: '#f9fafb',
-                    borderRadius: '8px',
-                    border: '1px dashed #d1d5db',
-                }}>
-                    <Truck size={48} style={{ margin: '0 auto 16px', color: '#9ca3af' }} />
-                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>
-                        Henüz Hiç Teklif Yok
-                    </h3>
-                    <p style={{ color: '#6b7280' }}>
-                        Araçlarınız için henüz hiç teklif almadınız.
-                    </p>
-                </div>
-            )}
-
-            {!loading && offersByReceiver.length > 0 && (
-                <div>
-                    {offersByReceiver.map((offer) => (
-                        <div key={offer.id} style={cardStyle}>
-                            <div style={cardHeaderStyle}>
-                                <div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '8px' }}>
-                                        {offer.vehicleAdTitle}
-                                    </h3>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#6b7280' }}>
-                                            <Clock size={16} />
-                                            {formatDate(offer.createdDate)}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style={statusBadgeStyle(offer.status)}>
-                                    {getStatusTranslation(offer.status)}
-                                </div>
+                {/* Content */}
+                <div style={contentStyle}>
+                    {error && (
+                        <div style={{
+                            padding: '15px',
+                            marginBottom: '20px',
+                            backgroundColor: '#fee2e2',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '10px',
+                            color: '#dc2626'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <AlertCircle size={20} />
+                                <span>Teklifler yüklenirken hata oluştu: {error}</span>
                             </div>
-
-                            {/* Sender Information */}
-                            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px' }}>
-                                <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#111827', marginBottom: '8px' }}>
-                                    Teklif Veren:
-                                </p>
-                                
-                                {userDetails[offer.senderId] ? (
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                            <User size={16} />
-                                            <span style={{ fontSize: '15px', color: '#374151' }}>
-                                                {userDetails[offer.senderId].name} {userDetails[offer.senderId].surname}
-                                            </span>
-                                        </div>
-                                        
-                                        {userDetails[offer.senderId].phoneNumber && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                                                <Phone size={16} />
-                                                <span style={{ fontSize: '15px', color: '#374151' }}>
-                                                    {userDetails[offer.senderId].phoneNumber}
-                                                </span>
-                                            </div>
-                                        )}
-                                        
-                                        {userDetails[offer.senderId].email && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                <Mail size={16} />
-                                                <span style={{ fontSize: '15px', color: '#374151' }}>
-                                                    {userDetails[offer.senderId].email}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <User size={16} />
-                                        <span style={{ fontSize: '15px', color: '#6b7280' }}>
-                                            #{offer.senderId}
-                                        </span>
-                                        <span style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>
-                                            (Kullanıcı bilgileri yükleniyor...)
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div style={{ marginBottom: '16px' }}>
-                                <p style={{ fontSize: '16px', color: '#111827', marginBottom: '8px' }}>
-                                    <strong>Mesaj:</strong>
-                                </p>
-                                <p style={{ fontSize: '16px', color: '#4b5563', backgroundColor: '#f9fafb', padding: '12px', borderRadius: '6px' }}>
-                                    {offer.message}
-                                </p>
-                            </div>
-
-                            {statusMessages[offer.id] && (
-                                <div style={{
-                                    backgroundColor: statusMessages[offer.id].type === 'success' ? '#d1fae5' : '#fee2e2',
-                                    color: statusMessages[offer.id].type === 'success' ? '#047857' : '#b91c1c',
-                                    padding: '12px',
-                                    borderRadius: '6px',
-                                    marginBottom: '16px',
-                                }}>
-                                    {statusMessages[offer.id].message}
-                                </div>
-                            )}
-
-                            {offer.status === 'Pending' && (
-                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                                    <button
-                                        style={acceptButtonStyle}
-                                        onClick={() => handleUpdateStatus(offer.id, 'Accepted')}
-                                        disabled={updateLoading[offer.id]}
-                                    >
-                                        {updateLoading[offer.id] ? (
-                                            <Loader size={16} className="animate-spin" />
-                                        ) : (
-                                            <Check size={16} />
-                                        )}
-                                        Kabul Et
-                                    </button>
-                                    <button
-                                        style={rejectButtonStyle}
-                                        onClick={() => handleUpdateStatus(offer.id, 'Rejected')}
-                                        disabled={updateLoading[offer.id]}
-                                    >
-                                        {updateLoading[offer.id] ? (
-                                            <Loader size={16} className="animate-spin" />
-                                        ) : (
-                                            <X size={16} />
-                                        )}
-                                        Reddet
-                                    </button>
-                                </div>
-                            )}
                         </div>
-                    ))}
+                    )}
+
+                    {loading && (
+                        <div style={loadingStyle}>
+                            <Loader className="w-8 h-8 animate-spin mr-3" />
+                            <span className="text-lg font-medium">Teklifler yükleniyor...</span>
+                        </div>
+                    )}
+
+                    {!loading && !error && offersByReceiver.length === 0 && (
+                        <div style={noDataStyle}>
+                            <Truck size={64} style={{ color: '#ccc', margin: '0 auto 20px' }} />
+                            <h3 style={{ fontSize: '20px', marginBottom: '10px', color: '#666' }}>
+                                Henüz Hiç Teklif Yok
+                            </h3>
+                            <p style={{ color: '#999' }}>
+                                Araçlarınız için henüz hiç teklif almadınız.
+                            </p>
+                        </div>
+                    )}
+
+                    {!loading && offersByReceiver.length > 0 && (
+                        <div>
+                            {offersByReceiver.map((offer) => (
+                                <div key={offer.id} className="vehicle-card" style={cardStyle}>
+                                    <div style={cardHeaderStyle}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                                            <div>
+                                                <h3 style={{
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#333',
+                                                    margin: 0,
+                                                    lineHeight: '1.3'
+                                                }}>
+                                                    {offer.vehicleAdTitle}
+                                                </h3>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', color: '#6b7280', marginTop: '5px' }}>
+                                                    <Clock size={14} />
+                                                    {formatDate(offer.createdDate)}
+                                                </div>
+                                            </div>
+                                            <div style={statusBadgeStyle(offer.status)}>
+                                                <div style={{
+                                                    width: '6px',
+                                                    height: '6px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: getStatusColor(offer.status),
+                                                    marginRight: '6px'
+                                                }}></div>
+                                                {getStatusTranslation(offer.status)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style={cardBodyStyle}>
+                                        {/* Sender Information */}
+                                        <div className="detail-section">
+                                            <span className="detail-label">Teklif Veren</span>
+                                            <div className="detail-value">
+                                                {userDetails[offer.senderId] ? (
+                                                    <div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                            <User size={16} />
+                                                            <span style={{ fontSize: '15px', color: '#374151' }}>
+                                                                {userDetails[offer.senderId].name} {userDetails[offer.senderId].surname}
+                                                            </span>
+                                                        </div>
+                                                        
+                                                        {userDetails[offer.senderId].phoneNumber && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                                <Phone size={16} />
+                                                                <span style={{ fontSize: '15px', color: '#374151' }}>
+                                                                    {userDetails[offer.senderId].phoneNumber}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {userDetails[offer.senderId].email && (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <Mail size={16} />
+                                                                <span style={{ fontSize: '15px', color: '#374151' }}>
+                                                                    {userDetails[offer.senderId].email}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <User size={16} />
+                                                        <span style={{ fontSize: '15px', color: '#6b7280' }}>
+                                                            #{offer.senderId}
+                                                        </span>
+                                                        <span style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic' }}>
+                                                            (Kullanıcı bilgileri yükleniyor...)
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Message */}
+                                        <div className="detail-section">
+                                            <span className="detail-label">Mesaj</span>
+                                            <div className="detail-value">
+                                                {offer.message}
+                                            </div>
+                                        </div>
+
+                                        {statusMessages[offer.id] && (
+                                            <div style={{
+                                                backgroundColor: statusMessages[offer.id].type === 'success' ? '#d1fae5' : '#fee2e2',
+                                                color: statusMessages[offer.id].type === 'success' ? '#047857' : '#b91c1c',
+                                                padding: '15px',
+                                                borderRadius: '10px',
+                                                marginBottom: '16px',
+                                                textAlign: 'center' as const,
+                                                fontWeight: 'bold' as const
+                                            }}>
+                                                {statusMessages[offer.id].message}
+                                            </div>
+                                        )}
+
+                                        {offer.status === 'Pending' && (
+                                            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '20px' }}>
+                                                <button
+                                                    style={acceptButtonStyle}
+                                                    onClick={() => handleUpdateStatus(offer.id, 'Accepted')}
+                                                    disabled={updateLoading[offer.id]}
+                                                >
+                                                    {updateLoading[offer.id] ? (
+                                                        <Loader size={16} className="animate-spin" />
+                                                    ) : (
+                                                        <Check size={16} />
+                                                    )}
+                                                    Kabul Et
+                                                </button>
+                                                <button
+                                                    style={rejectButtonStyle}
+                                                    onClick={() => handleUpdateStatus(offer.id, 'Rejected')}
+                                                    disabled={updateLoading[offer.id]}
+                                                >
+                                                    {updateLoading[offer.id] ? (
+                                                        <Loader size={16} className="animate-spin" />
+                                                    ) : (
+                                                        <X size={16} />
+                                                    )}
+                                                    Reddet
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 };

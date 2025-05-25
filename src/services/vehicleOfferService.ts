@@ -40,10 +40,10 @@ const createVehicleOffer = async (data: VehicleOfferRequest) => {
 };
 
 // Teklif durumu güncelle
-const updateVehicleOfferStatus = async (id: number, status: OfferStatus) => {
+const updateVehicleOfferStatus = async (offerId: number, status: OfferStatus) => {
     const response = await axiosInstance.put<VehicleOfferResponse>(
-        `api/VehicleOffer/${id}status/`,
-        { id, status }
+        `api/VehicleOffer/${offerId}/status`,
+        { offerId, status }
     );
     return response.data;
 };

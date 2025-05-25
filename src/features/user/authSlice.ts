@@ -155,16 +155,16 @@ const authSlice = createSlice({
             })
             // extraReducers bloğunun sonuna ekle
             .addCase(getUserById.pending, (state) => {
-                state.status = 'loading';
+                // Don't change the main status or user for getUserById operations
                 state.error = null;
             })
             .addCase(getUserById.fulfilled, (state, action: PayloadAction<any>) => {
-                state.status = 'succeeded';
-                state.user = action.payload;
+                // Don't overwrite current user information
                 state.error = null;
+                // This action should not modify the current user state
             })
             .addCase(getUserById.rejected, (state, action) => {
-                state.status = 'failed';
+                // Don't mark the whole auth state as failed
                 state.error = action.payload as string;
             })
             .addCase(getCarrierDetails.pending, (state) => {

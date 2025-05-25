@@ -35,10 +35,6 @@ const Sidebar: React.FC = () => {
                     </Link>
 
 
-                    <Link to="/mylocations" className="side-bar__item">
-                        <i className="fas fa-history"></i> Lokasyon Yönetimi
-                    </Link>
-
 
 
                 </div>
@@ -65,12 +61,16 @@ const Sidebar: React.FC = () => {
                 </div>
 
                 <div className="side-bar__section">
-                    <div className="side-bar__heading">Diğer</div>
-                    <Link to="/feedback" className="side-bar__item">
-                        <i className="fas fa-comment-dots"></i> Geri Bildirim
+                    <div className="side-bar__heading">Teklifler</div>
+                    <Link to="/receivedVehicleOffers" className="side-bar__item">
+                        <i className="fas fa-inbox"></i> Gelen Teklifler
                     </Link>
-
+                    <Link to="/sentVehicleOffers" className="side-bar__item">
+                        <i className="fas fa-paper-plane"></i> Gönderilen Teklifler
+                    </Link>
                 </div>
+
+
             </aside>
         </>
     );
