@@ -7,7 +7,7 @@ import vehicleReducer from '../features/vehicle/vehicleSlice'; // vehicleSlice i
 import notificationReducer from '../features/notification/notificationSlice'; // notificationSlice import
 import cargoReducer from '../features/cargo/cargoSlice';
 
-import locationReducer from '../features/location/locationSlice';
+
 
 import cargoOfferReducer from '../features/cargoOffer/cargoOfferSlice';
 
@@ -27,7 +27,7 @@ const store = configureStore({
         notification: notificationReducer,// notificationSlice'ı store'a ekliyoruz
         cargo: cargoReducer,
 
-        location: locationReducer,
+
 
         cargoOffer:cargoOfferReducer,
 
