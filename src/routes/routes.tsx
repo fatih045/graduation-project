@@ -18,6 +18,8 @@ import MyVehicleAdPage from "../pages/MyVehicleAdPage.tsx";
 import AddVehicleAd from "../pages/CreateVehicleAdPage.tsx";
 import ReceivedVehicleOffersPage from "../pages/ReceivedVehicleOffersPage.tsx";
 import SentVehicleOffersPage from "../pages/SentVehicleOffersPage.tsx";
+import ReceivedCargoOffersPage from "../pages/ReceivedCargoOffersPage.tsx";
+import SentCargoOffersPage from "../pages/SentCargoOffersPage.tsx";
 
 
 
@@ -46,6 +48,8 @@ const AppRoutes = () => {
             <Route path="/myVehicleAd" element={<MyVehicleAdPage/>} />
             <Route path="/receivedVehicleOffers" element={<ReceivedVehicleOffersPage/>} />
             <Route path="/sentVehicleOffers" element={<SentVehicleOffersPage/>} />
+            <Route path="/receivedCargoOffers" element={<ReceivedCargoOffersPage/>} />
+            <Route path="/sentCargoOffers" element={<SentCargoOffersPage/>} />
 
 
 

@@ -44,7 +44,7 @@ const createCargoOffer = async (data: CargoOfferRequest) => {
 // Teklif durumu güncellemeconst updateCargoOfferStatus = async (offerId: number, status: OfferStatus) => {
 const updateCargoOfferStatus = async (offerId: number, status: OfferStatus) => {
     const response = await axiosInstance.put<CargoOfferResponse>(
-        `api/CargoOffer/status/${offerId}`,
+        `api/CargoOffer/${offerId}/status`,
         { offerId, status }
     );
     return response.data;

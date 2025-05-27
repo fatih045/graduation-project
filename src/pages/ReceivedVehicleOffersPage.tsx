@@ -1,16 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { Truck, Clock, User, Check, X, AlertCircle, Loader, Phone, Mail } from 'lucide-react';
 import { fetchVehicleOffersByReceiver, updateVehicleOfferStatus } from '../features/vehicleOffer/vehicleOfferSlice';
 import { getUserById } from '../features/user/authSlice';
-import { VehicleOfferResponse, OfferStatus } from '../services/vehicleOfferService';
+import { OfferStatus } from '../services/vehicleOfferService';
 import type { RootState, AppDispatch } from '../store/store';
 
 const ReceivedVehicleOffersPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
-    const location = useLocation();
     const { user: userData } = useSelector((state: RootState) => state.auth);
     const { offersByReceiver, loading, error } = useSelector((state: RootState) => state.vehicleOffer);
     

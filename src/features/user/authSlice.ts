@@ -158,11 +158,21 @@ const authSlice = createSlice({
                 // Don't change the main status or user for getUserById operations
                 state.error = null;
             })
-            .addCase(getUserById.fulfilled, (state, action: PayloadAction<any>) => {
+            // .addCase(getUserById.fulfilled, (state, action: PayloadAction<any>) => {
+            //     // Don't overwrite current user information
+            //     state.error = null;
+            //     // This action should not modify the current user state
+            // })    old but ok
+
+
+            .addCase(getUserById.fulfilled, (state) => {
                 // Don't overwrite current user information
                 state.error = null;
                 // This action should not modify the current user state
             })
+
+
+
             .addCase(getUserById.rejected, (state, action) => {
                 // Don't mark the whole auth state as failed
                 state.error = action.payload as string;

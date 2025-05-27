@@ -62,10 +62,19 @@ const Sidebar: React.FC = () => {
 
                 <div className="side-bar__section">
                     <div className="side-bar__heading">Teklifler</div>
+                    <div className="side-bar__subheading">Araç Teklifleri</div>
                     <Link to="/receivedVehicleOffers" className="side-bar__item">
                         <i className="fas fa-inbox"></i> Gelen Teklifler
                     </Link>
                     <Link to="/sentVehicleOffers" className="side-bar__item">
+                        <i className="fas fa-paper-plane"></i> Gönderilen Teklifler
+                    </Link>
+                    
+                    <div className="side-bar__subheading">Yük Teklifleri</div>
+                    <Link to="/receivedCargoOffers" className="side-bar__item">
+                        <i className="fas fa-inbox"></i> Gelen Teklifler
+                    </Link>
+                    <Link to="/sentCargoOffers" className="side-bar__item">
                         <i className="fas fa-paper-plane"></i> Gönderilen Teklifler
                     </Link>
                 </div>

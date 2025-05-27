@@ -30,6 +30,15 @@
     margin-bottom: 0.5rem;
 }
 
+.side-bar__subheading {
+    font-size: 0.9rem;
+    color: #a8c7fa;
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    padding-left: 0.5rem;
+    border-left: 2px solid #a8c7fa;
+}
+
 .side-bar__item {
     display: flex;
     align-items: center;

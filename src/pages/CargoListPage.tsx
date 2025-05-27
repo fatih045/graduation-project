@@ -238,14 +238,16 @@ const CargoListPage: React.FC = () => {
         }
     };
 
-    const handleSort = (field: string) => {
-        if (sortBy === field) {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortBy(field);
-            setSortOrder('asc');
-        }
-    };
+    // const handleSort = (field: string) => {
+    //     if (sortBy === field) {
+    //         setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    //     } else {
+    //         setSortBy(field);
+    //         setSortOrder('asc');
+    //     }
+    // };
+
+
 
     // Handle offer submission
     const handleSubmitOffer = () => {
@@ -644,7 +646,7 @@ const CargoListPage: React.FC = () => {
 
                                         {/* Status and Action */}
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={statusBadgeStyle(cargo.isExpired)}>
+                                            <div style={statusBadgeStyle(!!cargo.isExpired)}>
                                                 <div style={{
                                                     width: '6px',
                                                     height: '6px',
@@ -794,7 +796,7 @@ const CargoListPage: React.FC = () => {
                             {/* Status */}
                             <div className="detail-section">
                                 <span className="detail-label">Durum</span>
-                                <div style={statusBadgeStyle(selectedCargo.isExpired)}>
+                                <div style={statusBadgeStyle(!!selectedCargo.isExpired)}>
                                     <div style={{
                                         width: '8px',
                                         height: '8px',

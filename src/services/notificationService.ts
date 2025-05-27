@@ -1,41 +1,31 @@
-import axiosInstance from './axios';
+import axiosInstance from './axios.ts';
 
-export const getAllNotifications = async () => {
-    try {
-        const response = await axiosInstance.get('/Notifications');
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Bildirimler alınamadı');
-    }
-};
-
-export const getNotificationById = async (id: number) => {
-    try {
-        const response = await axiosInstance.get(`/Notifications/${id}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Bildirim bulunamadı');
-    }
-};
-
-export const createNotification = async (data: {
-    user_id: number;
+export interface NotificationResponse {
+    id: number;
+    title: string;
     message: string;
-    created_at: string;
-}) => {
-    try {
-        const response = await axiosInstance.post('/Notifications', data);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Bildirim oluşturulamadı');
-    }
+    type: number;
+    isRead: boolean;
+    createdDate: string;
+    relatedEntityId: number;
+}
+
+// Tüm bildirimleri getir (opsiyonel: userId gibi filtreler eklenebilir)
+const fetchNotifications = async () => {
+    const response = await axiosInstance.get<NotificationResponse[]>('api/Notification');
+    return response.data;
 };
 
-export const deleteNotification = async (id: number) => {
-    try {
-        const response = await axiosInstance.delete(`/Notifications/${id}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Bildirim silinemedi');
-    }
+// Bildirimi okundu olarak işaretle
+const markNotificationAsRead = async (notificationId: number) => {
+    const response = await axiosInstance.put<NotificationResponse>(
+        `api/Notification/${notificationId}/mark-as-read`,
+        {}
+    );
+    return response.data;
+};
+
+export default {
+    fetchNotifications,
+    markNotificationAsRead
 };
