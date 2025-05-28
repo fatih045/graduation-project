@@ -14,9 +14,6 @@ import aiCalculation from '../assets/ai-calculation.png';
 import timeSaving from '../assets/time-saving.jpg';
 import driver1 from '../assets/driver1.jpg';
 import cargoManager from '../assets/cargo-manager.webp';
-import priceAnalysis from '../assets/price-analysis.jpg';
-import routeOptimization from '../assets/route-optimization.jpg';
-import mobileApp from '../assets/mobile-app.jpg';
 
 // JSX içinde kullanımı
 // <img src={truckHeroImage} alt="Logistics hero image" className="hero-img" />
@@ -152,7 +149,7 @@ const LandingPage: React.FC = () => {
                             <h3>Akıllı Fiyat Analizi</h3>
                             <p>Piyasa verilerine göre anlık fiyat analizi.</p>
                         </div>
-                        <img src={priceAnalysis} alt="Price analysis graph" className="benefit-image" />
+                        <img src={aiCalculation} alt="Price analysis graph" className="benefit-image" />
                     </div>
                     <div className="benefit-item">
                         <FaCalculator className="step-icon" />
@@ -168,7 +165,7 @@ const LandingPage: React.FC = () => {
                             <h3>Optimizasyon</h3>
                             <p>Kamyon sahipleri için yük takibi ve rota optimizasyonu.</p>
                         </div>
-                        <img src={routeOptimization} alt="Route optimization" className="benefit-image" />
+                        <img src={truckHeroImage} alt="Route optimization" className="benefit-image" />
                     </div>
 
                     <div className="benefit-item">
@@ -204,7 +201,7 @@ const LandingPage: React.FC = () => {
 
             <section className="image-section reverse">
                 <div className="image-container">
-                    <img src={mobileApp} alt="Mobile application" />
+                    <img src={logisticsMap} alt="Mobile application" />
                 </div>
                 <div className="image-content">
                     <h2>Mobil Uygulama ile Her Yerden Erişim</h2>
