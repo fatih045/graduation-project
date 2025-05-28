@@ -8,7 +8,6 @@ const ProfilePage: React.FC = () => {
     // Redux store'dan kullanıcı bilgilerini al
     const user = useAppSelector(state => state.auth.user);
     const token = useAppSelector(state => state.auth.token);
-    const status = useAppSelector(state => state.auth.status);
     const error = useAppSelector(state => state.auth.error);
     
     // Kullanıcı bilgileri için state

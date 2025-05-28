@@ -22,7 +22,7 @@ function App() {
             <div className="content-with-sidebar">
                 <Sidebar />
                 <main className="main-content">
-                    {/*<LocationDisplay />*/}
+
                     <AppRoutes />
                 </main>
             </div>

@@ -100,12 +100,24 @@ export const deleteVehicleAd = createAsyncThunk(
     }
 );
 
-// 🚛 Yeni thunk: Fetch by carrierId
+// Yeni thunk: Fetch by carrierId
 export const fetchVehicleAdsByCarrier = createAsyncThunk(
     'vehicleAd/fetchByCarrier',
     async (carrierId: string, thunkAPI) => {
         try {
             return await vehicleAdService.getVehicleAdsByCarrierId(carrierId);
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue(error.message);
+        }
+    }
+);
+
+// Yeni thunk: Şehre göre araç ilanlarını getir
+export const fetchVehicleAdsByCity = createAsyncThunk(
+    'vehicleAd/fetchByCity',
+    async (city: string, thunkAPI) => {
+        try {
+            return await vehicleAdService.fetchCargosByPickCitys(city);
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }
@@ -157,6 +169,18 @@ const vehicleAdSlice = createSlice({
                 state.vehicleAds = action.payload;
             })
             .addCase(fetchVehicleAdsByCarrier.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+            .addCase(fetchVehicleAdsByCity.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchVehicleAdsByCity.fulfilled, (state, action) => {
+                state.loading = false;
+                state.vehicleAds = action.payload;
+            })
+            .addCase(fetchVehicleAdsByCity.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload as string;
             });

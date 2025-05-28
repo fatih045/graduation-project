@@ -83,6 +83,18 @@ export const deleteCargo = createAsyncThunk(
     }
 );
 
+// Şehir bazlı kargo ilanlarını getir
+export const fetchCargosByPickCity = createAsyncThunk(
+    'cargo/fetchByPickCity',
+    async (city: string, thunkAPI) => {
+        try {
+            return await cargoService.fetchCargosByPickCity(city);
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue(error.message);
+        }
+    }
+);
+
 // Slice
 const cargoSlice = createSlice({
     name: 'cargo',
@@ -135,6 +147,19 @@ const cargoSlice = createSlice({
 
             .addCase(deleteCargo.fulfilled, (state, action) => {
                 state.cargos = state.cargos.filter(c => c.id !== action.payload);
+            })
+            
+            .addCase(fetchCargosByPickCity.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchCargosByPickCity.fulfilled, (state, action) => {
+                state.loading = false;
+                state.cargos = action.payload;
+            })
+            .addCase(fetchCargosByPickCity.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });

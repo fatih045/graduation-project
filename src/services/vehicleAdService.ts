@@ -57,11 +57,17 @@ export const deleteVehicleAd = async (id: number) => {
     return response.data;
 };
 
+const fetchCargosByPickCitys = async (city: string) => {
+    const response = await axiosInstance.get(`api/VehicleAd/by-city/${city}`);
+    return response.data;
+};
+
 export default {
     fetchAllVehicleAds,
     getVehicleAdById,
     createVehicleAd,
     updateVehicleAd,
     deleteVehicleAd,
-    getVehicleAdsByCarrierId
+    getVehicleAdsByCarrierId,
+    fetchCargosByPickCitys
 };

@@ -49,6 +49,12 @@ const deleteCargo = async (id: number) => {
     return response.data;
 };
 
+const fetchCargosByPickCity = async (city: string) => {
+    const response = await axiosInstance.get(`api/CargoAd/by-pick-city/${city}`);
+    return response.data;
+};
+
+
 export default {
     fetchAllCargos,
     fetchMyCargos,
@@ -56,4 +62,5 @@ export default {
     createCargo,
     updateCargo,
     deleteCargo,
+    fetchCargosByPickCity
 };

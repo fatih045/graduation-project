@@ -2,12 +2,13 @@
 import LandingPage from "./LandingPage.tsx";
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import AllVehicleAdPage from "./AllVehicleAdPage.tsx";
+
+import LocationDisplay from "../components/location/LocationDisplay.tsx";
 
 const HomePage = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const isLoggedIn = !!user;
-    return isLoggedIn ? <AllVehicleAdPage></AllVehicleAdPage> : <LandingPage />;
+    return isLoggedIn ? <LocationDisplay></LocationDisplay> : <LandingPage />;
 };
 
 export default HomePage;
