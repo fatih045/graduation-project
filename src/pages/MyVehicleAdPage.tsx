@@ -13,8 +13,14 @@ const MyVehicleAdsPage: React.FC = () => {
     const { vehicleAds, loading, error } = useSelector((state: RootState) => state.vehicleAd);
     const { user } = useSelector((state: RootState) => state.auth);
 
-    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    // Local state
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [sortBy, setSortBy] = useState<string>('id');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [countryFilter, setCountryFilter] = useState<string>('');
+    const [cityFilter, setCityFilter] = useState<string>('');
 
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<VehicleAd | null>(null);
     const [formData, setFormData] = useState({
         title: '',
@@ -120,18 +126,249 @@ const MyVehicleAdsPage: React.FC = () => {
             });
     };
 
+    // Sorting handler
+    const handleSort = (field: string) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(field);
+            setSortOrder('asc');
+        }
+    };
+
+    // Filtering and sorting
+    const filteredAndSortedVehicles = React.useMemo(() => {
+        let result = [...vehicleAds];
+
+        if (searchTerm) {
+            const lowercasedSearch = searchTerm.toLowerCase();
+            result = result.filter(vehicle =>
+                vehicle.title?.toLowerCase().includes(lowercasedSearch) ||
+                vehicle.description?.toLowerCase().includes(lowercasedSearch) ||
+                vehicle.vehicleType?.toLowerCase().includes(lowercasedSearch)
+            );
+        }
+
+        // Filter by country
+        if (countryFilter) {
+            result = result.filter(vehicle =>
+                vehicle.country?.includes(countryFilter)
+            );
+        }
+
+        // Filter by city
+        if (cityFilter) {
+            const lowercasedCityFilter = cityFilter.toLowerCase();
+            result = result.filter(vehicle =>
+                vehicle.city?.toLowerCase().includes(lowercasedCityFilter)
+            );
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            // Handle numeric fields
+            if (sortBy === 'capacity') {
+                return sortOrder === 'asc'
+                    ? a.capacity - b.capacity
+                    : b.capacity - a.capacity;
+            }
+
+            // Handle string fields
+            if (sortBy === 'title' || sortBy === 'description' || sortBy === 'vehicleType') {
+                const aValue = a[sortBy as keyof VehicleAd] as string || '';
+                const bValue = b[sortBy as keyof VehicleAd] as string || '';
+                return sortOrder === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            }
+
+            // Default sort by id
+            return sortOrder === 'asc' ? a.id - b.id : b.id - a.id;
+        });
+
+        return result;
+    }, [vehicleAds, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
+
+    // Component styles
+    const pageStyle = {
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '3%',
+        backgroundColor: '#f5f7fa',
+        fontFamily: 'Arial, sans-serif'
+    };
+
+    const containerStyle = {
+        width: '100%',
+        maxWidth: '1200px',
+        backgroundColor: '#fff',
+        borderRadius: '20px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden'
+    };
+
+    const headerStyle = {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '40px',
+        color: 'white',
+        textAlign: 'center' as const
+    };
+
+    const titleStyle = {
+        fontSize: '32px',
+        fontWeight: 'bold' as const,
+        marginBottom: '10px'
+    };
+
+    const subtitleStyle = {
+        fontSize: '16px',
+        opacity: 0.9,
+        marginBottom: '20px'
+    };
+
+    const userInfoStyle = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '30px',
+        padding: '15px',
+        backgroundColor: '#f9f9f9',
+        borderRadius: '10px'
+    };
+
+    const userNameStyle = {
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#333'
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '15px',
+        fontSize: '16px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+        marginBottom: '20px',
+        backgroundColor: '#f9f9f9'
+    };
+
+    const filterContainerStyle = {
+        display: 'flex',
+        flexWrap: 'wrap' as const,
+        gap: '15px',
+        marginBottom: '25px'
+    };
+
+    const selectStyle = {
+        padding: '12px 15px',
+        fontSize: '14px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: '#f9f9f9',
+        minWidth: '180px'
+    };
+
+    const tableStyle = {
+        width: '100%',
+        borderCollapse: 'collapse' as const,
+        marginTop: '10px',
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        overflow: 'hidden'
+    };
+
+    const thStyle = {
+        backgroundColor: '#f2f2f2',
+        padding: '15px',
+        textAlign: 'left' as const,
+        fontSize: '14px',
+        fontWeight: 'bold' as const,
+        color: '#333',
+        cursor: 'pointer' as const,
+        userSelect: 'none' as const,
+        borderBottom: '1px solid #ddd'
+    };
+
+    const tdStyle = {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        fontSize: '14px',
+        color: '#333'
+    };
+
+    const tdFirstStyle = {
+        ...tdStyle,
+        fontWeight: '500' as const
+    };
+
+    const tdLastStyle = {
+        ...tdStyle,
+        textAlign: 'center' as const
+    };
+
+    const updateButtonStyle = {
+        backgroundColor: '#4a6fa5',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        padding: '8px 12px',
+        fontSize: '13px',
+        cursor: 'pointer',
+        marginRight: '10px'
+    };
+
+    const deleteButtonStyle = {
+        backgroundColor: '#e63946',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        padding: '8px 12px',
+        fontSize: '13px',
+        cursor: 'pointer'
+    };
+
+    const loadingStyle = {
+        textAlign: 'center' as const,
+        padding: '40px',
+        fontSize: '18px',
+        color: '#666'
+    };
+
+    const errorStyle = {
+        backgroundColor: '#ffeeee',
+        color: '#e63946',
+        padding: '15px',
+        borderRadius: '10px',
+        marginBottom: '20px',
+        textAlign: 'center' as const
+    };
+
+    const noDataStyle = {
+        textAlign: 'center' as const,
+        padding: '40px 0',
+        color: '#666',
+        fontSize: '16px'
+    };
+
+    const sortIndicatorStyle = {
+        marginLeft: '5px'
+    };
+
     // Yükleme durumunda spinner göster
     if (loading) {
         return (
-            <div className="main-content" style={{
-                width: '100%',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '5%'
-            }}>
-                <div style={{ fontSize: '24px', color: '#333' }}>Yükleniyor...</div>
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <div style={headerStyle}>
+                        <h1 style={titleStyle}>Araç İlanlarım</h1>
+                        <p style={subtitleStyle}>Araç ilanlarınızı görüntüleyin, güncelleyin ve yönetin</p>
+                    </div>
+                    <div style={{ padding: '40px' }}>
+                        <div style={loadingStyle}>Araç ilanları yükleniyor...</div>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -139,203 +376,207 @@ const MyVehicleAdsPage: React.FC = () => {
     // Hata durumunda hata mesajı göster
     if (error) {
         return (
-            <div className="main-content" style={{
-                width: '100%',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '5%'
-            }}>
-                <div style={{
-                    padding: '20px',
-                    backgroundColor: '#ffeeee',
-                    color: '#e63946',
-                    borderRadius: '10px'
-                }}>
-                    <h2>Hata!</h2>
-                    <p>{error}</p>
+            <div style={pageStyle}>
+                <div style={containerStyle}>
+                    <div style={headerStyle}>
+                        <h1 style={titleStyle}>Araç İlanlarım</h1>
+                        <p style={subtitleStyle}>Araç ilanlarınızı görüntüleyin, güncelleyin ve yönetin</p>
+                    </div>
+                    <div style={{ padding: '40px' }}>
+                        <div style={errorStyle}>
+                            <h2>Hata!</h2>
+                            <p>{error}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="main-content" style={{
-            width: '100%',
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            padding: '5%'
-        }}>
-            <div className="vehicle-ads-container" style={{
-                width: '100%',
-                maxWidth: '800px',
-                backgroundColor: '#fff',
-                borderRadius: '20px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                padding: '40px',
-                margin: '0 auto'
-            }}>
-                <h1 style={{
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    marginBottom: '30px',
-                    textAlign: 'center'
-                }}>Araç İlanlarım</h1>
+        <div style={pageStyle}>
+            <div style={containerStyle}>
+                {/* Header with gradient background */}
+                <div style={headerStyle}>
+                    <h1 style={titleStyle}>Araç İlanlarım</h1>
+                    <p style={subtitleStyle}>Araç ilanlarınızı görüntüleyin, güncelleyin ve yönetin</p>
+                </div>
 
-                {vehicleAds.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '40px 0',
-                        color: '#666'
-                    }}>
-                        <p style={{ fontSize: '18px' }}>Henüz araç ilanı eklenmemiş.</p>
-                    </div>
-                ) : (
-                    <div className="vehicle-ads-list" style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '20px'
-                    }}>
-                        {vehicleAds.map((vehicle) => (
-                            <div key={vehicle.id} className="vehicle-ad-card" style={{
-                                backgroundColor: '#f9f9f9',
-                                borderRadius: '12px',
-                                padding: '20px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '15px',
-                                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
+                <div style={{ padding: '40px' }}>
+                    {/* User info section */}
+                    <div style={userInfoStyle}>
+                        <div>
+                            <span style={userNameStyle}>
+                                Hoş geldiniz, {user?.displayName || 'Fatih'}
+                            </span>
+                            <p style={{ margin: '5px 0 0', color: '#666' }}>{user?.email}</p>
+                        </div>
+                        <div>
+                            <span style={{
+                                backgroundColor: '#e3f2fd',
+                                color: '#0d47a1',
+                                padding: '8px 12px',
+                                borderRadius: '15px',
+                                fontWeight: 'bold'
                             }}>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
-                                    <h3 style={{
-                                        fontSize: '22px',
-                                        fontWeight: '600',
-                                        color: '#333',
-                                        margin: '0'
-                                    }}>
-                                        {vehicle.title}
-                                    </h3>
-                                    <div style={{
-                                        display: 'flex',
-                                        gap: '15px'
-                                    }}>
-                                        {/* Güncelle butonu */}
-                                        <button
-                                            onClick={() => handleEdit(vehicle)}
-                                            style={{
-                                                backgroundColor: '#4a6fa5',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                padding: '8px 12px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px'
-                                            }}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/>
-                                            </svg>
-                                            <span>Düzenle</span>
-                                        </button>
-
-                                        {/* Sil butonu */}
-                                        <button
-                                            onClick={() => handleDeleteClick(vehicle)}
-                                            style={{
-                                                backgroundColor: '#e63946',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                padding: '8px 12px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px'
-                                            }}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                            </svg>
-                                            <span>Sil</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Açıklama */}
-                                <div style={{
-                                    backgroundColor: '#fff',
-                                    padding: '15px',
-                                    borderRadius: '8px',
-                                    marginBottom: '10px'
-                                }}>
-                                    <p style={{
-                                        margin: '0',
-                                        fontSize: '14px',
-                                        color: '#666',
-                                        marginBottom: '5px'
-                                    }}>Açıklama</p>
-                                    <p style={{
-                                        margin: '0',
-                                        fontSize: '16px',
-                                        color: '#333',
-                                        lineHeight: '1.5'
-                                    }}>
-                                        {vehicle.description}
-                                    </p>
-                                </div>
-
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                                    gap: '15px'
-                                }}>
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Araç Tipi</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>
-                                            {vehicle.vehicleType}
-                                        </p>
-                                    </div>
-
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Kapasite</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>{vehicle.capacity.toLocaleString()} kg</p>
-                                    </div>
-
-
-                                </div>
-                            </div>
-                        ))}
+                                Kullanıcı
+                            </span>
+                        </div>
                     </div>
-                )}
+
+                    {/* Search and filter */}
+                    <input
+                        type="text"
+                        placeholder="Arama yap... (Başlık, Açıklama, Araç Tipi)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={inputStyle}
+                    />
+
+                    <div style={filterContainerStyle}>
+                        <div>
+                            <select
+                                value={`${sortBy}-${sortOrder}`}
+                                onChange={(e) => {
+                                    const [newSortBy, newSortOrder] = e.target.value.split('-');
+                                    setSortBy(newSortBy);
+                                    setSortOrder(newSortOrder as 'asc' | 'desc');
+                                }}
+                                style={selectStyle}
+                                className="select-element"
+                            >
+                                <option value="id-desc">ID (Yeni-Eski)</option>
+                                <option value="id-asc">ID (Eski-Yeni)</option>
+                                <option value="capacity-asc">Kapasite (Artan)</option>
+                                <option value="capacity-desc">Kapasite (Azalan)</option>
+                                <option value="title-asc">Başlık (A-Z)</option>
+                                <option value="title-desc">Başlık (Z-A)</option>
+                            </select>
+                        </div>
+
+                        {/* Ülke filtresi */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Ülke filtresi"
+                                value={countryFilter}
+                                onChange={(e) => setCountryFilter(e.target.value)}
+                                style={{ ...selectStyle, minWidth: '120px' }}
+                            />
+                        </div>
+
+                        {/* Şehir filtresi */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Şehir filtresi"
+                                value={cityFilter}
+                                onChange={(e) => setCityFilter(e.target.value)}
+                                style={{ ...selectStyle, minWidth: '120px' }}
+                            />
+                        </div>
+                    </div>
+
+                    {filteredAndSortedVehicles.length === 0 ? (
+                        <div style={noDataStyle}>
+                            Uygun araç ilanı bulunamadı. Filtreleri değiştirerek tekrar deneyebilirsiniz.
+                        </div>
+                    ) : (
+                        <div style={{ overflowX: 'auto' as const }}>
+                            <table style={tableStyle}>
+                                <thead>
+                                <tr>
+                                    <th
+                                        style={thStyle}
+                                        onClick={() => handleSort('title')}
+                                    >
+                                        Başlık
+                                        {sortBy === 'title' && (
+                                            <span style={sortIndicatorStyle}>
+                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                            </span>
+                                        )}
+                                    </th>
+                                    <th
+                                        style={thStyle}
+                                        onClick={() => handleSort('description')}
+                                    >
+                                        Açıklama
+                                        {sortBy === 'description' && (
+                                            <span style={sortIndicatorStyle}>
+                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                            </span>
+                                        )}
+                                    </th>
+                                    <th
+                                        style={thStyle}
+                                        onClick={() => handleSort('capacity')}
+                                    >
+                                        Kapasite (Ton)
+                                        {sortBy === 'capacity' && (
+                                            <span style={sortIndicatorStyle}>
+                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                            </span>
+                                        )}
+                                    </th>
+                                    <th
+                                        style={thStyle}
+                                        onClick={() => handleSort('vehicleType')}
+                                    >
+                                        Araç Tipi
+                                        {sortBy === 'vehicleType' && (
+                                            <span style={sortIndicatorStyle}>
+                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                            </span>
+                                        )}
+                                    </th>
+                                    <th style={thStyle}>
+                                        Konum
+                                    </th>
+                                    <th style={{ ...thStyle, textAlign: 'center' as const }}>
+                                        İşlemler
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {filteredAndSortedVehicles.map((vehicle) => (
+                                    <tr key={vehicle.id} className="vehicle-row" style={{ transition: 'all 0.2s ease' }}>
+                                        <td style={tdFirstStyle}>
+                                            {vehicle.title && vehicle.title.length > 30
+                                                ? `${vehicle.title.substring(0, 30)}...`
+                                                : vehicle.title}
+                                        </td>
+                                        <td style={tdStyle}>
+                                            {vehicle.description && vehicle.description.length > 30
+                                                ? `${vehicle.description.substring(0, 30)}...`
+                                                : vehicle.description}
+                                        </td>
+                                        <td style={tdStyle}>{(vehicle.capacity / 1000).toFixed(1)} Ton</td>
+                                        <td style={tdStyle}>{vehicle.vehicleType}</td>
+                                        <td style={tdStyle}>{vehicle.city}, {vehicle.country}</td>
+                                        <td style={tdLastStyle}>
+                                            <div className="action-buttons">
+                                                <button
+                                                    onClick={() => handleEdit(vehicle)}
+                                                    style={updateButtonStyle}
+                                                >
+                                                    Güncelle
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(vehicle)}
+                                                    style={deleteButtonStyle}
+                                                >
+                                                    Sil
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Güncelleme Modal */}
@@ -491,7 +732,7 @@ const MyVehicleAdsPage: React.FC = () => {
                                     fontWeight: '500',
                                     marginBottom: '8px'
                                 }}>
-                                    Kapasite (kg)
+                                    Kapasite (Ton)
                                 </label>
                                 <input
                                     type="number"
@@ -499,7 +740,8 @@ const MyVehicleAdsPage: React.FC = () => {
                                     value={formData.capacity}
                                     onChange={handleChange}
                                     required
-                                    min="1"
+                                    min="0.1"
+                                    step="0.1"
                                     style={{
                                         width: '100%',
                                         padding: '15px',
@@ -520,15 +762,14 @@ const MyVehicleAdsPage: React.FC = () => {
                                     fontWeight: '500',
                                     marginBottom: '8px'
                                 }}>
-                                    Lokasyon ID
+                                    Şehir
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     name="pickUpLocationId"
                                     value={formData.pickUpLocationId}
                                     onChange={handleChange}
                                     required
-                                    min="1"
                                     style={{
                                         width: '100%',
                                         padding: '15px',

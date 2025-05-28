@@ -170,13 +170,16 @@ const CargoListPage: React.FC = () => {
         // Search filter
         if (searchTerm) {
             const lowercasedSearch = searchTerm.toLowerCase();
+            const searchTermWithoutHash = searchTerm.startsWith('#') ? searchTerm.substring(1) : searchTerm;
+            
             result = result.filter(cargo =>
                 cargo.title?.toLowerCase().includes(lowercasedSearch) ||
                 cargo.description?.toLowerCase().includes(lowercasedSearch) ||
                 cargo.cargoType?.toLowerCase().includes(lowercasedSearch) ||
                 cargo.customerName?.toLowerCase().includes(lowercasedSearch) ||
                 cargo.pickCity?.toLowerCase().includes(lowercasedSearch) ||
-                cargo.dropCity?.toLowerCase().includes(lowercasedSearch)
+                cargo.dropCity?.toLowerCase().includes(lowercasedSearch) ||
+                cargo.id?.toString() === searchTermWithoutHash // Search by cargo ID
             );
         }
 
@@ -255,6 +258,11 @@ const CargoListPage: React.FC = () => {
         
         if (!offerPrice || parseFloat(offerPrice) <= 0) {
             setOfferError('Lütfen geçerli bir teklif fiyatı girin.');
+            return;
+        }
+
+        if (!offerMessage || offerMessage.trim() === '') {
+            setOfferError('Lütfen bir mesaj girin.');
             return;
         }
 
@@ -819,7 +827,8 @@ const CargoListPage: React.FC = () => {
                             {/* Make Offer Button - only show for other users' cargo and if not expired */}
                             {userData && 
                              selectedCargo.userId && 
-                             userData.id !== selectedCargo.userId && 
+                             userData.userId !== selectedCargo.userId && 
+                             userData.uid !== selectedCargo.userId && 
                              !selectedCargo.isExpired && (
                                 <div className="detail-section" style={{ marginTop: '20px' }}>
                                     {!showOfferForm && !offerSuccess && (
@@ -909,7 +918,7 @@ const CargoListPage: React.FC = () => {
                                                     fontWeight: 'bold',
                                                     color: '#333'
                                                 }}>
-                                                    Mesaj (İsteğe Bağlı)
+                                                    Mesaj (Zorunlu)
                                                 </label>
                                                 <textarea
                                                     value={offerMessage}

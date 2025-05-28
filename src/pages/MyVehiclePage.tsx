@@ -11,6 +11,13 @@ const MyVehiclesPage: React.FC = () => {
     const dispatch = useAppDispatch();
     const { items: vehicles, status, error } = useAppSelector((state) => state.vehicle);
     const carrierId = useAppSelector(state => state.auth.user?.uid || "");
+    const user = useAppSelector(state => state.auth.user);
+
+    // Search and filter states
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [sortBy, setSortBy] = useState<string>('id');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [vehicleTypeFilter, setVehicleTypeFilter] = useState<string>('');
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -156,6 +163,229 @@ const MyVehiclesPage: React.FC = () => {
         }
     };
 
+    // Sorting handler
+    const handleSort = (field: string) => {
+        if (sortBy === field) {
+            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortBy(field);
+            setSortOrder('asc');
+        }
+    };
+
+    // Filtering and sorting
+    const filteredAndSortedVehicles = React.useMemo(() => {
+        let result = [...vehicles];
+
+        // Search filter
+        if (searchTerm) {
+            const lowercasedSearch = searchTerm.toLowerCase();
+            result = result.filter(vehicle =>
+                vehicle.title?.toLowerCase().includes(lowercasedSearch) ||
+                vehicle.model?.toLowerCase().includes(lowercasedSearch) ||
+                vehicle.licensePlate?.toLowerCase().includes(lowercasedSearch)
+            );
+        }
+
+        // Vehicle type filter
+        if (vehicleTypeFilter) {
+            result = result.filter(vehicle => 
+                vehicle.vehicleType === vehicleTypeFilter
+            );
+        }
+
+        // Sort
+        result.sort((a, b) => {
+            // Handle numeric fields
+            if (sortBy === 'capacity') {
+                return sortOrder === 'asc' 
+                    ? a.capacity - b.capacity
+                    : b.capacity - a.capacity;
+            }
+            
+            // Handle string fields
+            if (sortBy === 'title' || sortBy === 'model' || sortBy === 'vehicleType' || sortBy === 'licensePlate') {
+                const aValue = a[sortBy as keyof Vehicle] as string || '';
+                const bValue = b[sortBy as keyof Vehicle] as string || '';
+                return sortOrder === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            }
+            
+            // Default sort by id
+            return sortOrder === 'asc' ? a.id - b.id : b.id - a.id;
+        });
+
+        return result;
+    }, [vehicles, searchTerm, sortBy, sortOrder, vehicleTypeFilter]);
+
+    // Component styles
+    const pageStyle = {
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '3%',
+        backgroundColor: '#f5f7fa',
+        fontFamily: 'Arial, sans-serif'
+    };
+
+    const containerStyle = {
+        width: '100%',
+        maxWidth: '1200px',
+        backgroundColor: '#fff',
+        borderRadius: '20px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden'
+    };
+
+    const headerStyle = {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '40px',
+        color: 'white',
+        textAlign: 'center' as const
+    };
+
+    const titleStyle = {
+        fontSize: '32px',
+        fontWeight: 'bold' as const,
+        marginBottom: '10px'
+    };
+
+    const subtitleStyle = {
+        fontSize: '16px',
+        opacity: 0.9,
+        marginBottom: '20px'
+    };
+
+    const userInfoStyle = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '30px',
+        padding: '15px',
+        backgroundColor: '#f9f9f9',
+        borderRadius: '10px'
+    };
+
+    const userNameStyle = {
+        fontSize: '18px',
+        fontWeight: 'bold',
+        color: '#333'
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '15px',
+        fontSize: '16px',
+        border: '1px solid #ddd',
+        borderRadius: '10px',
+        backgroundColor: '#f9f9f9',
+        outline: 'none'
+    };
+
+    const filterContainerStyle = {
+        display: 'flex',
+        flexWrap: 'wrap' as const,
+        gap: '15px',
+        marginBottom: '25px'
+    };
+
+    const selectStyle = {
+        padding: '12px 15px',
+        fontSize: '14px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: '#f9f9f9',
+        minWidth: '180px'
+    };
+
+    const tableStyle = {
+        width: '100%',
+        borderCollapse: 'collapse' as const,
+        marginTop: '10px',
+        backgroundColor: '#fff',
+        borderRadius: '10px',
+        overflow: 'hidden'
+    };
+
+    const thStyle = {
+        backgroundColor: '#f2f2f2',
+        padding: '15px',
+        textAlign: 'left' as const,
+        fontSize: '14px',
+        fontWeight: 'bold' as const,
+        color: '#333',
+        cursor: 'pointer' as const,
+        userSelect: 'none' as const,
+        borderBottom: '1px solid #ddd'
+    };
+
+    const tdStyle = {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        fontSize: '14px',
+        color: '#333'
+    };
+
+    const tdFirstStyle = {
+        ...tdStyle,
+        fontWeight: '500' as const
+    };
+
+    const tdLastStyle = {
+        ...tdStyle,
+        textAlign: 'center' as const
+    };
+
+    const updateButtonStyle = {
+        backgroundColor: '#4a6fa5',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        padding: '8px 12px',
+        fontSize: '13px',
+        cursor: 'pointer',
+        marginRight: '10px'
+    };
+
+    const deleteButtonStyle = {
+        backgroundColor: '#e63946',
+        color: 'white',
+        border: 'none',
+        borderRadius: '5px',
+        padding: '8px 12px',
+        fontSize: '13px',
+        cursor: 'pointer'
+    };
+
+    const loadingStyle = {
+        textAlign: 'center' as const,
+        padding: '40px',
+        fontSize: '18px',
+        color: '#666'
+    };
+
+    const errorStyle = {
+        backgroundColor: '#ffeeee',
+        color: '#e63946',
+        padding: '15px',
+        borderRadius: '10px',
+        marginBottom: '20px',
+        textAlign: 'center' as const
+    };
+
+    const noDataStyle = {
+        textAlign: 'center' as const,
+        padding: '40px 0',
+        color: '#666',
+        fontSize: '16px'
+    };
+
+    const sortIndicatorStyle = {
+        marginLeft: '5px'
+    };
+
     // carrierId yoksa veya geçersizse hata mesajı göster
     if (!isValidCarrierId(carrierId)) {
         return (
@@ -185,18 +415,13 @@ const MyVehiclesPage: React.FC = () => {
         );
     }
 
-    // Yükleme durumunda spinner göster
+    // Yükleniyor durumunda yükleniyor mesajı göster
     if (status === 'loading') {
         return (
-            <div className="main-content" style={{
-                width: '100%',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '5%'
-            }}>
-                <div style={{ fontSize: '24px', color: '#333' }}>Yükleniyor...</div>
+            <div style={pageStyle}>
+                <div style={loadingStyle}>
+                    <p>Araçlar yükleniyor...</p>
+                </div>
             </div>
         );
     }
@@ -204,20 +429,8 @@ const MyVehiclesPage: React.FC = () => {
     // Hata durumunda hata mesajı göster
     if (status === 'failed' && error) {
         return (
-            <div className="main-content" style={{
-                width: '100%',
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '5%'
-            }}>
-                <div style={{
-                    padding: '20px',
-                    backgroundColor: '#ffeeee',
-                    color: '#e63946',
-                    borderRadius: '10px'
-                }}>
+            <div style={pageStyle}>
+                <div style={errorStyle}>
                     <h2>Hata!</h2>
                     <p>{error}</p>
                 </div>
@@ -226,170 +439,152 @@ const MyVehiclesPage: React.FC = () => {
     }
 
     return (
-        <div className="main-content" style={{
-            width: '100%',
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            padding: '5%'
-        }}>
-            <div className="vehicles-container" style={{
-                width: '100%',
-                maxWidth: '800px',
-                backgroundColor: '#fff',
-                borderRadius: '20px',
-                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                padding: '40px',
-                margin: '0 auto'
-            }}>
-                <h1 style={{
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    marginBottom: '30px',
-                    textAlign: 'center'
-                }}>Araçlarım</h1>
+        <div style={pageStyle}>
+            <div style={containerStyle}>
+                {/* Gradient Header */}
+                <div style={headerStyle}>
+                    <h1 style={titleStyle}>Araçlarım</h1>
+                    <p style={subtitleStyle}>Araçlarınızı görüntüleyin, düzenleyin veya silin</p>
+                </div>
 
-                {vehicles.length === 0 ? (
-                    <div style={{
-                        textAlign: 'center',
-                        padding: '40px 0',
-                        color: '#666'
-                    }}>
-                        <p style={{ fontSize: '18px' }}>Henüz araç eklenmemiş.</p>
-                    </div>
-                ) : (
-                    <div className="vehicle-list" style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '20px'
-                    }}>
-                        {vehicles.map((vehicle) => (
-                            <div key={vehicle.id} className="vehicle-card" style={{
-                                backgroundColor: '#f9f9f9',
-                                borderRadius: '12px',
-                                padding: '20px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '15px',
-                                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.05)'
-                            }}>
-                                <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center'
-                                }}>
-                                    <h3 style={{
-                                        fontSize: '22px',
-                                        fontWeight: '600',
-                                        color: '#333',
-                                        margin: '0'
-                                    }}>
-                                        {vehicle.title} - {vehicle.licensePlate}
-                                    </h3>
-                                    <div style={{
-                                        display: 'flex',
-                                        gap: '15px'
-                                    }}>
-                                        {/* Güncelle butonu */}
-                                        <button
-                                            onClick={() => openUpdateModal(vehicle)}
-                                            style={{
-                                                backgroundColor: '#4a6fa5',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                padding: '8px 12px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px'
-                                            }}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"/>
-                                            </svg>
-                                            <span>Düzenle</span>
-                                        </button>
-
-                                        {/* Sil butonu */}
-                                        <button
-                                            onClick={() => handleDelete(vehicle.id)}
-                                            style={{
-                                                backgroundColor: '#e63946',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '8px',
-                                                padding: '8px 12px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px'
-                                            }}
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                            </svg>
-                                            <span>Sil</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                                    gap: '15px'
-                                }}>
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Araç Tipi</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>
-                                            {vehicle.vehicleType}
-                                        </p>
-                                    </div>
-
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Model</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>{vehicle.model}</p>
-                                    </div>
-
-                                    <div className="info-item">
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '14px',
-                                            color: '#666',
-                                            marginBottom: '3px'
-                                        }}>Kapasite</p>
-                                        <p style={{
-                                            margin: '0',
-                                            fontSize: '16px',
-                                            fontWeight: '500'
-                                        }}>{vehicle.capacity} ton</p>
-                                    </div>
-                                </div>
+                <div style={{ padding: '30px' }}>
+                    {/* User Info */}
+                    {user && (
+                        <div style={userInfoStyle}>
+                            <div>
+                                <p style={userNameStyle}>
+                                    {user.displayName || 'Kullanıcı'}
+                                </p>
+                                <p style={{ color: '#666', fontSize: '14px' }}>
+                                    {user.email || ''}
+                                </p>
                             </div>
-                        ))}
+                        </div>
+                    )}
+
+                    {/* Search and Filter */}
+                    <div>
+                        <input
+                            type="search"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Araç adı, plaka veya model ara..."
+                            style={inputStyle}
+                        />
+
+                        <div style={filterContainerStyle}>
+                            <select
+                                value={vehicleTypeFilter}
+                                onChange={(e) => setVehicleTypeFilter(e.target.value)}
+                                style={selectStyle}
+                            >
+                                <option value="">Tüm Araç Tipleri</option>
+                                {vehicleTypeOptions.map((type) => (
+                                    <option key={type} value={type}>
+                                        {type}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
-                )}
+
+                    {/* Vehicle Table */}
+                    {filteredAndSortedVehicles.length === 0 ? (
+                        <div style={noDataStyle}>
+                            <p>Araç bulunamadı.</p>
+                        </div>
+                    ) : (
+                        <div style={{ overflowX: 'auto' as const }}>
+                            <table style={tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th 
+                                            style={thStyle} 
+                                            onClick={() => handleSort('title')}
+                                        >
+                                            Araç Adı
+                                            {sortBy === 'title' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th 
+                                            style={thStyle} 
+                                            onClick={() => handleSort('vehicleType')}
+                                        >
+                                            Araç Tipi
+                                            {sortBy === 'vehicleType' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th 
+                                            style={thStyle} 
+                                            onClick={() => handleSort('model')}
+                                        >
+                                            Model
+                                            {sortBy === 'model' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th 
+                                            style={thStyle} 
+                                            onClick={() => handleSort('licensePlate')}
+                                        >
+                                            Plaka
+                                            {sortBy === 'licensePlate' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th 
+                                            style={thStyle} 
+                                            onClick={() => handleSort('capacity')}
+                                        >
+                                            Kapasite
+                                            {sortBy === 'capacity' && (
+                                                <span style={sortIndicatorStyle}>
+                                                    {sortOrder === 'asc' ? '▲' : '▼'}
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th style={thStyle}>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredAndSortedVehicles.map((vehicle) => (
+                                        <tr key={vehicle.id}>
+                                            <td style={tdFirstStyle}>{vehicle.title}</td>
+                                            <td style={tdStyle}>{vehicle.vehicleType}</td>
+                                            <td style={tdStyle}>{vehicle.model}</td>
+                                            <td style={tdStyle}>{vehicle.licensePlate}</td>
+                                            <td style={tdStyle}>{vehicle.capacity} ton</td>
+                                            <td style={tdLastStyle}>
+                                                <button
+                                                    onClick={() => openUpdateModal(vehicle)}
+                                                    style={updateButtonStyle}
+                                                >
+                                                    Düzenle
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(vehicle.id)}
+                                                    style={deleteButtonStyle}
+                                                >
+                                                    Sil
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Güncelleme Modal */}

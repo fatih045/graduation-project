@@ -284,6 +284,12 @@ const CreateVehicleAdPage: React.FC = () => {
             return;
         }
 
+        // Kapasite kontrolü
+        if (!formData.capacity || formData.capacity <= 0) {
+            setError('Kapasite değeri 0\'dan büyük olmalıdır!');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -317,236 +323,127 @@ const CreateVehicleAdPage: React.FC = () => {
     // Kullanıcı giriş yapmamışsa uyarı göster
     if (!userId) {
         return (
-            <div className="main-content" style={{
+            <div style={{
                 width: '100%',
                 minHeight: '100vh',
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'center',
-                padding: '5%'
+                padding: '3%',
+                backgroundColor: '#f5f7fa',
+                fontFamily: 'Arial, sans-serif'
             }}>
                 <div style={{
-                    backgroundColor: '#fee',
-                    color: '#c33',
-                    padding: '20px',
-                    borderRadius: '10px',
-                    textAlign: 'center',
-                    fontSize: '18px'
+                    width: '100%',
+                    maxWidth: '1200px',
+                    backgroundColor: '#fff',
+                    borderRadius: '20px',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                    overflow: 'hidden'
                 }}>
-                    Araç ilanı oluşturmak için giriş yapmanız gerekiyor!
+                    <div style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        padding: '40px',
+                        color: 'white',
+                        textAlign: 'center'
+                    }}>
+                        <h1 style={{
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            marginBottom: '10px'
+                        }}>Yeni Araç İlanı Oluştur</h1>
+                        <p style={{
+                            fontSize: '16px',
+                            opacity: 0.9,
+                            marginBottom: '20px'
+                        }}>Araç bilgilerinizi girerek yeni bir ilan oluşturun</p>
+                    </div>
+
+                    <div style={{ padding: '40px' }}>
+                        <div style={{
+                            backgroundColor: '#fee',
+                            color: '#c33',
+                            padding: '10px',
+                            borderRadius: '5px',
+                            marginBottom: '20px',
+                            textAlign: 'center'
+                        }}>
+                            Araç ilanı oluşturmak için giriş yapmanız gerekiyor!
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="main-content" style={{
+        <div style={{
             width: '100%',
             minHeight: '100vh',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            padding: '5%'
+            padding: '3%',
+            backgroundColor: '#f5f7fa',
+            fontFamily: 'Arial, sans-serif'
         }}>
-            <div className="form-container" style={{
+            <div style={{
                 width: '100%',
-                maxWidth: '800px',
+                maxWidth: '1200px',
                 backgroundColor: '#fff',
                 borderRadius: '20px',
                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                padding: '40px',
-                margin: '0 auto'
+                overflow: 'hidden'
             }}>
-                <h1 style={{
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    marginBottom: '30px',
+                {/* Header with gradient background */}
+                <div style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '40px',
+                    color: 'white',
                     textAlign: 'center'
-                }}>Yeni Araç İlanı Oluştur</h1>
-
-                {error && (
-                    <div style={{
-                        backgroundColor: '#fee',
-                        color: '#c33',
-                        padding: '10px',
-                        borderRadius: '5px',
-                        marginBottom: '20px',
-                        textAlign: 'center'
-                    }}>
-                        Hata: {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '25px'
                 }}>
-                    {/* Başlık */}
-                    <div className="form-group">
-                        <label style={{
-                            display: 'block',
-                            fontSize: '18px',
-                            fontWeight: '500',
-                            marginBottom: '10px'
-                        }}>Başlık</label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            style={{
-                                width: '100%',
-                                padding: '15px',
-                                fontSize: '16px',
-                                border: '1px solid #ddd',
-                                borderRadius: '10px',
-                                backgroundColor: '#f9f9f9',
-                                outline: 'none',
-                                transition: 'border-color 0.3s, box-shadow 0.3s'
-                            }}
-                            placeholder="Araç ilanı başlığı"
-                            required
-                        />
-                    </div>
+                    <h1 style={{
+                        fontSize: '32px',
+                        fontWeight: 'bold',
+                        marginBottom: '10px'
+                    }}>Yeni Araç İlanı Oluştur</h1>
+                    <p style={{
+                        fontSize: '16px',
+                        opacity: 0.9,
+                        marginBottom: '20px'
+                    }}>Araç bilgilerinizi girerek yeni bir ilan oluşturun</p>
+                </div>
 
-                    {/* Açıklama */}
-                    <div className="form-group">
-                        <label style={{
-                            display: 'block',
-                            fontSize: '18px',
-                            fontWeight: '500',
-                            marginBottom: '10px'
-                        }}>Açıklama</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleInputChange}
-                            rows={3}
-                            style={{
-                                width: '100%',
-                                padding: '15px',
-                                fontSize: '16px',
-                                border: '1px solid #ddd',
-                                borderRadius: '10px',
-                                backgroundColor: '#f9f9f9',
-                                outline: 'none',
-                                transition: 'border-color 0.3s, box-shadow 0.3s',
-                                resize: 'vertical'
-                            }}
-                            placeholder="Araç hakkında detaylı bilgi"
-                            required
-                        />
-                    </div>
-
-                    {/* Kapasite ve Araç Türü */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Kapasite (ton)</label>
-                            <input
-                                type="number"
-                                name="capacity"
-                                value={formData.capacity}
-                                onChange={handleInputChange}
-                                min="0"
-                                step="0.1"
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                placeholder="0.0"
-                                required
-                            />
+                <div style={{ padding: '40px' }}>
+                    {error && (
+                        <div style={{
+                            backgroundColor: '#fee',
+                            color: '#c33',
+                            padding: '10px',
+                            borderRadius: '5px',
+                            marginBottom: '20px',
+                            textAlign: 'center'
+                        }}>
+                            Hata: {error}
                         </div>
+                    )}
 
+                    <form onSubmit={handleSubmit} style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '25px'
+                    }}>
+                        {/* Başlık */}
                         <div className="form-group">
                             <label style={{
                                 display: 'block',
                                 fontSize: '18px',
                                 fontWeight: '500',
                                 marginBottom: '10px'
-                            }}>Araç Türü</label>
-                            <select
-                                name="vehicleType"
-                                value={formData.vehicleType}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="">Araç Türü Seçin</option>
-                                {VEHICLE_TYPES.map(type => (
-                                    <option key={type.value} value={type.value}>{type.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Lokasyon */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Ülke</label>
-                            <select
-                                name="country"
-                                value={formData.country}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="">Ülke Seçin</option>
-                                {EUROPEAN_COUNTRIES.map(country => (
-                                    <option key={country.value} value={country.value}>{country.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Şehir</label>
+                            }}>Başlık</label>
                             <input
                                 type="text"
-                                name="city"
-                                ref={cityInputRef}
-                                value={formData.city}
-                                onChange={handleCityInputChange}
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
                                 style={{
                                     width: '100%',
                                     padding: '15px',
@@ -557,38 +454,190 @@ const CreateVehicleAdPage: React.FC = () => {
                                     outline: 'none',
                                     transition: 'border-color 0.3s, box-shadow 0.3s'
                                 }}
-                                placeholder="Şehir adı"
+                                placeholder="Araç ilanı başlığı"
                                 required
-                                disabled={!formData.country}
                             />
-                            {!formData.country && (
-                                <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
-                                    Şehir girmek için önce ülke seçin
-                                </p>
-                            )}
                         </div>
-                    </div>
 
-                    {/* Submit Button */}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        style={{
-                            backgroundColor: isLoading ? '#ccc' : '#e63946',
-                            color: 'white',
-                            padding: '16px',
-                            fontSize: '18px',
-                            fontWeight: 'bold',
-                            border: 'none',
-                            borderRadius: '10px',
-                            cursor: isLoading ? 'not-allowed' : 'pointer',
-                            marginTop: '15px',
-                            transition: 'background-color 0.3s'
-                        }}
-                    >
-                        {isLoading ? 'İlan Oluşturuluyor...' : 'Araç İlanı Oluştur'}
-                    </button>
-                </form>
+                        {/* Açıklama */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Açıklama</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                rows={3}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s',
+                                    resize: 'vertical'
+                                }}
+                                placeholder="Araç hakkında detaylı bilgi"
+                                required
+                            />
+                        </div>
+
+                        {/* Kapasite ve Araç Türü */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Kapasite (ton)</label>
+                                <input
+                                    type="number"
+                                    name="capacity"
+                                    value={formData.capacity}
+                                    onChange={handleInputChange}
+                                    min="0.1"
+                                    step="0.1"
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder="0.0"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Araç Türü</label>
+                                <select
+                                    name="vehicleType"
+                                    value={formData.vehicleType}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Araç Türü Seçin</option>
+                                    {VEHICLE_TYPES.map(type => (
+                                        <option key={type.value} value={type.value}>{type.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Lokasyon */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Ülke</label>
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Ülke Seçin</option>
+                                    {EUROPEAN_COUNTRIES.map(country => (
+                                        <option key={country.value} value={country.value}>{country.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Şehir</label>
+                                <input
+                                    type="text"
+                                    name="city"
+                                    ref={cityInputRef}
+                                    value={formData.city}
+                                    onChange={handleCityInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder="Şehir adı"
+                                    required
+                                    disabled={!formData.country}
+                                />
+                                {!formData.country && (
+                                    <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                        Şehir girmek için önce ülke seçin
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            style={{
+                                backgroundColor: isLoading ? '#ccc' : '#e63946',
+                                color: 'white',
+                                padding: '16px',
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                border: 'none',
+                                borderRadius: '10px',
+                                cursor: isLoading ? 'not-allowed' : 'pointer',
+                                marginTop: '15px',
+                                transition: 'background-color 0.3s'
+                            }}
+                        >
+                            {isLoading ? 'İlan Oluşturuluyor...' : 'Araç İlanı Oluştur'}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

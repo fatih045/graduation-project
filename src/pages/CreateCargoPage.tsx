@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 // useAppSelector import edildi
@@ -347,6 +343,26 @@ const CreateCargoPage: React.FC = () => {
             return;
         }
 
+        // Form validasyonu
+        if (!formData.title || !formData.description || !formData.cargoType || 
+            !formData.pickCountry || !formData.pickCity || 
+            !formData.dropCountry || !formData.dropCity || 
+            !formData.currency) {
+            setError('Lütfen tüm alanları doldurun!');
+            return;
+        }
+
+        // Ağırlık ve fiyat kontrolü
+        if (formData.weight <= 0) {
+            setError('Ağırlık 0\'dan büyük olmalıdır!');
+            return;
+        }
+
+        if (formData.price <= 0) {
+            setError('Fiyat 0\'dan büyük olmalıdır!');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
 
@@ -407,395 +423,411 @@ const CreateCargoPage: React.FC = () => {
     }
 
     return (
-        <div className="main-content" style={{
+        <div style={{
             width: '100%',
             minHeight: '100vh',
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
-            padding: '5%'
+            padding: '3%',
+            backgroundColor: '#f5f7fa',
+            fontFamily: 'Arial, sans-serif'
         }}>
-            <div className="form-container" style={{
+            <div style={{
                 width: '100%',
-                maxWidth: '800px',
+                maxWidth: '1200px',
                 backgroundColor: '#fff',
                 borderRadius: '20px',
                 boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-                padding: '40px',
-                margin: '0 auto'
+                overflow: 'hidden'
             }}>
-                <h1 style={{
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    marginBottom: '30px',
+                {/* Header with gradient background */}
+                <div style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '40px',
+                    color: 'white',
                     textAlign: 'center'
-                }}>Yeni Kargo Oluştur</h1>
-
-                {error && (
-                    <div style={{
-                        backgroundColor: '#fee',
-                        color: '#c33',
-                        padding: '10px',
-                        borderRadius: '5px',
-                        marginBottom: '20px',
-                        textAlign: 'center'
-                    }}>
-                        Hata: {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit} style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '25px'
                 }}>
-                    {/* Başlık */}
-                    <div className="form-group">
-                        <label style={{
-                            display: 'block',
-                            fontSize: '18px',
-                            fontWeight: '500',
-                            marginBottom: '10px'
-                        }}>Başlık</label>
-                        <input
-                            type="text"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleInputChange}
-                            style={{
-                                width: '100%',
-                                padding: '15px',
-                                fontSize: '16px',
-                                border: '1px solid #ddd',
-                                borderRadius: '10px',
-                                backgroundColor: '#f9f9f9',
-                                outline: 'none',
-                                transition: 'border-color 0.3s, box-shadow 0.3s'
-                            }}
-                            placeholder="Kargo başlığı"
-                            required
-                        />
-                    </div>
+                    <h1 style={{
+                        fontSize: '32px',
+                        fontWeight: 'bold',
+                        marginBottom: '10px'
+                    }}>Yeni Kargo Oluştur</h1>
+                    <p style={{
+                        fontSize: '16px',
+                        opacity: 0.9,
+                        marginBottom: '20px'
+                    }}>Kargo ilanınızı oluşturmak için aşağıdaki formu doldurun</p>
+                </div>
 
-                    {/* Açıklama */}
-                    <div className="form-group">
-                        <label style={{
-                            display: 'block',
-                            fontSize: '18px',
-                            fontWeight: '500',
-                            marginBottom: '10px'
-                        }}>Açıklama</label>
-                        <textarea
-                            name="description"
-                            value={formData.description}
-                            onChange={handleInputChange}
-                            rows={3}
-                            style={{
-                                width: '100%',
-                                padding: '15px',
-                                fontSize: '16px',
-                                border: '1px solid #ddd',
-                                borderRadius: '10px',
-                                backgroundColor: '#f9f9f9',
-                                outline: 'none',
-                                transition: 'border-color 0.3s, box-shadow 0.3s',
-                                resize: 'vertical'
-                            }}
-                            placeholder="Kargo hakkında detaylı bilgi"
-                            required
-                        />
-                    </div>
-
-                    {/* Ağırlık ve Kargo Türü */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Ağırlık (kg)</label>
-                            <input
-                                type="number"
-                                name="weight"
-                                value={formData.weight}
-                                onChange={handleInputChange}
-                                min="0"
-                                step="0.1"
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                placeholder="0.0"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Araç Türü</label>
-                            <select
-                                name="cargoType"
-                                value={formData.cargoType}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="">Araç Türü Seçin</option>
-                                {CARGO_TYPES.map(type => (
-                                    <option key={type.value} value={type.value}>{type.label}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Alım Lokasyonu */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Alım Ülkesi</label>
-                            <select
-                                name="pickCountry"
-                                value={formData.pickCountry}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="">Ülke Seçin</option>
-                                {EUROPEAN_COUNTRIES.map(country => (
-                                    <option key={country.value} value={country.value}>{country.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Alım Şehri</label>
-                            <input
-                                ref={pickupInputRef}
-                                type="text"
-                                value={formData.pickCity}
-                                onChange={(e) => handleCityInputChange(e, 'pickup')}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: formData.pickCountry ? '#f9f9f9' : '#f0f0f0',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
-                                required
-                                disabled={!formData.pickCountry}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Teslim Lokasyonu */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Teslim Ülkesi</label>
-                            <select
-                                name="dropCountry"
-                                value={formData.dropCountry}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="">Ülke Seçin</option>
-                                {EUROPEAN_COUNTRIES.map(country => (
-                                    <option key={country.value} value={country.value}>{country.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Teslim Şehri</label>
-                            <input
-                                ref={dropoffInputRef}
-                                type="text"
-                                value={formData.dropCity}
-                                onChange={(e) => handleCityInputChange(e, 'dropoff')}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: formData.dropCountry ? '#f9f9f9' : '#f0f0f0',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
-                                required
-                                disabled={!formData.dropCountry}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Fiyat ve Para Birimi */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px' }}>
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Fiyat</label>
-                            <input
-                                type="number"
-                                name="price"
-                                value={formData.price}
-                                onChange={handleInputChange}
-                                min="0"
-                                step="0.01"
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                placeholder="0.00"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label style={{
-                                display: 'block',
-                                fontSize: '18px',
-                                fontWeight: '500',
-                                marginBottom: '10px'
-                            }}>Para Birimi</label>
-                            <select
-                                name="currency"
-                                value={formData.currency}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '15px',
-                                    fontSize: '16px',
-                                    border: '1px solid #ddd',
-                                    borderRadius: '10px',
-                                    backgroundColor: '#f9f9f9',
-                                    outline: 'none',
-                                    transition: 'border-color 0.3s, box-shadow 0.3s'
-                                }}
-                                required
-                            >
-                                <option value="TRY">TRY</option>
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Google Places API Uyarısı */}
-                                        {!isGoogleLoaded && (
-                         <div style={{
-                            backgroundColor: '#fff3cd',
-                             color: '#856404',
-                             padding: '12px',
-                             borderRadius: '10px',
-                             fontSize: '14px',
-                             textAlign: 'center'
-                         }}>Google Places API yüklenemedi. Şehir isimlerini manuel olarak girebilirsiniz.
-                        </div>
-                   )}
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        style={{
-                            backgroundColor: isLoading ? '#ccc' : '#e63946',
-                            color: 'white',
-                            padding: '16px',
-                            fontSize: '18px',
-                            fontWeight: '600',
-                            border: 'none',
+                {/* Content */}
+                <div style={{
+                    padding: '40px'
+                }}>
+                    {error && (
+                        <div style={{
+                            backgroundColor: '#fee2e2',
+                            color: '#dc2626',
+                            padding: '15px',
                             borderRadius: '10px',
-                            cursor: isLoading ? 'not-allowed' : 'pointer',
-                            marginTop: '15px',
-                            transition: 'background-color 0.3s'
-                        }}
-                        onMouseOver={(e) => {
-                            if (!isLoading) {
-                                e.currentTarget.style.backgroundColor = '#d62838';
-                            }
-                        }}
-                        onMouseOut={(e) => {
-                            if (!isLoading) {
-                                e.currentTarget.style.backgroundColor = '#e63946';
-                            }
-                        }}
-                    >
-                        {isLoading ? 'Oluşturuluyor...' : 'Kargo Oluştur'}
-                    </button>
-                </form>
-                             </div>
-                     </div>
-     );
- };
+                            marginBottom: '20px',
+                            textAlign: 'center'
+                        }}>
+                            Hata: {error}
+                        </div>
+                    )}
 
- export default CreateCargoPage;
+                    <form onSubmit={handleSubmit} style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '25px'
+                    }}>
+                        {/* Başlık */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Başlık</label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                placeholder="Kargo başlığı"
+                                required
+                            />
+                        </div>
+
+                        {/* Açıklama */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Açıklama</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                                rows={3}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s',
+                                    resize: 'vertical'
+                                }}
+                                placeholder="Kargo hakkında detaylı bilgi"
+                                required
+                            />
+                        </div>
+
+                        {/* Ağırlık ve Kargo Türü */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Ağırlık (ton)</label>
+                                <input
+                                    type="number"
+                                    name="weight"
+                                    value={formData.weight}
+                                    onChange={handleInputChange}
+                                    min="0.1"
+                                    step="0.1"
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder="0.1"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Araç Türü</label>
+                                <select
+                                    name="cargoType"
+                                    value={formData.cargoType}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Araç Türü Seçin</option>
+                                    {CARGO_TYPES.map(type => (
+                                        <option key={type.value} value={type.value}>{type.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Alım Lokasyonu */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Alım Ülkesi</label>
+                                <select
+                                    name="pickCountry"
+                                    value={formData.pickCountry}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Ülke Seçin</option>
+                                    {EUROPEAN_COUNTRIES.map(country => (
+                                        <option key={country.value} value={country.value}>{country.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Alım Şehri</label>
+                                <input
+                                    ref={pickupInputRef}
+                                    type="text"
+                                    value={formData.pickCity}
+                                    onChange={(e) => handleCityInputChange(e, 'pickup')}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: formData.pickCountry ? '#f9f9f9' : '#f0f0f0',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                    required
+                                    disabled={!formData.pickCountry}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Teslim Lokasyonu */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Teslim Ülkesi</label>
+                                <select
+                                    name="dropCountry"
+                                    value={formData.dropCountry}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Ülke Seçin</option>
+                                    {EUROPEAN_COUNTRIES.map(country => (
+                                        <option key={country.value} value={country.value}>{country.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Teslim Şehri</label>
+                                <input
+                                    ref={dropoffInputRef}
+                                    type="text"
+                                    value={formData.dropCity}
+                                    onChange={(e) => handleCityInputChange(e, 'dropoff')}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: formData.dropCountry ? '#f9f9f9' : '#f0f0f0',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                    required
+                                    disabled={!formData.dropCountry}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Fiyat ve Para Birimi */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px' }}>
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Fiyat</label>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleInputChange}
+                                    min="0.01"
+                                    step="0.01"
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    placeholder="0.01"
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '18px',
+                                    fontWeight: '500',
+                                    marginBottom: '10px'
+                                }}>Para Birimi</label>
+                                <select
+                                    name="currency"
+                                    value={formData.currency}
+                                    onChange={handleInputChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none',
+                                        transition: 'border-color 0.3s, box-shadow 0.3s'
+                                    }}
+                                    required
+                                >
+                                    <option value="TRY">TRY</option>
+                                    <option value="USD">USD</option>
+                                    <option value="EUR">EUR</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Google Places API Uyarısı */}
+                        {!isGoogleLoaded && (
+                            <div style={{
+                                backgroundColor: '#fff3cd',
+                                color: '#856404',
+                                padding: '12px',
+                                borderRadius: '10px',
+                                fontSize: '14px',
+                                textAlign: 'center'
+                            }}>Google Places API yüklenemedi. Şehir isimlerini manuel olarak girebilirsiniz.
+                            </div>
+                        )}
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            style={{
+                                backgroundColor: isLoading ? '#ccc' : '#e63946',
+                                color: 'white',
+                                padding: '16px',
+                                fontSize: '18px',
+                                fontWeight: '600',
+                                border: 'none',
+                                borderRadius: '10px',
+                                cursor: isLoading ? 'not-allowed' : 'pointer',
+                                marginTop: '15px',
+                                transition: 'background-color 0.3s'
+                            }}
+                            onMouseOver={(e) => {
+                                if (!isLoading) {
+                                    e.currentTarget.style.backgroundColor = '#d62838';
+                                }
+                            }}
+                            onMouseOut={(e) => {
+                                if (!isLoading) {
+                                    e.currentTarget.style.backgroundColor = '#e63946';
+                                }
+                            }}
+                        >
+                            {isLoading ? 'Oluşturuluyor...' : 'Kargo Oluştur'}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default CreateCargoPage;

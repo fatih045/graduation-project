@@ -1,7 +1,12 @@
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
-import { fetchNotifications, markNotificationAsRead } from '../../features/notification/notificationSlice';
+import { 
+  fetchNotifications, 
+  markNotificationAsRead, 
+  startSignalRConnection,
+  stopSignalRConnection
+} from '../../features/notification/notificationSlice';
 import '../../styles/notificationPopup.css';
 
 interface NotificationPopupProps {
@@ -16,16 +21,37 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
   position = 'dropdown' 
 }) => {
   const dispatch = useDispatch();
-  const { notifications, loading, error } = useSelector((state: RootState) => state.notification);
+  const { notifications, loading, error, signalRConnected } = useSelector((state: RootState) => state.notification);
+  const user = useSelector((state: RootState) => state.auth.user);
   
+  // Sayfa yüklendiğinde SignalR bağlantısını başlat
+  useEffect(() => {
+    console.log('NotificationPopup: SignalR bağlantı kontrolü', { user, signalRConnected });
+    if (user && user.id && !signalRConnected) {
+      console.log(`NotificationPopup: SignalR bağlantısı başlatılıyor (Kullanıcı ID: ${user.id})`);
+      dispatch(startSignalRConnection(user.id.toString()) as any);
+    }
+    
+    // Component unmount olduğunda bağlantıyı kapat
+    return () => {
+      if (signalRConnected) {
+        console.log('NotificationPopup: Component unmount, SignalR bağlantısı sonlandırılıyor');
+        dispatch(stopSignalRConnection() as any);
+      }
+    };
+  }, [user, signalRConnected, dispatch]);
+  
+  // Popup açıldığında bildirimleri getir
   useEffect(() => {
     if (isVisible) {
+      console.log('NotificationPopup: Popup açıldı, bildirimler getiriliyor');
       dispatch(fetchNotifications() as any);
     }
   }, [isVisible, dispatch]);
 
   const handleMarkAsRead = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    console.log(`NotificationPopup: Bildirim okundu olarak işaretleniyor (ID: ${id})`);
     dispatch(markNotificationAsRead(id) as any);
   };
 
@@ -66,7 +92,11 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
   return (
     <div className={`notification-popup ${position}`}>
       <div className="notification-popup-header">
-        <h3>Bildirimler {unreadCount > 0 && <span className="unread-count">({unreadCount})</span>}</h3>
+        <h3>
+          Bildirimler {unreadCount > 0 && <span className="unread-count">({unreadCount})</span>}
+          {!signalRConnected && <span className="connection-status offline" title="Canlı bildirimler kapalı">⚠️</span>}
+          {signalRConnected && <span className="connection-status online" title="Canlı bildirimler açık">●</span>}
+        </h3>
         <button className="close-button" onClick={onClose}>×</button>
       </div>
       <div className="notification-popup-content">

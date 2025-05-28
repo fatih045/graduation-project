@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store'; // Adjust this import as needed for your store structure
@@ -20,13 +19,15 @@ const UserCargoManagement: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [countryFilter, setCountryFilter] = useState<string>('');
+    const [cityFilter, setCityFilter] = useState<string>('');
 
     // Modal state
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
     const [currentCargo, setCurrentCargo] = useState<Cargo | null>(null);
 
     // Debug state
-    const [debug, setDebug] = useState<string>('');
+    // const [debug, setDebug] = useState<string>('');
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -160,7 +161,7 @@ const UserCargoManagement: React.FC = () => {
     useEffect(() => {
         if (auth?.user?.uid) {
             dispatch(fetchMyCargos(auth.user.uid) as any);
-            setDebug(`Fetching cargos for user ID: ${auth.user.uid}`);
+            // setDebug(`Fetching cargos for user ID: ${auth.user.uid}`);
         }
     }, [dispatch, auth?.user?.uid]);
 
@@ -173,6 +174,23 @@ const UserCargoManagement: React.FC = () => {
             result = result.filter(cargo =>
                 cargo.description?.toLowerCase().includes(lowercasedSearch) ||
                 cargo.cargoType?.toLowerCase().includes(lowercasedSearch)
+            );
+        }
+
+        // Filter by country
+        if (countryFilter) {
+            result = result.filter(cargo => 
+                cargo.pickCountry?.includes(countryFilter) || 
+                cargo.dropCountry?.includes(countryFilter)
+            );
+        }
+
+        // Filter by city
+        if (cityFilter) {
+            const lowercasedCityFilter = cityFilter.toLowerCase();
+            result = result.filter(cargo => 
+                cargo.pickCity?.toLowerCase().includes(lowercasedCityFilter) || 
+                cargo.dropCity?.toLowerCase().includes(lowercasedCityFilter)
             );
         }
 
@@ -198,7 +216,7 @@ const UserCargoManagement: React.FC = () => {
         });
 
         return result;
-    }, [cargos, searchTerm, sortBy, sortOrder]);
+    }, [cargos, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
 
     // Update cargo handler
     const handleUpdateCargo = (cargo: Cargo) => {
@@ -263,33 +281,37 @@ const UserCargoManagement: React.FC = () => {
         minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
-        padding: '5%',
+        padding: '3%',
         backgroundColor: '#f5f7fa',
         fontFamily: 'Arial, sans-serif'
     };
 
     const containerStyle = {
         width: '100%',
-        maxWidth: '1000px',
+        maxWidth: '1200px',
         backgroundColor: '#fff',
         borderRadius: '20px',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-        padding: '40px'
+        overflow: 'hidden'
     };
 
     const headerStyle = {
-        fontSize: '28px',
-        fontWeight: 'bold' as const,
-        color: '#333',
-        marginBottom: '10px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '40px',
+        color: 'white',
         textAlign: 'center' as const
     };
 
-    const subHeaderStyle = {
+    const titleStyle = {
+        fontSize: '32px',
+        fontWeight: 'bold' as const,
+        marginBottom: '10px'
+    };
+
+    const subtitleStyle = {
         fontSize: '16px',
-        color: '#666',
-        marginBottom: '30px',
-        textAlign: 'center' as const
+        opacity: 0.9,
+        marginBottom: '20px'
     };
 
     const userInfoStyle = {
@@ -425,170 +447,186 @@ const UserCargoManagement: React.FC = () => {
         marginLeft: '5px'
     };
 
-    console.log("Mevcut kargo verileri:", cargos);
-
     return (
         <div style={pageStyle}>
             <div style={containerStyle}>
-                <h1 style={headerStyle}>Kargo Yönetimim</h1>
-                <p style={subHeaderStyle}>Kargolarınızı görüntüleyin, güncelleyin ve yönetin</p>
-
-                {/* User info section */}
-                <div style={userInfoStyle}>
-                    <div>
-                        <span style={userNameStyle}>
-                            Hoş geldiniz, {auth?.user?.displayName || auth?.user?.email || 'Kullanıcı'}
-                        </span>
-                        <p style={{ margin: '5px 0 0', color: '#666' }}>{auth?.user?.email}</p>
-                        {auth?.user?.uid && (
-                            <p style={{ margin: '5px 0 0', color: '#666' }}>User ID: {auth.user.uid}</p>
-                        )}
-                    </div>
-                    <div>
-                        <span style={{
-                            backgroundColor: '#e3f2fd',
-                            color: '#0d47a1',
-                            padding: '8px 12px',
-                            borderRadius: '15px',
-                            fontWeight: 'bold'
-                        }}>
-                            Kullanıcı
-                        </span>
-                    </div>
+                {/* Header with gradient background */}
+                <div style={headerStyle}>
+                    <h1 style={titleStyle}>Kargo Yönetimim</h1>
+                    <p style={subtitleStyle}>Kargolarınızı görüntüleyin, güncelleyin ve yönetin</p>
                 </div>
 
-                {/* Debug info */}
-                {debug && (
-                    <div style={{
-                        padding: '10px',
-                        marginBottom: '15px',
-                        backgroundColor: '#e8f4fd',
-                        borderRadius: '5px',
-                        fontSize: '12px',
-                        color: '#444'
-                    }}>
-                        {debug}
+                <div style={{ padding: '40px' }}>
+                    {/* User info section */}
+                    <div style={userInfoStyle}>
+                        <div>
+                            <span style={userNameStyle}>
+                                Hoş geldiniz, {auth?.user?.displayName || 'Fatih'}
+                            </span>
+                            <p style={{ margin: '5px 0 0', color: '#666' }}>{auth?.user?.email}</p>
+                        </div>
+                        <div>
+                            <span style={{
+                                backgroundColor: '#e3f2fd',
+                                color: '#0d47a1',
+                                padding: '8px 12px',
+                                borderRadius: '15px',
+                                fontWeight: 'bold'
+                            }}>
+                                Kullanıcı
+                            </span>
+                        </div>
                     </div>
-                )}
 
-                {/* Search and filter */}
-                <input
-                    type="text"
-                    placeholder="Arama yap... (Açıklama, Kargo Tipi)"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    style={inputStyle}
-                />
+                    {/* Search and filter */}
+                    <input
+                        type="text"
+                        placeholder="Arama yap... (Açıklama, Araç Tipi)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={inputStyle}
+                    />
 
-                <div style={filterContainerStyle}>
-                    <div>
-                        <select
-                            value={`${sortBy}-${sortOrder}`}
-                            onChange={(e) => {
-                                const [newSortBy, newSortOrder] = e.target.value.split('-');
-                                setSortBy(newSortBy);
-                                setSortOrder(newSortOrder as 'asc' | 'desc');
-                            }}
-                            style={selectStyle}
-                            className="select-element"
-                        >
-                            <option value="id-desc">ID (Yeni-Eski)</option>
-                            <option value="id-asc">ID (Eski-Yeni)</option>
-                            <option value="weight-asc">Ağırlık (Artan)</option>
-                            <option value="weight-desc">Ağırlık (Azalan)</option>
-                            <option value="description-asc">Açıklama (A-Z)</option>
-                            <option value="description-desc">Açıklama (Z-A)</option>
-                        </select>
+                    <div style={filterContainerStyle}>
+                        <div>
+                            <select
+                                value={`${sortBy}-${sortOrder}`}
+                                onChange={(e) => {
+                                    const [newSortBy, newSortOrder] = e.target.value.split('-');
+                                    setSortBy(newSortBy);
+                                    setSortOrder(newSortOrder as 'asc' | 'desc');
+                                }}
+                                style={selectStyle}
+                                className="select-element"
+                            >
+                                <option value="id-desc">ID (Yeni-Eski)</option>
+                                <option value="id-asc">ID (Eski-Yeni)</option>
+                                <option value="weight-asc">Ağırlık (Artan)</option>
+                                <option value="weight-desc">Ağırlık (Azalan)</option>
+                                <option value="description-asc">Açıklama (A-Z)</option>
+                                <option value="description-desc">Açıklama (Z-A)</option>
+                            </select>
+                        </div>
+                        
+                        {/* Ülke filtresi */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Ülke filtresi"
+                                value={countryFilter}
+                                onChange={(e) => setCountryFilter(e.target.value)}
+                                style={{...selectStyle, minWidth: '120px'}}
+                            />
+                        </div>
+                        
+                        {/* Şehir filtresi */}
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Şehir filtresi"
+                                value={cityFilter}
+                                onChange={(e) => setCityFilter(e.target.value)}
+                                style={{...selectStyle, minWidth: '120px'}}
+                            />
+                        </div>
                     </div>
-                </div>
 
-                {loading && <div style={loadingStyle}>Kargolar yükleniyor...</div>}
+                    {loading && <div style={loadingStyle}>Kargolar yükleniyor...</div>}
 
-                {error && <div style={errorStyle}>{error}</div>}
+                    {error && <div style={errorStyle}>{error}</div>}
 
-                {!loading && !error && (
-                    <>
-                        {filteredAndSortedCargos.length === 0 ? (
-                            <div style={noDataStyle}>
-                                Uygun kargo bulunamadı. Filtreleri değiştirerek tekrar deneyebilirsiniz.
-                            </div>
-                        ) : (
-                            <div style={{ overflowX: 'auto' as const }}>
-                                <table style={tableStyle}>
-                                    <thead>
-                                    <tr>
-                                        <th
-                                            style={thStyle}
-                                            onClick={() => handleSort('description')}
-                                        >
-                                            Açıklama
-                                            {sortBy === 'description' && (
-                                                <span style={sortIndicatorStyle}>
-                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                                </span>
-                                            )}
-                                        </th>
-                                        <th
-                                            style={thStyle}
-                                            onClick={() => handleSort('weight')}
-                                        >
-                                            Ağırlık (Ton)
-                                            {sortBy === 'weight' && (
-                                                <span style={sortIndicatorStyle}>
-                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                                </span>
-                                            )}
-                                        </th>
-                                        <th
-                                            style={thStyle}
-                                            onClick={() => handleSort('cargoType')}
-                                        >
-                                            Kargo Tipi
-                                            {sortBy === 'cargoType' && (
-                                                <span style={sortIndicatorStyle}>
-                                                    {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                                </span>
-                                            )}
-                                        </th>
-                                        <th style={{...thStyle, textAlign: 'center' as const}}>
-                                            İşlemler
-                                        </th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {filteredAndSortedCargos.map((cargo) => (
-                                        <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
-                                            <td style={tdFirstStyle}>
-                                                {cargo.description && cargo.description.length > 30
-                                                    ? `${cargo.description.substring(0, 30)}...`
-                                                    : cargo.description}
-                                            </td>
-                                            <td style={tdStyle}>{cargo.weight} Ton</td>
-                                            <td style={tdStyle}>{cargo.cargoType}</td>
-                                            <td style={tdLastStyle}>
-                                                <div className="action-buttons">
-                                                    <button
-                                                        onClick={() => handleUpdateCargo(cargo)}
-                                                        style={updateButtonStyle}
-                                                    >
-                                                        Güncelle
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCargo(cargo.id)}
-                                                        style={deleteButtonStyle}
-                                                    >
-                                                        Sil
-                                                    </button>
-                                                </div>
-                                            </td>
+                    {!loading && !error && (
+                        <>
+                            {filteredAndSortedCargos.length === 0 ? (
+                                <div style={noDataStyle}>
+                                    Uygun kargo bulunamadı. Filtreleri değiştirerek tekrar deneyebilirsiniz.
+                                </div>
+                            ) : (
+                                <div style={{ overflowX: 'auto' as const }}>
+                                    <table style={tableStyle}>
+                                        <thead>
+                                        <tr>
+                                            <th
+                                                style={thStyle}
+                                                onClick={() => handleSort('description')}
+                                            >
+                                                Açıklama
+                                                {sortBy === 'description' && (
+                                                    <span style={sortIndicatorStyle}>
+                                                        {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                    </span>
+                                                )}
+                                            </th>
+                                            <th
+                                                style={thStyle}
+                                                onClick={() => handleSort('weight')}
+                                            >
+                                                Ağırlık (Ton)
+                                                {sortBy === 'weight' && (
+                                                    <span style={sortIndicatorStyle}>
+                                                        {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                    </span>
+                                                )}
+                                            </th>
+                                            <th
+                                                style={thStyle}
+                                                onClick={() => handleSort('cargoType')}
+                                            >
+                                                Araç Tipi
+                                                {sortBy === 'cargoType' && (
+                                                    <span style={sortIndicatorStyle}>
+                                                        {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+                                                    </span>
+                                                )}
+                                            </th>
+                                            <th style={thStyle}>
+                                                Kalkış Şehri
+                                            </th>
+                                            <th style={thStyle}>
+                                                Varış Şehri
+                                            </th>
+                                            <th style={{...thStyle, textAlign: 'center' as const}}>
+                                                İşlemler
+                                            </th>
                                         </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </>
-                )}
+                                        </thead>
+                                        <tbody>
+                                        {filteredAndSortedCargos.map((cargo) => (
+                                            <tr key={cargo.id} className="cargo-row" style={{ transition: 'all 0.2s ease' }}>
+                                                <td style={tdFirstStyle}>
+                                                    {cargo.description && cargo.description.length > 30
+                                                        ? `${cargo.description.substring(0, 30)}...`
+                                                        : cargo.description}
+                                                </td>
+                                                <td style={tdStyle}>{cargo.weight} Ton</td>
+                                                <td style={tdStyle}>{cargo.cargoType}</td>
+                                                <td style={tdStyle}>{cargo.pickCity}, {cargo.pickCountry}</td>
+                                                <td style={tdStyle}>{cargo.dropCity}, {cargo.dropCountry}</td>
+                                                <td style={tdLastStyle}>
+                                                    <div className="action-buttons">
+                                                        <button
+                                                            onClick={() => handleUpdateCargo(cargo)}
+                                                            style={updateButtonStyle}
+                                                        >
+                                                            Güncelle
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCargo(cargo.id)}
+                                                            style={deleteButtonStyle}
+                                                        >
+                                                            Sil
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Update Modal */}
@@ -636,7 +674,7 @@ const UserCargoManagement: React.FC = () => {
                             </div>
 
                             <div className="form-group">
-                                <label className="form-label">Kargo Tipi</label>
+                                <label className="form-label">Araç Tipi</label>
                                 <input
                                     type="text"
                                     name="cargoType"
@@ -646,8 +684,6 @@ const UserCargoManagement: React.FC = () => {
                                     required
                                 />
                             </div>
-
-
 
                             <div className="btn-container">
                                 <button
