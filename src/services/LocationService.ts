@@ -71,7 +71,7 @@ export const useLocation = (): LocationState => {
     const getCityFromCoordinates = async (lat: number, lng: number) => {
         try {
             // API anahtarını kontrol et
-            const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+            const apiKey = import.meta.env.VITE_GOOGLE_GEOCODING_API_KEY;
             console.log('API anahtarı var mı:', !!apiKey);
 
             if (!apiKey) {
