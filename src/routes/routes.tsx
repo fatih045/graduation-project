@@ -20,6 +20,7 @@ import ReceivedVehicleOffersPage from "../pages/ReceivedVehicleOffersPage.tsx";
 import SentVehicleOffersPage from "../pages/SentVehicleOffersPage.tsx";
 import ReceivedCargoOffersPage from "../pages/ReceivedCargoOffersPage.tsx";
 import SentCargoOffersPage from "../pages/SentCargoOffersPage.tsx";
+import ProfilePage from "../pages/ProfilePage.tsx";
 
 
 
@@ -41,6 +42,7 @@ const AppRoutes = () => {
             <Route path="/createCargo" element={<CreateCargo/>} />
             <Route path="/cargoList" element={<CargoList/>} />
             <Route path="/mycargo" element={<MyCargoList/>} />
+            <Route path="/profile" element={<ProfilePage/>} />
 
 
 
