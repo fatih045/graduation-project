@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchVehicleAdsByCarrier,
@@ -25,12 +25,209 @@ const MyVehicleAdsPage: React.FC = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
-        pickUpLocationId: '',
+        country: '',
+        city: '',
         vehicleType: '',
         capacity: ''
     });
     const [isUpdating, setIsUpdating] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+    
+    // Refs for Google Places API
+    const cityInputRef = useRef<HTMLInputElement>(null);
+    const cityAutocompleteRef = useRef<any>(null);
+
+    // Avrupa ülkeleri listesi
+    const EUROPEAN_COUNTRIES = [
+        { value: 'Turkey', label: 'Türkiye' },
+        { value: 'Germany', label: 'Almanya' },
+        { value: 'France', label: 'Fransa' },
+        { value: 'Italy', label: 'İtalya' },
+        { value: 'Spain', label: 'İspanya' },
+        { value: 'United Kingdom', label: 'Birleşik Krallık' },
+        { value: 'Netherlands', label: 'Hollanda' },
+        { value: 'Belgium', label: 'Belçika' },
+        { value: 'Austria', label: 'Avusturya' },
+        { value: 'Switzerland', label: 'İsviçre' },
+        { value: 'Poland', label: 'Polonya' },
+        { value: 'Sweden', label: 'İsveç' },
+        { value: 'Norway', label: 'Norveç' },
+        { value: 'Denmark', label: 'Danimarka' },
+        { value: 'Finland', label: 'Finlandiya' },
+        { value: 'Portugal', label: 'Portekiz' },
+        { value: 'Greece', label: 'Yunanistan' },
+        { value: 'Czech Republic', label: 'Çek Cumhuriyeti' },
+        { value: 'Hungary', label: 'Macaristan' },
+        { value: 'Ireland', label: 'İrlanda' },
+        { value: 'Romania', label: 'Romanya' },
+        { value: 'Bulgaria', label: 'Bulgaristan' },
+        { value: 'Croatia', label: 'Hırvatistan' },
+        { value: 'Slovakia', label: 'Slovakya' },
+        { value: 'Slovenia', label: 'Slovenya' },
+        { value: 'Lithuania', label: 'Litvanya' },
+        { value: 'Latvia', label: 'Letonya' },
+        { value: 'Estonia', label: 'Estonya' },
+        { value: 'Cyprus', label: 'Kıbrıs' },
+        { value: 'Luxembourg', label: 'Lüksemburg' },
+        { value: 'Malta', label: 'Malta' },
+        { value: 'Iceland', label: 'İzlanda' },
+        { value: 'Serbia', label: 'Sırbistan' },
+        { value: 'Bosnia and Herzegovina', label: 'Bosna Hersek' },
+        { value: 'Albania', label: 'Arnavutluk' },
+        { value: 'North Macedonia', label: 'Kuzey Makedonya' },
+        { value: 'Montenegro', label: 'Karadağ' },
+        { value: 'Moldova', label: 'Moldova' },
+        { value: 'Ukraine', label: 'Ukrayna' },
+        { value: 'Belarus', label: 'Belarus' }
+    ];
+
+    // Google Places API'yi yükle
+    useEffect(() => {
+        const loadGooglePlaces = () => {
+            if (window.google && window.google.maps && window.google.maps.places) {
+                setIsGoogleLoaded(true);
+                return;
+            }
+
+            // Google Places API script'ini yükle
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${import.meta.env.VITE_GOOGLE_PLACES_API_KEY}&libraries=places`;
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                setIsGoogleLoaded(true);
+            };
+            script.onerror = () => {
+                console.error('Google Places API yüklenemedi');
+                setIsGoogleLoaded(false);
+            };
+
+            document.head.appendChild(script);
+        };
+
+        loadGooglePlaces();
+
+        return () => {
+            const existingScript = document.querySelector(`script[src*="maps.googleapis.com"]`);
+            if (existingScript && existingScript.parentNode) {
+                existingScript.parentNode.removeChild(existingScript);
+            }
+        };
+    }, []);
+
+    // Modal açıldığında autocomplete'i initialize et
+    useEffect(() => {
+        if (isUpdateModalOpen && isGoogleLoaded && cityInputRef.current) {
+            initializeAutocomplete();
+        }
+    }, [isUpdateModalOpen, isGoogleLoaded]);
+
+    // Autocomplete'i initialize et
+    const initializeAutocomplete = () => {
+        if (!window.google || !window.google.maps || !window.google.maps.places || !cityInputRef.current) {
+            return;
+        }
+
+        try {
+            // City autocomplete
+            const cityOptions: google.maps.places.AutocompleteOptions = {
+                types: ['(cities)'],
+                fields: ['name', 'place_id', 'geometry'],
+            };
+
+            if (formData.country) {
+                cityOptions.componentRestrictions = { country: getCountryCode(formData.country) };
+            }
+
+            cityAutocompleteRef.current = new window.google.maps.places.Autocomplete(
+                cityInputRef.current,
+                cityOptions
+            );
+
+            cityAutocompleteRef.current.addListener('place_changed', () => {
+                const place = cityAutocompleteRef.current.getPlace();
+                if (place && place.name) {
+                    setFormData(prev => ({ ...prev, city: place.name }));
+                } else if (place && place.formatted_address) {
+                    const cityName = place.formatted_address.split(',')[0];
+                    setFormData(prev => ({ ...prev, city: cityName }));
+                }
+            });
+        } catch (error) {
+            console.error('Autocomplete initialize edilirken hata:', error);
+        }
+    };
+
+    // Ülke değiştiğinde autocomplete'i güncelle
+    useEffect(() => {
+        if (isGoogleLoaded && cityAutocompleteRef.current && formData.country) {
+            try {
+                cityAutocompleteRef.current.setComponentRestrictions({
+                    country: getCountryCode(formData.country)
+                });
+                if (cityInputRef.current) {
+                    cityInputRef.current.value = '';
+                    setFormData(prev => ({ ...prev, city: '' }));
+                }
+            } catch (error) {
+                console.error('City autocomplete güncellenirken hata:', error);
+            }
+        }
+    }, [formData.country, isGoogleLoaded]);
+
+    // Ülke kodlarını döndür (Google Places API için)
+    const getCountryCode = (country: string): string => {
+        const countryCodes: { [key: string]: string } = {
+            'Turkey': 'tr',
+            'Germany': 'de',
+            'France': 'fr',
+            'Italy': 'it',
+            'Spain': 'es',
+            'United Kingdom': 'gb',
+            'Netherlands': 'nl',
+            'Belgium': 'be',
+            'Austria': 'at',
+            'Switzerland': 'ch',
+            'Poland': 'pl',
+            'Czech Republic': 'cz',
+            'Hungary': 'hu',
+            'Romania': 'ro',
+            'Bulgaria': 'bg',
+            'Croatia': 'hr',
+            'Serbia': 'rs',
+            'Bosnia and Herzegovina': 'ba',
+            'Slovenia': 'si',
+            'Slovakia': 'sk',
+            'Portugal': 'pt',
+            'Greece': 'gr',
+            'Albania': 'al',
+            'Montenegro': 'me',
+            'North Macedonia': 'mk',
+            'Moldova': 'md',
+            'Ukraine': 'ua',
+            'Belarus': 'by',
+            'Lithuania': 'lt',
+            'Latvia': 'lv',
+            'Estonia': 'ee',
+            'Finland': 'fi',
+            'Sweden': 'se',
+            'Norway': 'no',
+            'Denmark': 'dk',
+            'Iceland': 'is',
+            'Ireland': 'ie',
+            'Cyprus': 'cy',
+            'Malta': 'mt',
+            'Luxembourg': 'lu',
+            'Liechtenstein': 'li',
+            'Monaco': 'mc',
+            'Andorra': 'ad',
+            'San Marino': 'sm',
+            'Vatican City': 'va',
+            'Kosovo': 'xk'
+        };
+
+        return countryCodes[country] || 'tr';
+    };
 
     // Araç türü seçenekleri
     const vehicleTypeOptions = [
@@ -68,7 +265,8 @@ const MyVehicleAdsPage: React.FC = () => {
         setFormData({
             title: vehicle.title,
             description: vehicle.description,
-            pickUpLocationId: vehicle.city,
+            country: vehicle.country,
+            city: vehicle.city,
             vehicleType: vehicle.vehicleType,
             capacity: vehicle.capacity.toString()
         });
@@ -77,7 +275,6 @@ const MyVehicleAdsPage: React.FC = () => {
 
     const handleDeleteClick = (vehicle: VehicleAd) => {
         if (window.confirm('Bu araç ilanını silmek istediğinize emin misiniz?')) {
-            setIsDeleting(true);
             dispatch(deleteVehicleAd(vehicle.id))
                 .unwrap()
                 .then(() => {
@@ -86,9 +283,6 @@ const MyVehicleAdsPage: React.FC = () => {
                 .catch((error) => {
                     console.error('Araç ilanı silinirken hata oluştu:', error);
                     alert('Araç ilanı silinirken bir hata oluştu!');
-                })
-                .finally(() => {
-                    setIsDeleting(false);
                 });
         }
     };
@@ -100,22 +294,20 @@ const MyVehicleAdsPage: React.FC = () => {
         setIsUpdating(true);
 
         const updatedData = {
+            id: selectedVehicle.id,
             title: formData.title,
             description: formData.description,
-            pickUpLocationId: parseInt(formData.pickUpLocationId),
+            country: formData.country,
+            city: formData.city,
             vehicleType: formData.vehicleType,
-            capacity: parseInt(formData.capacity)
+            capacity: Number(formData.capacity)
         };
 
-        dispatch(updateVehicleAd({
-            id: selectedVehicle.id,
-            updatedData
-        }))
+        dispatch(updateVehicleAd({ id: selectedVehicle.id, updatedData }))
             .unwrap()
             .then(() => {
-                setIsUpdateModalOpen(false);
-                setSelectedVehicle(null);
                 alert('Araç ilanı başarıyla güncellendi!');
+                setIsUpdateModalOpen(false);
             })
             .catch((error) => {
                 console.error('Araç ilanı güncellenirken hata oluştu:', error);
@@ -188,6 +380,26 @@ const MyVehicleAdsPage: React.FC = () => {
 
         return result;
     }, [vehicleAds, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
+
+    // Format date for Turkish time (UTC+3)
+    const formatDateToTurkish = (dateString: string) => {
+        if (!dateString) return '';
+        
+        // Parse the date string
+        const date = new Date(dateString);
+        
+        // Adjust for Turkish time (UTC+3)
+        const turkishDate = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+        
+        // Format the date
+        return turkishDate.toLocaleString('tr-TR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     // Component styles
     const pageStyle = {
@@ -407,7 +619,7 @@ const MyVehicleAdsPage: React.FC = () => {
                     <div style={userInfoStyle}>
                         <div>
                             <span style={userNameStyle}>
-                                Hoş geldiniz, {user?.displayName || 'Fatih'}
+                                Hoş geldiniz
                             </span>
                             <p style={{ margin: '5px 0 0', color: '#666' }}>{user?.email}</p>
                         </div>
@@ -533,6 +745,9 @@ const MyVehicleAdsPage: React.FC = () => {
                                     <th style={thStyle}>
                                         Konum
                                     </th>
+                                    <th style={{ ...thStyle, color: '#4a6cf7' }}>
+                                        Planlanan Tarih
+                                    </th>
                                     <th style={{ ...thStyle, textAlign: 'center' as const }}>
                                         İşlemler
                                     </th>
@@ -554,6 +769,9 @@ const MyVehicleAdsPage: React.FC = () => {
                                         <td style={tdStyle}>{(vehicle.capacity / 1000).toFixed(1)} Ton</td>
                                         <td style={tdStyle}>{vehicle.vehicleType}</td>
                                         <td style={tdStyle}>{vehicle.city}, {vehicle.country}</td>
+                                        <td style={{...tdStyle, color: '#4a6cf7', fontWeight: 'bold'}}>
+                                            {vehicle.adDate ? formatDateToTurkish(vehicle.adDate) : '-'}
+                                        </td>
                                         <td style={tdLastStyle}>
                                             <div className="action-buttons">
                                                 <button
@@ -754,7 +972,39 @@ const MyVehicleAdsPage: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Lokasyon ID */}
+                            {/* Ülke */}
+                            <div className="form-group">
+                                <label style={{
+                                    display: 'block',
+                                    fontSize: '16px',
+                                    fontWeight: '500',
+                                    marginBottom: '8px'
+                                }}>
+                                    Ülke
+                                </label>
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleChange}
+                                    style={{
+                                        width: '100%',
+                                        padding: '15px',
+                                        fontSize: '16px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '10px',
+                                        backgroundColor: '#f9f9f9',
+                                        outline: 'none'
+                                    }}
+                                    required
+                                >
+                                    <option value="">Ülke Seçin</option>
+                                    {EUROPEAN_COUNTRIES.map(country => (
+                                        <option key={country.value} value={country.value}>{country.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Şehir */}
                             <div className="form-group">
                                 <label style={{
                                     display: 'block',
@@ -766,20 +1016,73 @@ const MyVehicleAdsPage: React.FC = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    name="pickUpLocationId"
-                                    value={formData.pickUpLocationId}
+                                    name="city"
+                                    ref={cityInputRef}
+                                    value={formData.city}
                                     onChange={handleChange}
                                     required
+                                    disabled={!formData.country}
                                     style={{
                                         width: '100%',
                                         padding: '15px',
                                         fontSize: '16px',
                                         border: '1px solid #ddd',
                                         borderRadius: '10px',
-                                        backgroundColor: '#f9f9f9',
+                                        backgroundColor: !formData.country ? '#f0f0f0' : '#f9f9f9',
                                         outline: 'none'
                                     }}
                                 />
+                                {!formData.country && (
+                                    <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                        Şehir girmek için önce ülke seçin
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Planlanan Tarih */}
+                            <div className="form-group" style={{ 
+                                backgroundColor: '#f0f7ff', 
+                                padding: '15px', 
+                                borderRadius: '10px',
+                                marginBottom: '20px'
+                            }}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginBottom: '8px'
+                                }}>
+                                    <label style={{
+                                        fontSize: '16px',
+                                        fontWeight: '500',
+                                        color: '#4a6cf7'
+                                    }}>
+                                        Planlanan Tarih
+                                    </label>
+                                    <span style={{
+                                        fontSize: '12px',
+                                        color: '#666',
+                                        backgroundColor: '#e0e9fa',
+                                        padding: '4px 8px',
+                                        borderRadius: '4px'
+                                    }}>
+                                        Sadece Bilgi Amaçlı
+                                    </span>
+                                </div>
+                                <div style={{
+                                    padding: '10px',
+                                    backgroundColor: '#fff',
+                                    borderRadius: '8px',
+                                    border: '1px solid #ddd',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    color: '#333'
+                                }}>
+                                    {selectedVehicle?.adDate ? formatDateToTurkish(selectedVehicle.adDate) : 'Tarih bilgisi yok'}
+                                </div>
+                                <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                    İlan tarihi güncellenememektedir. Yeni bir ilan oluşturmanız gerekir.
+                                </p>
                             </div>
 
                             {/* Butonlar */}

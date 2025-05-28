@@ -218,6 +218,27 @@ const UserCargoManagement: React.FC = () => {
         return result;
     }, [cargos, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
 
+    // Format date to Turkish format (DD.MM.YYYY HH:MM) with 3 hours subtracted
+    const formatDateToTurkish = (dateString: string) => {
+        if (!dateString) return 'Belirtilmemiş';
+        
+        const date = new Date(dateString);
+        
+        // Adjust for 3 hours time difference (subtract 3 hours)
+        const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+        
+        // Format date as DD.MM.YYYY
+        const day = adjustedDate.getDate().toString().padStart(2, '0');
+        const month = (adjustedDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = adjustedDate.getFullYear();
+        
+        // Format time as HH:MM
+        const hours = adjustedDate.getHours().toString().padStart(2, '0');
+        const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
+        
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    };
+
     // Update cargo handler
     const handleUpdateCargo = (cargo: Cargo) => {
         setCurrentCargo(cargo);
@@ -461,7 +482,8 @@ const UserCargoManagement: React.FC = () => {
                     <div style={userInfoStyle}>
                         <div>
                             <span style={userNameStyle}>
-                                Hoş geldiniz, {auth?.user?.displayName || 'Fatih'}
+                                Hoş geldiniz
+                                {/*<span style={{ color: '#4a6cf7' }}> {auth?.user?.firstName}</span>*/}
                             </span>
                             <p style={{ margin: '5px 0 0', color: '#666' }}>{auth?.user?.email}</p>
                         </div>
@@ -585,6 +607,9 @@ const UserCargoManagement: React.FC = () => {
                                             <th style={thStyle}>
                                                 Varış Şehri
                                             </th>
+                                            <th style={thStyle}>
+                                                Planlanan Tarih
+                                            </th>
                                             <th style={{...thStyle, textAlign: 'center' as const}}>
                                                 İşlemler
                                             </th>
@@ -602,17 +627,26 @@ const UserCargoManagement: React.FC = () => {
                                                 <td style={tdStyle}>{cargo.cargoType}</td>
                                                 <td style={tdStyle}>{cargo.pickCity}, {cargo.pickCountry}</td>
                                                 <td style={tdStyle}>{cargo.dropCity}, {cargo.dropCountry}</td>
-                                                <td style={tdLastStyle}>
+                                                <td style={{...tdStyle, color: '#4a6cf7', fontWeight: 'bold'}}>
+                                                    {cargo.adDate ? formatDateToTurkish(cargo.adDate) : 'Belirtilmemiş'}
+                                                </td>
+                                                <td style={{...tdLastStyle, textAlign: 'center' as const}}>
                                                     <div className="action-buttons">
                                                         <button
-                                                            onClick={() => handleUpdateCargo(cargo)}
                                                             style={updateButtonStyle}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleUpdateCargo(cargo);
+                                                            }}
                                                         >
-                                                            Güncelle
+                                                            Düzenle
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDeleteCargo(cargo.id)}
                                                             style={deleteButtonStyle}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteCargo(cargo.id);
+                                                            }}
                                                         >
                                                             Sil
                                                         </button>
@@ -634,7 +668,7 @@ const UserCargoManagement: React.FC = () => {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h2 style={{ margin: 0, fontSize: '24px' }}>Kargo Güncelle</h2>
+                            <h3 style={{ margin: 0 }}>Kargo Düzenle</h3>
                             <button
                                 className="close-button"
                                 onClick={() => {
@@ -645,43 +679,55 @@ const UserCargoManagement: React.FC = () => {
                                 &times;
                             </button>
                         </div>
-
                         <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label className="form-label">Başlık</label>
+                                <input
+                                    type="text"
+                                    name="title"
+                                    value={currentCargo.title || ''}
+                                    onChange={handleFormChange}
+                                    className="form-control"
+                                />
+                            </div>
                             <div className="form-group">
                                 <label className="form-label">Açıklama</label>
                                 <textarea
                                     name="description"
-                                    className="form-control"
                                     value={currentCargo.description || ''}
                                     onChange={handleFormChange}
-                                    rows={3}
-                                    required
+                                    className="form-control"
+                                    rows={4}
                                 />
                             </div>
-
                             <div className="form-group">
                                 <label className="form-label">Ağırlık (Ton)</label>
                                 <input
                                     type="number"
-                                    step="0.1"
-                                    min="0.1"
                                     name="weight"
-                                    className="form-control"
                                     value={currentCargo.weight || ''}
                                     onChange={handleFormChange}
-                                    required
+                                    className="form-control"
                                 />
                             </div>
-
                             <div className="form-group">
                                 <label className="form-label">Araç Tipi</label>
                                 <input
                                     type="text"
                                     name="cargoType"
-                                    className="form-control"
                                     value={currentCargo.cargoType || ''}
                                     onChange={handleFormChange}
-                                    required
+                                    className="form-control"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Planlanan Tarih</label>
+                                <input
+                                    type="datetime-local"
+                                    name="adDate"
+                                    value={currentCargo.adDate ? new Date(currentCargo.adDate).toISOString().slice(0, 16) : ''}
+                                    onChange={handleFormChange}
+                                    className="form-control"
                                 />
                             </div>
 

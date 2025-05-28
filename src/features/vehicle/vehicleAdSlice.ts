@@ -12,6 +12,7 @@ export interface VehicleAd {
     capacity: number;
     createdDate: string;
     carrierName: string;
+    adDate: string;
 }
 
 interface VehicleAdState {
@@ -68,7 +69,15 @@ export const updateVehicleAd = createAsyncThunk(
         {
             id,
             updatedData,
-        }: { id: number; updatedData: Omit<VehicleAd, 'id' | 'carrierId'> },
+        }: { id: number; updatedData: { 
+            id: number;
+            title: string; 
+            description: string; 
+            country: string; 
+            city: string; 
+            vehicleType: string; 
+            capacity: number; 
+        } },
         thunkAPI
     ) => {
         try {

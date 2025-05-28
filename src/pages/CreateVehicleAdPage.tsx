@@ -88,6 +88,9 @@ interface VehicleFormData {
     city: string;
     vehicleType: string;
     capacity: number;
+    adDate: string;
+    createdDate: string;
+    carrierName: string;
 }
 
 const CreateVehicleAdPage: React.FC = () => {
@@ -102,7 +105,10 @@ const CreateVehicleAdPage: React.FC = () => {
         country: '',
         city: '',
         vehicleType: '',
-        capacity: 0
+        capacity: 0,
+        adDate: new Date().toISOString().slice(0, 16),
+        createdDate: '',
+        carrierName: ''
     });
 
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
@@ -158,7 +164,7 @@ const CreateVehicleAdPage: React.FC = () => {
         try {
             // City autocomplete
             if (cityInputRef.current && !cityAutocompleteRef.current) {
-                const cityOptions = {
+                const cityOptions: google.maps.places.AutocompleteOptions = {
                     types: ['(cities)'],
                     fields: ['name', 'place_id', 'geometry'],
                 };
@@ -294,10 +300,12 @@ const CreateVehicleAdPage: React.FC = () => {
         setError(null);
 
         try {
-            // formData'ya carrierId'yi (userId) ekle
+            // formData'ya carrierId'yi (userId) ekle ve createdDate ve carrierName için boş değerler gönder
             const vehicleAdData = {
                 ...formData,
-                carrierId: userId
+                carrierId: userId,
+                createdDate: '',  // Bu değer backend tarafında oluşturulacak
+                carrierName: ''   // Bu değer backend tarafında oluşturulacak
             };
 
             await dispatch(createVehicleAd(vehicleAdData)).unwrap();
@@ -310,7 +318,10 @@ const CreateVehicleAdPage: React.FC = () => {
                 country: '',
                 city: '',
                 vehicleType: '',
-                capacity: 0
+                capacity: 0,
+                adDate: new Date().toISOString().slice(0, 16),
+                createdDate: '',
+                carrierName: ''
             });
         } catch (error) {
             console.error('Araç ilanı oluşturulurken hata:', error);
@@ -615,6 +626,37 @@ const CreateVehicleAdPage: React.FC = () => {
                                     </p>
                                 )}
                             </div>
+                        </div>
+
+                        {/* Planlanan Tarih */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px',
+                                color: '#4a6cf7'
+                            }}>Planlanan Tarih</label>
+                            <input
+                                type="datetime-local"
+                                name="adDate"
+                                value={formData.adDate}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            />
+                            <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                İlanın aktif olacağı tarihi seçin (Türkiye saati)
+                            </p>
                         </div>
 
                         {/* Submit Button */}

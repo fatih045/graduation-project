@@ -39,7 +39,7 @@
 .register-button {
     width: 100%;
     padding: 14px;
-    background: #d90429;
+    background: #667eea;
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -48,10 +48,10 @@
     cursor: pointer;
     margin-top: 18px;
     transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px rgba(217,4,41,0.08);
+    box-shadow: 0 2px 8px rgba(102,126,234,0.08);
 }
 .register-button:hover {
-    background: #b30022;
+    background: #5a6eea;
 }
 
 @media (max-width: 600px) {
@@ -67,4 +67,17 @@
         font-size: 1rem;
         padding: 12px;
     }
+}
+
+/* Error and Success Messages */
+.error-message {
+    color: #e53e3e;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.success-message {
+    color: #38a169;
+    margin-top: 15px;
+    font-size: 14px;
 }

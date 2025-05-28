@@ -10,6 +10,7 @@ export interface Cargo {
     cargoType: string;
     pickCountry: string;
     createdDate?: string;
+    adDate?: string;
     pickCity: string;
     dropCountry: string;
     dropCity: string;

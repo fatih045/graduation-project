@@ -93,6 +93,7 @@ interface CargoFormData {
     dropCity: string;
     price: number;
     currency: 'TRY' | 'USD' | 'EUR';
+    adDate: string;
 }
 
 const CreateCargoPage: React.FC = () => {
@@ -100,6 +101,9 @@ const CreateCargoPage: React.FC = () => {
 
     // Redux store'dan userId'yi al
     const userId = useAppSelector(state => state.auth.user?.uid || "");
+
+    // Bugünün tarihini YYYY-MM-DD formatında al
+    const today = new Date().toISOString().split('T')[0];
 
     const [formData, setFormData] = useState<CargoFormData>({
         title: '',
@@ -111,7 +115,8 @@ const CreateCargoPage: React.FC = () => {
         dropCountry: '',
         dropCity: '',
         price: 0,
-        currency: 'TRY'
+        currency: 'TRY',
+        adDate: today
     });
 
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
@@ -169,7 +174,7 @@ const CreateCargoPage: React.FC = () => {
         try {
             // Pickup autocomplete
             if (pickupInputRef.current && !pickupAutocompleteRef.current) {
-                const pickupOptions = {
+                const pickupOptions: google.maps.places.AutocompleteOptions = {
                     types: ['(cities)'],
                     fields: ['name', 'place_id', 'geometry'],
                 };
@@ -196,7 +201,7 @@ const CreateCargoPage: React.FC = () => {
 
             // Dropoff autocomplete
             if (dropoffInputRef.current && !dropoffAutocompleteRef.current) {
-                const dropoffOptions = {
+                const dropoffOptions: google.maps.places.AutocompleteOptions = {
                     types: ['(cities)'],
                     fields: ['name', 'place_id', 'geometry'],
                 };
@@ -232,7 +237,7 @@ const CreateCargoPage: React.FC = () => {
             try {
                 pickupAutocompleteRef.current.setComponentRestrictions({
                     country: getCountryCode(formData.pickCountry)
-                });
+                } as google.maps.places.ComponentRestrictions);
                 if (pickupInputRef.current) {
                     pickupInputRef.current.value = '';
                     setFormData(prev => ({ ...prev, pickCity: '' }));
@@ -248,7 +253,7 @@ const CreateCargoPage: React.FC = () => {
             try {
                 dropoffAutocompleteRef.current.setComponentRestrictions({
                     country: getCountryCode(formData.dropCountry)
-                });
+                } as google.maps.places.ComponentRestrictions);
                 if (dropoffInputRef.current) {
                     dropoffInputRef.current.value = '';
                     setFormData(prev => ({ ...prev, dropCity: '' }));
@@ -347,7 +352,7 @@ const CreateCargoPage: React.FC = () => {
         if (!formData.title || !formData.description || !formData.cargoType || 
             !formData.pickCountry || !formData.pickCity || 
             !formData.dropCountry || !formData.dropCity || 
-            !formData.currency) {
+            !formData.currency || !formData.adDate) {
             setError('Lütfen tüm alanları doldurun!');
             return;
         }
@@ -367,10 +372,16 @@ const CreateCargoPage: React.FC = () => {
         setError(null);
 
         try {
-            // formData'ya userId'yi ekle
+            // formData'ya userId'yi ekle ve adDate'i ISO formatına çevir
+            const adDateWithTime = new Date(formData.adDate);
+            adDateWithTime.setHours(new Date().getHours());
+            adDateWithTime.setMinutes(new Date().getMinutes());
+            adDateWithTime.setSeconds(new Date().getSeconds());
+
             const cargoData = {
                 ...formData,
-                userId: userId
+                userId: userId,
+                adDate: adDateWithTime.toISOString()
             };
 
             await dispatch(createCargo(cargoData)).unwrap();
@@ -387,7 +398,8 @@ const CreateCargoPage: React.FC = () => {
                 dropCountry: '',
                 dropCity: '',
                 price: 0,
-                currency: 'TRY'
+                currency: 'TRY',
+                adDate: today
             });
         } catch (error) {
             console.error('Kargo oluşturulurken hata:', error);
@@ -781,6 +793,33 @@ const CreateCargoPage: React.FC = () => {
                                     <option value="EUR">EUR</option>
                                 </select>
                             </div>
+                        </div>
+
+                        {/* İlan Tarihi */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>İlan Tarihi</label>
+                            <input
+                                type="date"
+                                name="adDate"
+                                value={formData.adDate}
+                                onChange={handleInputChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                                required
+                            />
                         </div>
 
                         {/* Google Places API Uyarısı */}

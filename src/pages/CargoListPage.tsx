@@ -155,6 +155,27 @@ const CargoListPage: React.FC = () => {
         }
     };
 
+    // Format date to Turkish format (DD.MM.YYYY HH:MM) with 3 hours subtracted
+    const formatDateToTurkish = (dateString: string) => {
+        if (!dateString) return 'Belirtilmemiş';
+        
+        const date = new Date(dateString);
+        
+        // Adjust for 3 hours time difference (subtract 3 hours)
+        const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+        
+        // Format date as DD.MM.YYYY
+        const day = adjustedDate.getDate().toString().padStart(2, '0');
+        const month = (adjustedDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = adjustedDate.getFullYear();
+        
+        // Format time as HH:MM
+        const hours = adjustedDate.getHours().toString().padStart(2, '0');
+        const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
+        
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    };
+
     // Get unique cargo types for filter
     const cargoTypes = React.useMemo(() => {
         const types = [...new Set(cargos?.map(cargo => cargo.cargoType).filter(Boolean))];
@@ -594,6 +615,30 @@ const CargoListPage: React.FC = () => {
                                             </span>
                                         </div>
 
+                                        {/* Planlanan Tarih */}
+                                        {cargo.adDate && (
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '5px', 
+                                                marginBottom: '8px',
+                                                backgroundColor: '#f0f4ff',
+                                                padding: '5px 8px',
+                                                borderRadius: '5px',
+                                                fontSize: '13px'
+                                            }}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4a6cf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                                </svg>
+                                                <span style={{ color: '#4a6cf7', fontWeight: 'bold' }}>
+                                                    Planlanan Tarih: {formatDateToTurkish(cargo.adDate)}
+                                                </span>
+                                            </div>
+                                        )}
+
                                         {cargo.description && (
                                             <p style={{
                                                 fontSize: '14px',
@@ -753,6 +798,16 @@ const CargoListPage: React.FC = () => {
                                 <div className="detail-section">
                                     <span className="detail-label">Açıklama</span>
                                     <div className="detail-value">{selectedCargo.description}</div>
+                                </div>
+                            )}
+
+                            {/* Planlanan Tarih */}
+                            {selectedCargo.adDate && (
+                                <div className="detail-section">
+                                    <span className="detail-label">Planlanan Tarih</span>
+                                    <div className="detail-value" style={{ color: '#4a6cf7', fontWeight: 'bold' }}>
+                                        {formatDateToTurkish(selectedCargo.adDate)}
+                                    </div>
                                 </div>
                             )}
 

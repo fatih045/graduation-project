@@ -28,6 +28,7 @@ export const createVehicleAd = async (adData: {
     carrierId: string;
     vehicleType: string;
     capacity: number;
+    adDate: string;
 }) => {
     const response = await axiosInstance.post('api/VehicleAd', adData);
     return response.data;
@@ -37,6 +38,7 @@ export const createVehicleAd = async (adData: {
 export const updateVehicleAd = async (
     id: number,
     updatedData: {
+        id: number;
         title: string;
         description: string;
         country: string,

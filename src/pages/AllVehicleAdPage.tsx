@@ -270,6 +270,26 @@ const VehicleAdsList: React.FC = () => {
             });
     };
 
+    // Format date for Turkish time (UTC+3)
+    const formatDateToTurkish = (dateString: string) => {
+        if (!dateString) return '';
+        
+        // Parse the date string
+        const date = new Date(dateString);
+        
+        // Adjust for Turkish time (UTC+3)
+        const turkishDate = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+        
+        // Format the date
+        return turkishDate.toLocaleString('tr-TR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     // Component styles
     const pageStyle = {
         width: '100%',
@@ -591,6 +611,24 @@ const VehicleAdsList: React.FC = () => {
                                                 </div>
                                             </div>
 
+                                            {/* Planlanan Tarih */}
+                                            {vehicle.adDate && (
+                                                <div style={{ 
+                                                    marginBottom: '15px',
+                                                    padding: '8px',
+                                                    backgroundColor: '#f0f7ff',
+                                                    borderRadius: '6px',
+                                                    fontSize: '13px'
+                                                }}>
+                                                    <div style={{ fontWeight: 'bold', color: '#4a6cf7', marginBottom: '3px' }}>
+                                                        Planlanan Tarih
+                                                    </div>
+                                                    <div style={{ color: '#333' }}>
+                                                        {formatDateToTurkish(vehicle.adDate)}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* IDs */}
                                             <div style={{
                                                 display: 'flex',
@@ -604,7 +642,7 @@ const VehicleAdsList: React.FC = () => {
 
                                                 <div style={{ margin: '0 10px', color: '#4a6cf7' }}>|</div>
                                                 <div style={{ textAlign: 'center', flex: 1 }}>
-                                                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>İl</div>
+                                                    <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>Lokasyon </div>
                                                     <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#333' }}>
                                                         {vehicle.city}
                                                     </div>
@@ -690,6 +728,24 @@ const VehicleAdsList: React.FC = () => {
                                     </span>
                                 </div>
                             </div>
+
+                            {/* Planlanan Tarih */}
+                            {selectedVehicle.adDate && (
+                                <div className="detail-section">
+                                    <span className="detail-label" style={{ color: '#4a6cf7' }}>Planlanan Tarih</span>
+                                    <div className="detail-value" style={{ 
+                                        fontSize: '16px', 
+                                        fontWeight: 'bold',
+                                        color: '#333',
+                                        backgroundColor: '#f0f7ff',
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                        display: 'inline-block'
+                                    }}>
+                                        {formatDateToTurkish(selectedVehicle.adDate)}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* IDs */}
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
