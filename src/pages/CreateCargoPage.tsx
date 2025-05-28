@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 // useAppSelector import edildi
 import { createCargo } from '../features/cargo/cargoSlice';
 import { AppDispatch,useAppSelector } from '../store/store';
+import { calculatePrice, PriceCalculationRequest } from '../services/pricePredictionService';
 
 // Google Places API'yi yükle
 declare global {
@@ -122,6 +123,19 @@ const CreateCargoPage: React.FC = () => {
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    
+    // Fiyat tahmini için state
+    const [priceEstimate, setPriceEstimate] = useState<{
+        minPrice: number | null;
+        maxPrice: number | null;
+        loading: boolean;
+        error: string | null;
+    }>({
+        minPrice: null,
+        maxPrice: null,
+        loading: false,
+        error: null
+    });
 
     const pickupInputRef = useRef<HTMLInputElement>(null);
     const dropoffInputRef = useRef<HTMLInputElement>(null);
@@ -337,6 +351,64 @@ const CreateCargoPage: React.FC = () => {
             setFormData(prev => ({ ...prev, dropCity: value }));
         }
     };
+    
+    // Fiyat tahmini hesapla
+    const calculatePriceEstimate = async () => {
+        // Gerekli alanların dolu olup olmadığını kontrol et
+        if (!formData.cargoType || !formData.pickCountry || !formData.pickCity || 
+            !formData.dropCountry || !formData.dropCity || formData.weight <= 0) {
+            return;
+        }
+        
+        setPriceEstimate(prev => ({ ...prev, loading: true, error: null }));
+        
+        try {
+            const requestData: PriceCalculationRequest = {
+                cargoType: formData.cargoType,
+                pickCity: formData.pickCity,
+                pickCountry: formData.pickCountry,
+                deliveryCity: formData.dropCity,
+                deliveryCountry: formData.dropCountry,
+                weight: formData.weight
+            };
+            
+            const response = await calculatePrice(requestData);
+            
+            setPriceEstimate({
+                minPrice: response.price.minPrice,
+                maxPrice: response.price.maxPrice,
+                loading: false,
+                error: null
+            });
+        } catch (error) {
+            console.error('Fiyat tahmini alınırken hata:', error);
+            setPriceEstimate(prev => ({
+                ...prev,
+                loading: false,
+                error: 'Fiyat tahmini alınamadı'
+            }));
+        }
+    };
+    
+    // Gerekli alanlar değiştiğinde fiyat tahmini hesapla
+    useEffect(() => {
+        // Daha önce hesaplanan bir fiyat varsa ve alanlar değiştiyse, fiyat tahminini sıfırla
+        if (priceEstimate.minPrice !== null || priceEstimate.maxPrice !== null) {
+            setPriceEstimate({
+                minPrice: null,
+                maxPrice: null,
+                loading: false,
+                error: null
+            });
+        }
+        
+        // Debounce için timeout oluştur
+        const timeoutId = setTimeout(() => {
+            calculatePriceEstimate();
+        }, 1000); // 1 saniye bekle
+        
+        return () => clearTimeout(timeoutId);
+    }, [formData.cargoType, formData.pickCountry, formData.pickCity, formData.dropCountry, formData.dropCity, formData.weight]);
 
     // Form submit
     const handleSubmit = async (e: React.FormEvent) => {
@@ -763,6 +835,41 @@ const CreateCargoPage: React.FC = () => {
                                     placeholder="0.01"
                                     required
                                 />
+                                
+                                {/* Fiyat tahmini gösterimi */}
+                                {priceEstimate.loading && (
+                                    <div style={{
+                                        marginTop: '10px',
+                                        fontSize: '14px',
+                                        color: '#666'
+                                    }}>
+                                        Fiyat tahmini hesaplanıyor...
+                                    </div>
+                                )}
+                                
+                                {priceEstimate.error && (
+                                    <div style={{
+                                        marginTop: '10px',
+                                        fontSize: '14px',
+                                        color: '#e63946'
+                                    }}>
+                                        {priceEstimate.error}
+                                    </div>
+                                )}
+                                
+                                {!priceEstimate.loading && !priceEstimate.error && priceEstimate.minPrice !== null && priceEstimate.maxPrice !== null && (
+                                    <div style={{
+                                        marginTop: '10px',
+                                        padding: '10px 15px',
+                                        backgroundColor: '#f0f9ff',
+                                        border: '1px solid #bae6fd',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        color: '#0369a1'
+                                    }}>
+                                        <span style={{ fontWeight: 'bold' }}>Önerilen fiyat aralığı:</span> {priceEstimate.minPrice.toFixed(2)} - {priceEstimate.maxPrice.toFixed(2)} USD
+                                    </div>
+                                )}
                             </div>
 
                             <div className="form-group">
