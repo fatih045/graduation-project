@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaTruck, FaBox, FaHandshake, FaChartLine, FaCalculator, FaClock } from 'react-icons/fa';
@@ -7,9 +6,20 @@ import { useNavigate } from 'react-router-dom';
 // Import ScrollReveal if using the npm package
 import ScrollReveal from 'scrollreveal';
 import truckHeroImage from '../assets/truck-hero.jpg';
+import logisticsMap from '../assets/logistics-map.jpg';
+import cargoOwner from '../assets/cargo-owner.png';
+import truckOwner from '../assets/truck-owner.png';
+import safeAgreement from '../assets/safe-agreement.jpg';
+import aiCalculation from '../assets/ai-calculation.png';
+import timeSaving from '../assets/time-saving.jpg';
+import driver1 from '../assets/driver1.jpg';
+import cargoManager from '../assets/cargo-manager.webp';
+import priceAnalysis from '../assets/price-analysis.jpg';
+import routeOptimization from '../assets/route-optimization.jpg';
+import mobileApp from '../assets/mobile-app.jpg';
 
 // JSX içinde kullanımı
-<img src={truckHeroImage} alt="Logistics hero image" className="hero-img" />
+// <img src={truckHeroImage} alt="Logistics hero image" className="hero-img" />
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
 
@@ -76,14 +86,14 @@ const LandingPage: React.FC = () => {
                     Yük sahipleri ve kamyon sahiplerini güvenli, hızlı ve verimli şekilde bir araya getiren platform.
                 </p>
                 <div className="header-image">
-                    <img src="src/assets/truck-hero.jpg" alt="Logistics hero image" className="hero-img" />
+                    <img src={truckHeroImage} alt="Logistics hero image" className="hero-img" />
                 </div>
                 <button className="cta-button" onClick={() => navigate("/register")}>Hemen Kayıt Ol</button>
             </header>
 
             <section className="image-section">
                 <div className="image-container">
-                    <img src="src/assets/logistics-map.jpg" alt="Logistics network on map" />
+                    <img src={logisticsMap} alt="Logistics network on map" />
                 </div>
                 <div className="image-content">
                     <h2>Türkiye'nin Her Yerine Hizmet</h2>
@@ -98,19 +108,19 @@ const LandingPage: React.FC = () => {
                         <FaBox className="step-icon" />
                         <h3>Yük Sahipleri İçin</h3>
                         <p>Yükünüzü sisteme ekleyin ve en uygun taşıyıcıyı bulun.</p>
-                        <img src="src/assets/cargo-owner.png" alt="Cargo owner using application" className="step-image" />
+                        <img src={cargoOwner} alt="Cargo owner using application" className="step-image" />
                     </div>
                     <div className="step">
                         <FaTruck className="step-icon" />
                         <h3>Kamyon Sahipleri İçin</h3>
                         <p>Mevcut yükleri görüntüleyin ve size en uygun olanı seçin.</p>
-                        <img src="src/assets/truck-owner.png" alt="Truck owner finding cargo" className="step-image" />
+                        <img src={truckOwner} alt="Truck owner finding cargo" className="step-image" />
                     </div>
                     <div className="step">
                         <FaHandshake className="step-icon" />
                         <h3>Güvenli Anlaşma</h3>
                         <p>Hızlı, güvenli ve kolay bir taşıma süreci başlatın.</p>
-                        <img src="src/assets/safe-agreement.jpg" alt="Safe agreement process" className="step-image" />
+                        <img src={safeAgreement} alt="Safe agreement process" className="step-image" />
                     </div>
                 </div>
             </section>
@@ -142,7 +152,7 @@ const LandingPage: React.FC = () => {
                             <h3>Akıllı Fiyat Analizi</h3>
                             <p>Piyasa verilerine göre anlık fiyat analizi.</p>
                         </div>
-                        <img src="/images/price-analysis.jpg" alt="Price analysis graph" className="benefit-image" />
+                        <img src={priceAnalysis} alt="Price analysis graph" className="benefit-image" />
                     </div>
                     <div className="benefit-item">
                         <FaCalculator className="step-icon" />
@@ -150,7 +160,7 @@ const LandingPage: React.FC = () => {
                             <h3>Yapay Zeka Desteği</h3>
                             <p>Yapay zeka destekli tahmini fiyat hesaplama.</p>
                         </div>
-                        <img src="src/assets/ai-calculation.png" alt="AI price calculation" className="benefit-image" />
+                        <img src={aiCalculation} alt="AI price calculation" className="benefit-image" />
                     </div>
                     <div className="benefit-item">
                         <FaTruck className="step-icon" />
@@ -158,7 +168,7 @@ const LandingPage: React.FC = () => {
                             <h3>Optimizasyon</h3>
                             <p>Kamyon sahipleri için yük takibi ve rota optimizasyonu.</p>
                         </div>
-                        <img src="/images/route-optimization.jpg" alt="Route optimization" className="benefit-image" />
+                        <img src={routeOptimization} alt="Route optimization" className="benefit-image" />
                     </div>
 
                     <div className="benefit-item">
@@ -167,7 +177,7 @@ const LandingPage: React.FC = () => {
                             <h3>Zaman Tasarrufu</h3>
                             <p>Hızlı eşleşme sistemi ile zaman kazanın.</p>
                         </div>
-                        <img src="src/assets/time-saving.jpg" alt="Time saving" className="benefit-image" />
+                        <img src={timeSaving} alt="Time saving" className="benefit-image" />
                     </div>
                 </div>
             </section>
@@ -178,14 +188,14 @@ const LandingPage: React.FC = () => {
                     <div className="testimonial">
                         <p>"Bu platform sayesinde boş dönüş yapmayı bıraktım ve karlılığım %40 arttı."</p>
                         <div className="testimonial-author">
-                            <img src="src/assets/driver1.jpg" alt="Truck driver" className="author-image" />
+                            <img src={driver1} alt="Truck driver" className="author-image" />
                             <p>Mehmet K. - Kamyon Sahibi</p>
                         </div>
                     </div>
                     <div className="testimonial">
                         <p>"Artık yüklerimiz için saatlerce telefon başında beklemiyoruz. Tek tıkla uygun taşıyıcıyı buluyoruz."</p>
                         <div className="testimonial-author">
-                            <img src="src/assets/cargo-manager.webp" alt="Cargo manager" className="author-image" />
+                            <img src={cargoManager} alt="Cargo manager" className="author-image" />
                             <p>Ayşe T. - Lojistik Müdürü</p>
                         </div>
                     </div>
@@ -194,7 +204,7 @@ const LandingPage: React.FC = () => {
 
             <section className="image-section reverse">
                 <div className="image-container">
-                    <img src="/images/mobile-app.jpg" alt="Mobile application" />
+                    <img src={mobileApp} alt="Mobile application" />
                 </div>
                 <div className="image-content">
                     <h2>Mobil Uygulama ile Her Yerden Erişim</h2>
