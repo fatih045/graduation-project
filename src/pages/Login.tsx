@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../store/store";
 import { login } from "../features/user/authSlice";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { UserLoginDto } from "../models/dtos/UserLoginDto";
+import { useMediaQuery } from "react-responsive";
+import truckOwner from "../assets/truck-owner.png";
 
 const Login = () => {
     const [user, setUser] = useState<UserLoginDto>({ email: "", password: "" });
@@ -12,6 +14,7 @@ const Login = () => {
     const { status, error, user: loggedInUser } = useSelector((state: RootState) => state.auth);
     const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
+    const isMobile = useMediaQuery({ maxWidth: 768 });
 
     useEffect(() => {
         if (loggedInUser) {
@@ -43,31 +46,34 @@ const Login = () => {
             fontFamily: 'Arial, sans-serif'
         }}>
             {/* Sol taraf - Resim Alanı */}
-            <div style={{
-                flex: '1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#f0f4ff',
-                position: 'relative',
-                overflow: 'hidden'
-            }}>
-                {/* Burada resim olacak - Kullanıcı tarafından eklenecek */}
+            {!isMobile && (
                 <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
+                    flex: '1',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    backgroundColor: '#f0f4ff',
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}>
-                    
-                     <img src="src/assets/truck-owner.png" alt="Login" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                    {/* Burada resim olacak - Kullanıcı tarafından eklenecek */}
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
 
+                        <img src={truckOwner} alt="Truck owner finding cargo"
+                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }}  />
+
+                    </div>
                 </div>
-            </div>
+            )}
             
             {/* Sağ taraf - Login Formu */}
             <div style={{

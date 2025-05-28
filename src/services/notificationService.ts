@@ -35,11 +35,12 @@ const startSignalRConnection = (userId: string) => {
                 // localStorage'dan token alınması
                 const token = localStorage.getItem('token') || '';
                 console.log(`SignalR için token kullanılıyor: ${token ? 'Token var' : 'Token yok'}`);
-                return token;
+                // Make sure we're using the token with Bearer prefix if needed
+                return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
             }
         })
         .withAutomaticReconnect()
-        .configureLogging(signalR.LogLevel.Information)
+        .configureLogging(signalR.LogLevel.Debug) // Change to Debug for more detailed logs
         .build();
 
     // Yeni bildirim geldiğinde
@@ -75,6 +76,13 @@ const startSignalRConnection = (userId: string) => {
         })
         .catch(err => {
             console.error('SignalR bağlantısı kurulamadı:', err);
+            // Log more detailed error information
+            if (err.statusCode) {
+                console.error(`Status Code: ${err.statusCode}`);
+            }
+            if (err.message) {
+                console.error(`Error Message: ${err.message}`);
+            }
         });
 
     return connection;

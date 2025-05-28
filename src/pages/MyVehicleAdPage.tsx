@@ -318,15 +318,7 @@ const MyVehicleAdsPage: React.FC = () => {
             });
     };
 
-    // Sorting handler
-    const handleSort = (field: string) => {
-        if (sortBy === field) {
-            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortBy(field);
-            setSortOrder('asc');
-        }
-    };
+
 
     // Filtering and sorting
     const filteredAndSortedVehicles = React.useMemo(() => {
@@ -482,63 +474,98 @@ const MyVehicleAdsPage: React.FC = () => {
         minWidth: '180px'
     };
 
-    const tableStyle = {
-        width: '100%',
-        borderCollapse: 'collapse' as const,
-        marginTop: '10px',
+    // Grid and card styles
+    const gridStyle = {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+        gap: '25px',
+        marginTop: '20px'
+    };
+
+    const cardStyle = {
         backgroundColor: '#fff',
-        borderRadius: '10px',
-        overflow: 'hidden'
+        borderRadius: '15px',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.08)',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer',
+        border: '1px solid #eaeaea'
     };
 
-    const thStyle = {
-        backgroundColor: '#f2f2f2',
-        padding: '15px',
-        textAlign: 'left' as const,
-        fontSize: '14px',
+    const cardHeaderStyle = {
+        padding: '20px',
+        borderBottom: '1px solid #f0f0f0',
+        backgroundColor: '#f9f9f9'
+    };
+
+    const cardBodyStyle = {
+        padding: '20px'
+    };
+
+    const vehicleTypeStyle = {
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '5px 12px',
+        borderRadius: '20px',
+        fontSize: '12px',
         fontWeight: 'bold' as const,
-        color: '#333',
-        cursor: 'pointer' as const,
-        userSelect: 'none' as const,
-        borderBottom: '1px solid #ddd'
+        backgroundColor: '#e0f2fe',
+        color: '#0369a1',
+        marginBottom: '10px'
     };
 
-    const tdStyle = {
-        padding: '15px',
-        borderBottom: '1px solid #eee',
+    const capacityStyle = {
+        fontSize: '18px',
+        fontWeight: 'bold' as const,
+        color: '#4a6cf7',
+        marginBottom: '15px'
+    };
+
+    const locationStyle = {
+        display: 'flex',
+        alignItems: 'center',
         fontSize: '14px',
-        color: '#333'
+        color: '#666',
+        marginBottom: '15px'
     };
 
-    const tdFirstStyle = {
-        ...tdStyle,
-        fontWeight: '500' as const
+    const dateStyle = {
+        fontSize: '14px',
+        color: '#4a6cf7',
+        fontWeight: 'bold' as const,
+        marginBottom: '15px'
     };
 
-    const tdLastStyle = {
-        ...tdStyle,
-        textAlign: 'center' as const
+    const actionButtonsStyle = {
+        display: 'flex',
+        gap: '10px',
+        marginTop: '15px'
     };
 
     const updateButtonStyle = {
         backgroundColor: '#4a6fa5',
         color: 'white',
         border: 'none',
-        borderRadius: '5px',
-        padding: '8px 12px',
-        fontSize: '13px',
+        borderRadius: '8px',
+        padding: '10px 15px',
+        fontSize: '14px',
+        fontWeight: 'bold' as const,
         cursor: 'pointer',
-        marginRight: '10px'
+        flex: '1',
+        transition: 'all 0.2s ease'
     };
 
     const deleteButtonStyle = {
         backgroundColor: '#e63946',
         color: 'white',
         border: 'none',
-        borderRadius: '5px',
-        padding: '8px 12px',
-        fontSize: '13px',
-        cursor: 'pointer'
+        borderRadius: '8px',
+        padding: '10px 15px',
+        fontSize: '14px',
+        fontWeight: 'bold' as const,
+        cursor: 'pointer',
+        flex: '1',
+        transition: 'all 0.2s ease'
     };
 
     const loadingStyle = {
@@ -562,10 +589,6 @@ const MyVehicleAdsPage: React.FC = () => {
         padding: '40px 0',
         color: '#666',
         fontSize: '16px'
-    };
-
-    const sortIndicatorStyle = {
-        marginLeft: '5px'
     };
 
     // Yükleme durumunda spinner göster
@@ -694,104 +717,62 @@ const MyVehicleAdsPage: React.FC = () => {
                             Uygun araç ilanı bulunamadı. Filtreleri değiştirerek tekrar deneyebilirsiniz.
                         </div>
                     ) : (
-                        <div style={{ overflowX: 'auto' as const }}>
-                            <table style={tableStyle}>
-                                <thead>
-                                <tr>
-                                    <th
-                                        style={thStyle}
-                                        onClick={() => handleSort('title')}
-                                    >
-                                        Başlık
-                                        {sortBy === 'title' && (
-                                            <span style={sortIndicatorStyle}>
-                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                            </span>
-                                        )}
-                                    </th>
-                                    <th
-                                        style={thStyle}
-                                        onClick={() => handleSort('description')}
-                                    >
-                                        Açıklama
-                                        {sortBy === 'description' && (
-                                            <span style={sortIndicatorStyle}>
-                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                            </span>
-                                        )}
-                                    </th>
-                                    <th
-                                        style={thStyle}
-                                        onClick={() => handleSort('capacity')}
-                                    >
-                                        Kapasite (Ton)
-                                        {sortBy === 'capacity' && (
-                                            <span style={sortIndicatorStyle}>
-                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                            </span>
-                                        )}
-                                    </th>
-                                    <th
-                                        style={thStyle}
-                                        onClick={() => handleSort('vehicleType')}
-                                    >
-                                        Araç Tipi
-                                        {sortBy === 'vehicleType' && (
-                                            <span style={sortIndicatorStyle}>
-                                                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
-                                            </span>
-                                        )}
-                                    </th>
-                                    <th style={thStyle}>
-                                        Konum
-                                    </th>
-                                    <th style={{ ...thStyle, color: '#4a6cf7' }}>
-                                        Planlanan Tarih
-                                    </th>
-                                    <th style={{ ...thStyle, textAlign: 'center' as const }}>
-                                        İşlemler
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {filteredAndSortedVehicles.map((vehicle) => (
-                                    <tr key={vehicle.id} className="vehicle-row" style={{ transition: 'all 0.2s ease' }}>
-                                        <td style={tdFirstStyle}>
-                                            {vehicle.title && vehicle.title.length > 30
-                                                ? `${vehicle.title.substring(0, 30)}...`
-                                                : vehicle.title}
-                                        </td>
-                                        <td style={tdStyle}>
-                                            {vehicle.description && vehicle.description.length > 30
-                                                ? `${vehicle.description.substring(0, 30)}...`
-                                                : vehicle.description}
-                                        </td>
-                                        <td style={tdStyle}>{(vehicle.capacity / 1000).toFixed(1)} Ton</td>
-                                        <td style={tdStyle}>{vehicle.vehicleType}</td>
-                                        <td style={tdStyle}>{vehicle.city}, {vehicle.country}</td>
-                                        <td style={{...tdStyle, color: '#4a6cf7', fontWeight: 'bold'}}>
+                        <div style={gridStyle}>
+                            {filteredAndSortedVehicles.map((vehicle) => (
+                                <div key={vehicle.id} style={cardStyle} className="vehicle-card">
+                                    <div style={cardHeaderStyle}>
+                                        <div style={vehicleTypeStyle}>
+                                            {vehicle.vehicleType}
+                                        </div>
+                                        <h3 style={{ 
+                                            fontSize: '18px', 
+                                            fontWeight: 'bold', 
+                                            margin: '10px 0',
+                                            color: '#333'
+                                        }}>
+                                            {vehicle.title}
+                                        </h3>
+                                        <p style={{ 
+                                            fontSize: '14px', 
+                                            color: '#666', 
+                                            margin: '0',
+                                            height: '40px',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis'
+                                        }}>
+                                            {vehicle.description}
+                                        </p>
+                                    </div>
+                                    <div style={cardBodyStyle}>
+                                        <div style={capacityStyle}>
+                                            <span style={{ marginRight: '5px' }}>📦</span>
+                                            {(vehicle.capacity / 1000).toFixed(1)} Ton
+                                        </div>
+                                        <div style={locationStyle}>
+                                            <span style={{ marginRight: '5px' }}>📍</span>
+                                            {vehicle.city}, {vehicle.country}
+                                        </div>
+                                        <div style={dateStyle}>
+                                            <span style={{ marginRight: '5px' }}>🗓️</span>
                                             {vehicle.adDate ? formatDateToTurkish(vehicle.adDate) : '-'}
-                                        </td>
-                                        <td style={tdLastStyle}>
-                                            <div className="action-buttons">
-                                                <button
-                                                    onClick={() => handleEdit(vehicle)}
-                                                    style={updateButtonStyle}
-                                                >
-                                                    Güncelle
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteClick(vehicle)}
-                                                    style={deleteButtonStyle}
-                                                >
-                                                    Sil
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                        </div>
+                                        <div style={actionButtonsStyle}>
+                                            <button
+                                                onClick={() => handleEdit(vehicle)}
+                                                style={updateButtonStyle}
+                                            >
+                                                Güncelle
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteClick(vehicle)}
+                                                style={deleteButtonStyle}
+                                            >
+                                                Sil
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
