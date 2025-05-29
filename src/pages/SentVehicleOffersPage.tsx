@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { Truck, Clock, User, X, AlertCircle, Loader, Phone, Mail } from 'lucide-react';
+import { Truck, Clock, User, X, AlertCircle, Loader, Phone, Mail, Filter } from 'lucide-react';
 import { fetchVehicleOffersBySender, updateVehicleOfferStatus } from '../features/vehicleOffer/vehicleOfferSlice';
 import { getUserById } from '../features/user/authSlice';
 import { OfferStatus } from '../services/vehicleOfferService';
@@ -16,6 +16,8 @@ const SentVehicleOffersPage: React.FC = () => {
     const [updateLoading, setUpdateLoading] = useState<{ [key: number]: boolean }>({});
     const [statusMessages, setStatusMessages] = useState<{ [key: number]: { type: 'success' | 'error', message: string } }>({});
     const [userDetails, setUserDetails] = useState<{ [key: string]: any }>({});
+    const [selectedStatus, setSelectedStatus] = useState<number | undefined>(undefined);
+    const [filteredOffers, setFilteredOffers] = useState(offersBySender);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -111,9 +113,12 @@ const SentVehicleOffersPage: React.FC = () => {
     useEffect(() => {
         if (userData && (userData.userId || userData.uid)) {
             const userId = userData.userId || userData.uid;
-            dispatch(fetchVehicleOffersBySender(userId));
+            dispatch(fetchVehicleOffersBySender({ 
+                senderId: userId,
+                status: selectedStatus
+            }));
         }
-    }, [dispatch, userData]);
+    }, [dispatch, userData, selectedStatus]);
 
     // Fetch user details for each receiver - improved implementation
     useEffect(() => {
@@ -140,6 +145,11 @@ const SentVehicleOffersPage: React.FC = () => {
 
         fetchReceiverDetails();
     }, [dispatch, offersBySender]);
+
+    // Filter offers based on adminStatus
+    useEffect(() => {
+        setFilteredOffers(offersBySender || []);
+    }, [offersBySender]);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -195,7 +205,7 @@ const SentVehicleOffersPage: React.FC = () => {
                 // Refresh the list after 1.5 seconds
                 setTimeout(() => {
                     if (userData.userId || userData.uid) {
-                        dispatch(fetchVehicleOffersBySender(userData.userId || userData.uid));
+                        dispatch(fetchVehicleOffersBySender({ senderId: userData.userId || userData.uid }));
                         setStatusMessages(prev => {
                             const newMessages = { ...prev };
                             delete newMessages[offerId];
@@ -216,6 +226,11 @@ const SentVehicleOffersPage: React.FC = () => {
             .finally(() => {
                 setUpdateLoading(prev => ({ ...prev, [offerId]: false }));
             });
+    };
+
+    const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = event.target.value;
+        setSelectedStatus(value === "" ? undefined : parseInt(value));
     };
 
     // Component styles
@@ -354,8 +369,50 @@ const SentVehicleOffersPage: React.FC = () => {
                 <div style={headerStyle}>
                     <h1 style={titleStyle}>Araç Tekliflerim</h1>
                     <p style={subtitleStyle}>Araçlar için yaptığınız teklifleri ve durumlarını burada görebilirsiniz.</p>
-                    <div style={statsStyle}>
-                        Toplam Teklif: {offersBySender?.length || 0}
+                    
+                    {/* Status Filter - Moved to header and styled better */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: '20px',
+                        marginBottom: '10px'
+                    }}>
+                        <div style={statsStyle}>
+                            Toplam Teklif: {offersBySender?.length || 0}
+                        </div>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            background: '#f8f9fa',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                        }}>
+                            <Filter size={18} style={{ color: '#4b5563', marginRight: '8px' }} />
+                            <span style={{ marginRight: '10px', fontSize: '14px', color: '#4b5563', fontWeight: 500 }}>Filtrele:</span>
+                            <select
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: '#1e40af',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    outline: 'none'
+                                }}
+                                value={selectedStatus === undefined ? "" : selectedStatus.toString()}
+                                onChange={handleStatusChange}
+                                className="select-element"
+                            >
+                                <option value="">Tüm Teklifler</option>
+                                <option value="0">Bekleyen</option>
+                                <option value="1">Kabul Edildi</option>
+                                <option value="2">Reddedildi</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -384,7 +441,7 @@ const SentVehicleOffersPage: React.FC = () => {
                         </div>
                     )}
 
-                    {!loading && !error && offersBySender.length === 0 && (
+                    {!loading && !error && filteredOffers.length === 0 && (
                         <div style={noDataStyle}>
                             <Truck size={64} style={{ color: '#ccc', margin: '0 auto 20px' }} />
                             <h3 style={{ fontSize: '20px', marginBottom: '10px', color: '#666' }}>
@@ -396,9 +453,9 @@ const SentVehicleOffersPage: React.FC = () => {
                         </div>
                     )}
 
-                    {!loading && offersBySender.length > 0 && (
+                    {!loading && filteredOffers.length > 0 && (
                         <div>
-                            {offersBySender.map((offer) => (
+                            {filteredOffers.map((offer) => (
                                 <div key={offer.id} className="vehicle-card" style={cardStyle}>
                                     <div style={cardHeaderStyle}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>

@@ -1,8 +1,19 @@
 import axiosInstance from './axios.ts';
 
+// Status constants
+export const VEHICLE_AD_STATUS = {
+    PENDING: 0,
+    ACCEPTED: 1,
+    REJECTED: 2
+};
+
 // Tüm araç ilanlarını getir
-export const fetchAllVehicleAds = async () => {
-    const response = await axiosInstance.get('api/VehicleAd');
+export const fetchAllVehicleAds = async (status?: number) => {
+    let url = 'api/VehicleAd';
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get(url);
     return response.data;
 };
 
@@ -11,12 +22,16 @@ export const getVehicleAdById = async (id: number) => {
     const response = await axiosInstance.get(`api/VehicleAd/${id}`);
     return response.data;
 };
+
 // Taşıyıcı ID'sine göre araç ilanlarını getir
-export const getVehicleAdsByCarrierId = async (carrierId: string) => {
-    const response = await axiosInstance.get(`api/VehicleAd/by-carrier/${carrierId}`);
+export const getVehicleAdsByCarrierId = async (carrierId: string, status?: number) => {
+    let url = `api/VehicleAd/by-carrier/${carrierId}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get(url);
     return response.data;
 };
-
 
 // Yeni araç ilanı oluştur
 export const createVehicleAd = async (adData: {
@@ -43,7 +58,7 @@ export const updateVehicleAd = async (
         description: string;
         country: string,
         city: string,
-        vehicleType: string,
+        vehicleType: string;
         capacity: number;
     }
 ) => {
@@ -57,8 +72,12 @@ export const deleteVehicleAd = async (id: number) => {
     return response.data;
 };
 
-const fetchCargosByPickCitys = async (city: string) => {
-    const response = await axiosInstance.get(`api/VehicleAd/by-city/${city}`);
+const fetchCargosByPickCitys = async (city: string, status?: number) => {
+    let url = `api/VehicleAd/by-city/${city}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get(url);
     return response.data;
 };
 

@@ -1,5 +1,12 @@
 import axiosInstance from './axios.ts';
 
+// Status constants
+export const VEHICLE_OFFER_STATUS = {
+    PENDING: 0,
+    ACCEPTED: 1,
+    REJECTED: 2
+};
+
 export type OfferStatus =
     | 'Pending'
     | 'Accepted'
@@ -24,6 +31,7 @@ export interface VehicleOfferResponse {
     vehicleAdTitle: string;
     message: string;
     status: OfferStatus;
+    adminStatus: string;
     expiryDate: string;
     createdDate: string;
 }
@@ -49,18 +57,22 @@ const updateVehicleOfferStatus = async (offerId: number, status: OfferStatus) =>
 };
 
 // Alıcıya gelen teklifler
-const fetchOffersByReceiver = async (receiverId: string) => {
-    const response = await axiosInstance.get<VehicleOfferResponse[]>(
-        `api/VehicleOffer/receiver/${receiverId}`
-    );
+const fetchOffersByReceiver = async (receiverId: string, status?: number) => {
+    let url = `api/VehicleOffer/receiver/${receiverId}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get<VehicleOfferResponse[]>(url);
     return response.data;
 };
 
 // Gönderici tarafından yapılan teklifler
-const fetchOffersBySender = async (senderId: string) => {
-    const response = await axiosInstance.get<VehicleOfferResponse[]>(
-        `api/VehicleOffer/sender/${senderId}`
-    );
+const fetchOffersBySender = async (senderId: string, status?: number) => {
+    let url = `api/VehicleOffer/sender/${senderId}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get<VehicleOfferResponse[]>(url);
     return response.data;
 };
 
@@ -71,10 +83,12 @@ const getOfferById = async (id: number) => {
 };
 
 // İlan ID'sine göre teklifleri getir
-const fetchOffersByVehicleAdId = async (vehicleAdId: number) => {
-    const response = await axiosInstance.get<VehicleOfferResponse[]>(
-        `api/VehicleOffer/by-vehicle-ad/${vehicleAdId}`
-    );
+const fetchOffersByVehicleAdId = async (vehicleAdId: number, status?: number) => {
+    let url = `api/VehicleOffer/vehicle/${vehicleAdId}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    const response = await axiosInstance.get<VehicleOfferResponse[]>(url);
     return response.data;
 };
 

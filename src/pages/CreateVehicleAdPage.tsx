@@ -121,6 +121,7 @@ const CreateVehicleAdPage: React.FC = () => {
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
 
     const cityInputRef = useRef<HTMLInputElement>(null);
     const cityAutocompleteRef = useRef<any>(null);
@@ -347,7 +348,7 @@ const CreateVehicleAdPage: React.FC = () => {
             };
 
             await dispatch(createVehicleAd(vehicleAdData)).unwrap();
-            alert('Araç ilanı başarıyla oluşturuldu!');
+            setShowSuccessPopup(true);
 
             // Form'u temizle
             setFormData({
@@ -434,6 +435,55 @@ const CreateVehicleAdPage: React.FC = () => {
             backgroundColor: '#f5f7fa',
             fontFamily: 'Arial, sans-serif'
         }}>
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '30px',
+                        borderRadius: '10px',
+                        maxWidth: '500px',
+                        width: '90%',
+                        textAlign: 'center',
+                        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.2)'
+                    }}>
+                        <h2 style={{ color: '#e63946', marginBottom: '15px', fontSize: '24px' }}>
+                            İlanınız Başarıyla Oluşturuldu!
+                        </h2>
+                        <p style={{ marginBottom: '20px', fontSize: '16px', lineHeight: '1.5' }}>
+                            Araç ilanınız moderatör onayına gönderildi. İncelendikten sonra yayınlanacaktır.
+                            İlanınızın durumunu "Araç İlanlarım" sayfasından takip edebilirsiniz.
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessPopup(false)}
+                            style={{
+                                backgroundColor: '#e63946',
+                                color: 'white',
+                                padding: '10px 20px',
+                                borderRadius: '5px',
+                                border: 'none',
+                                fontSize: '16px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            Tamam
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div style={{
                 width: '100%',
                 maxWidth: '1200px',

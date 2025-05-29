@@ -1,5 +1,12 @@
 import axiosInstance from './axios.ts';
 
+// Status constants
+export const CARGO_OFFER_STATUS = {
+    PENDING: 0,
+    ACCEPTED: 1,
+    REJECTED: 2
+};
+
 export type OfferStatus =
     | 'Pending'
     | 'Accepted'
@@ -26,6 +33,7 @@ export interface CargoOfferResponse {
     price: number;
     message: string;
     status: OfferStatus;
+    adminStatus: string; // 0=Pending, 1=Accept, 2=Reject
     expiryDate: string;
     createdDate: string;
 }
@@ -52,14 +60,22 @@ const updateCargoOfferStatus = async (offerId: number, status: OfferStatus) => {
 
 
 // Belirli bir kullanıcıya gelen teklifler
-const fetchOffersByReceiver = async (receiverId: string) => {
-    const response = await axiosInstance.get<CargoOfferResponse[]>(`api/CargoOffer/receiver/${receiverId}`);
+const fetchOffersByReceiver = async (receiverId: string, adminStatus?: number) => {
+    let url = `api/CargoOffer/receiver/${receiverId}`;
+    if (adminStatus !== undefined) {
+        url += `?adminStatus=${adminStatus}`;
+    }
+    const response = await axiosInstance.get<CargoOfferResponse[]>(url);
     return response.data;
 };
 
 // Belirli bir kullanıcı tarafından gönderilen teklifler
-const fetchOffersBySender = async (senderId: string) => {
-    const response = await axiosInstance.get<CargoOfferResponse[]>(`api/CargoOffer/sender/${senderId}`);
+const fetchOffersBySender = async (senderId: string, adminStatus?: number) => {
+    let url = `api/CargoOffer/sender/${senderId}`;
+    if (adminStatus !== undefined) {
+        url += `?adminStatus=${adminStatus}`;
+    }
+    const response = await axiosInstance.get<CargoOfferResponse[]>(url);
     return response.data;
 };
 
@@ -68,10 +84,12 @@ const getOfferById = async (id: number) => {
     const response = await axiosInstance.get<CargoOfferResponse>(`api/CargoOffer/${id}`);
     return response.data;
 };
-const fetchOffersByCargoAdId = async (cargoAdId: number) => {
-    const response = await axiosInstance.get<CargoOfferResponse[]>(
-        `api/CargoOffer/by-cargo-ad/${cargoAdId}`
-    );
+const fetchOffersByCargoAdId = async (cargoAdId: number, adminStatus?: number) => {
+    let url = `api/CargoOffer/by-cargo-ad/${cargoAdId}`;
+    if (adminStatus !== undefined) {
+        url += `?adminStatus=${adminStatus}`;
+    }
+    const response = await axiosInstance.get<CargoOfferResponse[]>(url);
     return response.data;
 };
 

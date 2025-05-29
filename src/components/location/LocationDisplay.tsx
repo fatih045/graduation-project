@@ -21,7 +21,7 @@ const LocationDisplay: React.FC = () => {
   // Şehir değiştiğinde ilanları getir
   useEffect(() => {
     if (city) {
-      dispatch(fetchVehicleAdsByCity(city));
+      dispatch(fetchVehicleAdsByCity({ city }));
       dispatch(fetchCargosByPickCity(city));
     }
   }, [city, dispatch]);

@@ -1,5 +1,12 @@
 import axiosInstance from './axios.ts';
 
+// Status constants
+export const CARGO_STATUS = {
+    PENDING: 0,
+    ACCEPTED: 1,
+    REJECTED: 2
+};
+
 export interface Cargo {
     id: number;
     userId: string;
@@ -17,15 +24,22 @@ export interface Cargo {
     price: number;
     currency: 'TRY' | 'USD' | 'EUR';
     isExpired?: boolean;
+    status?: number;
 }
 
 const fetchAllCargos = async () => {
-    const response = await axiosInstance.get('api/CargoAd');
+    const response = await axiosInstance.get('api/CargoAd?status=1');
     return response.data;
 };
 
-const fetchMyCargos = async (customerId: string) => {
-    const response = await axiosInstance.get(`api/CargoAd/by-customer/${customerId}`);
+const fetchMyCargos = async (customerId: string, status?: number) => {
+    let url = `api/CargoAd/by-customer/${customerId}`;
+    if (status !== undefined) {
+        url += `?status=${status}`;
+    }
+    console.log('Fetching cargos with URL:', url);
+    const response = await axiosInstance.get(url);
+    console.log('API Response for fetchMyCargos:', response.data);
     return response.data;
 };
 

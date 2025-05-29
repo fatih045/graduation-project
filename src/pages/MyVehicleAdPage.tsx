@@ -6,6 +6,7 @@ import {
     deleteVehicleAd,
     VehicleAd
 } from '../features/vehicle/vehicleAdSlice';
+import { VEHICLE_AD_STATUS } from '../services/vehicleAdService';
 import type { RootState, AppDispatch } from '../store/store.ts';
 
 const MyVehicleAdsPage: React.FC = () => {
@@ -19,6 +20,7 @@ const MyVehicleAdsPage: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [countryFilter, setCountryFilter] = useState<string>('');
     const [cityFilter, setCityFilter] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
 
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState<VehicleAd | null>(null);
@@ -80,6 +82,76 @@ const MyVehicleAdsPage: React.FC = () => {
         { value: 'Ukraine', label: 'Ukrayna' },
         { value: 'Belarus', label: 'Belarus' }
     ];
+
+    useEffect(() => {
+        if (user && user.uid) {
+            dispatch(fetchVehicleAdsByCarrier({ carrierId: user.uid, status: statusFilter }));
+        }
+    }, [dispatch, user, statusFilter]);
+
+    // Form verilerini güncelle
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleEdit = (vehicle: VehicleAd) => {
+        setSelectedVehicle(vehicle);
+        setFormData({
+            title: vehicle.title,
+            description: vehicle.description,
+            country: vehicle.country,
+            city: vehicle.city,
+            vehicleType: vehicle.vehicleType,
+            capacity: vehicle.capacity.toString()
+        });
+        setIsUpdateModalOpen(true);
+    };
+
+    const handleDeleteClick = (vehicle: VehicleAd) => {
+        if (window.confirm('Bu araç ilanını silmek istediğinize emin misiniz?')) {
+            dispatch(deleteVehicleAd(vehicle.id))
+                .unwrap()
+                .then(() => {
+                    alert('Araç ilanı başarıyla silindi!');
+                })
+                .catch((error) => {
+                    console.error('Araç ilanı silinirken hata oluştu:', error);
+                    alert('Araç ilanı silinirken bir hata oluştu!');
+                });
+        }
+    };
+
+    const handleUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedVehicle) return;
+
+        setIsUpdating(true);
+
+        const updatedData = {
+            id: selectedVehicle.id,
+            title: formData.title,
+            description: formData.description,
+            country: formData.country,
+            city: formData.city,
+            vehicleType: formData.vehicleType,
+            capacity: Number(formData.capacity)
+        };
+
+        dispatch(updateVehicleAd({ id: selectedVehicle.id, updatedData }))
+            .unwrap()
+            .then(() => {
+                alert('Araç ilanı başarıyla güncellendi!');
+                setIsUpdateModalOpen(false);
+            })
+            .catch((error) => {
+                console.error('Araç ilanı güncellenirken hata oluştu:', error);
+                alert('Araç ilanı güncellenirken bir hata oluştu!');
+            })
+            .finally(() => {
+                setIsUpdating(false);
+            });
+    };
 
     // Google Places API'yi yükle
     useEffect(() => {
@@ -189,41 +261,35 @@ const MyVehicleAdsPage: React.FC = () => {
             'Austria': 'at',
             'Switzerland': 'ch',
             'Poland': 'pl',
-            'Czech Republic': 'cz',
-            'Hungary': 'hu',
-            'Romania': 'ro',
-            'Bulgaria': 'bg',
-            'Croatia': 'hr',
-            'Serbia': 'rs',
-            'Bosnia and Herzegovina': 'ba',
-            'Slovenia': 'si',
-            'Slovakia': 'sk',
-            'Portugal': 'pt',
-            'Greece': 'gr',
-            'Albania': 'al',
-            'Montenegro': 'me',
-            'North Macedonia': 'mk',
-            'Moldova': 'md',
-            'Ukraine': 'ua',
-            'Belarus': 'by',
-            'Lithuania': 'lt',
-            'Latvia': 'lv',
-            'Estonia': 'ee',
-            'Finland': 'fi',
             'Sweden': 'se',
             'Norway': 'no',
             'Denmark': 'dk',
-            'Iceland': 'is',
+            'Finland': 'fi',
+            'Portugal': 'pt',
+            'Greece': 'gr',
+            'Czech Republic': 'cz',
+            'Hungary': 'hu',
             'Ireland': 'ie',
+            'Romania': 'ro',
+            'Bulgaria': 'bg',
+            'Croatia': 'hr',
+            'Slovakia': 'sk',
+            'Slovenia': 'si',
+            'Lithuania': 'lt',
+            'Latvia': 'lv',
+            'Estonia': 'ee',
             'Cyprus': 'cy',
-            'Malta': 'mt',
             'Luxembourg': 'lu',
-            'Liechtenstein': 'li',
-            'Monaco': 'mc',
-            'Andorra': 'ad',
-            'San Marino': 'sm',
-            'Vatican City': 'va',
-            'Kosovo': 'xk'
+            'Malta': 'mt',
+            'Iceland': 'is',
+            'Serbia': 'rs',
+            'Bosnia and Herzegovina': 'ba',
+            'Albania': 'al',
+            'North Macedonia': 'mk',
+            'Montenegro': 'me',
+            'Moldova': 'md',
+            'Ukraine': 'ua',
+            'Belarus': 'by'
         };
 
         return countryCodes[country] || 'tr';
@@ -247,78 +313,6 @@ const MyVehicleAdsPage: React.FC = () => {
         'PanelVan',
         'Others'
     ];
-
-    useEffect(() => {
-        if (user && user.uid) {
-            dispatch(fetchVehicleAdsByCarrier(user.uid));
-        }
-    }, [dispatch, user]);
-
-    // Form verilerini güncelle
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleEdit = (vehicle: VehicleAd) => {
-        setSelectedVehicle(vehicle);
-        setFormData({
-            title: vehicle.title,
-            description: vehicle.description,
-            country: vehicle.country,
-            city: vehicle.city,
-            vehicleType: vehicle.vehicleType,
-            capacity: vehicle.capacity.toString()
-        });
-        setIsUpdateModalOpen(true);
-    };
-
-    const handleDeleteClick = (vehicle: VehicleAd) => {
-        if (window.confirm('Bu araç ilanını silmek istediğinize emin misiniz?')) {
-            dispatch(deleteVehicleAd(vehicle.id))
-                .unwrap()
-                .then(() => {
-                    alert('Araç ilanı başarıyla silindi!');
-                })
-                .catch((error) => {
-                    console.error('Araç ilanı silinirken hata oluştu:', error);
-                    alert('Araç ilanı silinirken bir hata oluştu!');
-                });
-        }
-    };
-
-    const handleUpdate = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedVehicle) return;
-
-        setIsUpdating(true);
-
-        const updatedData = {
-            id: selectedVehicle.id,
-            title: formData.title,
-            description: formData.description,
-            country: formData.country,
-            city: formData.city,
-            vehicleType: formData.vehicleType,
-            capacity: Number(formData.capacity)
-        };
-
-        dispatch(updateVehicleAd({ id: selectedVehicle.id, updatedData }))
-            .unwrap()
-            .then(() => {
-                alert('Araç ilanı başarıyla güncellendi!');
-                setIsUpdateModalOpen(false);
-            })
-            .catch((error) => {
-                console.error('Araç ilanı güncellenirken hata oluştu:', error);
-                alert('Araç ilanı güncellenirken bir hata oluştu!');
-            })
-            .finally(() => {
-                setIsUpdating(false);
-            });
-    };
-
-
 
     // Filtering and sorting
     const filteredAndSortedVehicles = React.useMemo(() => {
@@ -347,6 +341,14 @@ const MyVehicleAdsPage: React.FC = () => {
                 vehicle.city?.toLowerCase().includes(lowercasedCityFilter)
             );
         }
+
+        // We don't need to filter by status here since we're already filtering in the API call
+        // Keeping this commented for reference
+        /*
+        if (statusFilter !== undefined) {
+            result = result.filter(vehicle => vehicle.status === statusFilter);
+        }
+        */
 
         // Sort
         result.sort((a, b) => {
@@ -669,6 +671,24 @@ const MyVehicleAdsPage: React.FC = () => {
                     />
 
                     <div style={filterContainerStyle}>
+                        {/* Status filter */}
+                        <div>
+                            <select
+                                value={statusFilter === undefined ? '' : statusFilter.toString()}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setStatusFilter(value === '' ? undefined : parseInt(value));
+                                }}
+                                style={{...selectStyle, backgroundColor: statusFilter !== undefined ? '#e3f2fd' : '#f9f9f9'}}
+                                className="select-element"
+                            >
+                                <option value="">Tüm Durumlar</option>
+                                <option value={VEHICLE_AD_STATUS.PENDING.toString()}>Beklemede</option>
+                                <option value={VEHICLE_AD_STATUS.ACCEPTED.toString()}>Onaylandı</option>
+                                <option value={VEHICLE_AD_STATUS.REJECTED.toString()}>Reddedildi</option>
+                            </select>
+                        </div>
+
                         <div>
                             <select
                                 value={`${sortBy}-${sortOrder}`}
@@ -1084,7 +1104,9 @@ const MyVehicleAdsPage: React.FC = () => {
                                         padding: '12px 20px',
                                         fontSize: '16px',
                                         fontWeight: '500',
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        flex: '1',
+                                        transition: 'all 0.2s ease'
                                     }}
                                     disabled={isUpdating}
                                 >

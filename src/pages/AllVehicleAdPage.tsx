@@ -5,6 +5,7 @@ import { fetchAllVehicleAds, VehicleAd } from '../features/vehicle/vehicleAdSlic
 import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
 import { createVehicleOffer } from '../features/vehicleOffer/vehicleOfferSlice';
+import { VEHICLE_AD_STATUS } from '../services/vehicleAdService';
 
 const VehicleAdsList: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
@@ -122,9 +123,9 @@ const VehicleAdsList: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        dispatch(fetchAllVehicleAds());
+        // Sadece status değeri 1 (onaylanmış) olan araç ilanlarını getir
+        dispatch(fetchAllVehicleAds(VEHICLE_AD_STATUS.ACCEPTED));
     }, [dispatch]);
-
     const getVehicleIcon = (type: string) => {
         switch (type?.toLowerCase()) {
             case 'truck':

@@ -13,6 +13,7 @@ export interface VehicleAd {
     createdDate: string;
     carrierName: string;
     adDate: string;
+    status?: number;
 }
 
 interface VehicleAdState {
@@ -32,33 +33,33 @@ const initialState: VehicleAdState = {
 // Thunks
 export const fetchAllVehicleAds = createAsyncThunk(
     'vehicleAd/fetchAll',
-    async (_, thunkAPI) => {
+    async (status: number | undefined = undefined, { rejectWithValue }) => {
         try {
-            return await vehicleAdService.fetchAllVehicleAds();
+            return await vehicleAdService.fetchAllVehicleAds(status);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
 
 export const getVehicleAdById = createAsyncThunk(
     'vehicleAd/getById',
-    async (id: number, thunkAPI) => {
+    async (id: number, { rejectWithValue }) => {
         try {
             return await vehicleAdService.getVehicleAdById(id);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
 
 export const createVehicleAd = createAsyncThunk(
     'vehicleAd/create',
-    async (vehicleAdData: Omit<VehicleAd, 'id'>, thunkAPI) => {
+    async (vehicleAdData: Omit<VehicleAd, 'id'>, { rejectWithValue }) => {
         try {
             return await vehicleAdService.createVehicleAd(vehicleAdData);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -78,24 +79,24 @@ export const updateVehicleAd = createAsyncThunk(
             vehicleType: string; 
             capacity: number; 
         } },
-        thunkAPI
+        { rejectWithValue }
     ) => {
         try {
             return await vehicleAdService.updateVehicleAd(id, updatedData);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
 
 export const deleteVehicleAd = createAsyncThunk(
     'vehicleAd/delete',
-    async (id: number, thunkAPI) => {
+    async (id: number, { rejectWithValue }) => {
         try {
             await vehicleAdService.deleteVehicleAd(id);
             return id;
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -103,11 +104,11 @@ export const deleteVehicleAd = createAsyncThunk(
 // Yeni thunk: Fetch by carrierId
 export const fetchVehicleAdsByCarrier = createAsyncThunk(
     'vehicleAd/fetchByCarrier',
-    async (carrierId: string, thunkAPI) => {
+    async (params: { carrierId: string, status?: number }, { rejectWithValue }) => {
         try {
-            return await vehicleAdService.getVehicleAdsByCarrierId(carrierId);
+            return await vehicleAdService.getVehicleAdsByCarrierId(params.carrierId, params.status);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -115,11 +116,11 @@ export const fetchVehicleAdsByCarrier = createAsyncThunk(
 // Yeni thunk: Şehre göre araç ilanlarını getir
 export const fetchVehicleAdsByCity = createAsyncThunk(
     'vehicleAd/fetchByCity',
-    async (city: string, thunkAPI) => {
+    async (params: { city: string, status?: number }, { rejectWithValue }) => {
         try {
-            return await vehicleAdService.fetchCargosByPickCitys(city);
+            return await vehicleAdService.fetchCargosByPickCitys(params.city, params.status);
         } catch (error: any) {
-            return thunkAPI.rejectWithValue(error.message);
+            return rejectWithValue(error.message);
         }
     }
 );

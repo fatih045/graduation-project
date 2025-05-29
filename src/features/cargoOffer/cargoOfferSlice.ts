@@ -3,10 +3,16 @@ import cargoOfferService, {
     CargoOfferRequest,
     CargoOfferResponse,
     OfferStatus,
+    CARGO_OFFER_STATUS
 } from '../../services/cargoOfferService';
+
+// Re-export status constants for convenience
+export { CARGO_OFFER_STATUS };
 
 interface CargoOfferState {
     offers: CargoOfferResponse[];
+    offersByReceiver: CargoOfferResponse[];
+    offersBySender: CargoOfferResponse[];
     selectedOffer: CargoOfferResponse | null;
     loading: boolean;
     error: string | null;
@@ -14,6 +20,8 @@ interface CargoOfferState {
 
 const initialState: CargoOfferState = {
     offers: [],
+    offersByReceiver: [],
+    offersBySender: [],
     selectedOffer: null,
     loading: false,
     error: null,
@@ -24,24 +32,24 @@ const initialState: CargoOfferState = {
 // Tüm teklifler (cargoAdId'ye göre)
 export const fetchOffersByCargoAdId = createAsyncThunk(
     'cargoOffers/fetchByCargoAdId',
-    async (cargoAdId: number) => {
-        return await cargoOfferService.fetchOffersByCargoAdId(cargoAdId);
+    async (params: { cargoAdId: number, adminStatus?: number }) => {
+        return await cargoOfferService.fetchOffersByCargoAdId(params.cargoAdId, params.adminStatus);
     }
 );
 
 // Belirli kullanıcıya gelen teklifler
 export const fetchOffersByReceiver = createAsyncThunk(
     'cargoOffers/fetchByReceiver',
-    async (receiverId: string) => {
-        return await cargoOfferService.fetchOffersByReceiver(receiverId);
+    async (params: { receiverId: string, adminStatus?: number }) => {
+        return await cargoOfferService.fetchOffersByReceiver(params.receiverId, params.adminStatus);
     }
 );
 
 // Belirli kullanıcı tarafından gönderilen teklifler
 export const fetchOffersBySender = createAsyncThunk(
     'cargoOffers/fetchBySender',
-    async (senderId: string) => {
-        return await cargoOfferService.fetchOffersBySender(senderId);
+    async (params: { senderId: string, adminStatus?: number }) => {
+        return await cargoOfferService.fetchOffersBySender(params.senderId, params.adminStatus);
     }
 );
 
@@ -92,11 +100,11 @@ const cargoOfferSlice = createSlice({
                 state.loading = false;
             })
             .addCase(fetchOffersByReceiver.fulfilled, (state, action) => {
-                state.offers = action.payload;
+                state.offersByReceiver = action.payload;
                 state.loading = false;
             })
             .addCase(fetchOffersBySender.fulfilled, (state, action) => {
-                state.offers = action.payload;
+                state.offersBySender = action.payload;
                 state.loading = false;
             })
 

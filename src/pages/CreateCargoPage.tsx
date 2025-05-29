@@ -70,16 +70,16 @@ const EUROPEAN_COUNTRIES = [
 
 // Kargo türleri
 const CARGO_TYPES = [
-    { value: 'TarpaulinTruck', label: 'Tenteli Kamyon' },
-    { value: 'BoxTruck', label: 'Kapalı Kasa Kamyon' },
-    { value: 'RefrigeratedTruck', label: 'Soğutmalı Kamyon' },
-    { value: 'SemiTrailer', label: 'Yarı Römork' },
-    { value: 'LightTruck', label: 'Hafif Kamyon' },
-    { value: 'ContainerCarrier', label: 'Konteyner Taşıyıcı' },
-    { value: 'TankTruck', label: 'Tanker' },
-    { value: 'LowbedTrailer', label: 'Lowbed Römork' },
-    { value: 'DumpTruck', label: 'Damperli Kamyon' },
-    { value: 'PanelVan', label: 'Panel Van' },
+    { value: 'Tarpaulin Truck', label: 'Tenteli Kamyon' },
+    { value: 'Box Truck', label: 'Kapalı Kasa Kamyon' },
+    { value: 'Refrigerated Truck', label: 'Soğutmalı Kamyon' },
+    { value: 'Semi Trailer', label: 'Yarı Römork' },
+    { value: 'Light-Truck', label: 'Hafif Kamyon' },
+    { value: 'Container Carrier', label: 'Konteyner Taşıyıcı' },
+    { value: 'Tank Truck', label: 'Tanker' },
+    { value: 'Lowbed Trailer', label: 'Lowbed Römork' },
+    { value: 'Dump Truck', label: 'Damperli Kamyon' },
+    { value: 'Panel Van', label: 'Panel Van' },
     { value: 'Others', label: 'Diğer' }
 ];
 
@@ -123,6 +123,7 @@ const CreateCargoPage: React.FC = () => {
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showSuccessPopup, setShowSuccessPopup] = useState(false);
     
     // Fiyat tahmini için state
     const [priceEstimate, setPriceEstimate] = useState<{
@@ -410,6 +411,37 @@ const CreateCargoPage: React.FC = () => {
         return () => clearTimeout(timeoutId);
     }, [formData.cargoType, formData.pickCountry, formData.pickCity, formData.dropCountry, formData.dropCity, formData.weight]);
 
+    // Fiyat yuvarlamak için yardımcı fonksiyon
+    // const roundPrice = (price: number): number => {
+    //     if (price >= 100 && price < 1000) {
+    //         // 3 haneli sayılar için en yakın onluğa yuvarlama
+    //         return Math.round(price / 10) * 10;
+    //     } else if (price >= 1000) {
+    //         // 4 haneli ve üzeri sayılar için en yakın yüzlüğe yuvarlama
+    //         return Math.round(price / 100) * 100;
+    //     }
+    //     return price;
+    // };
+
+    const roundPrice = (price: number): number => {
+        if (price >= 100 && price < 1000) {
+            // 3 haneli sayılar için en yakın 50'ye yuvarlama
+            const remainder = price % 100;
+            if (remainder < 25) {
+                return Math.floor(price / 100) * 100;
+            } else if (remainder < 75) {
+                return Math.floor(price / 100) * 100 + 50;
+            } else {
+                return Math.ceil(price / 100) * 100;
+            }
+        } else if (price >= 1000) {
+            // 4 haneli ve üzeri sayılar için en yakın yüzlüğe yuvarlama
+            return Math.round(price / 100) * 100;
+        }
+        return price;
+    };
+
+
     // Form submit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -457,7 +489,8 @@ const CreateCargoPage: React.FC = () => {
             };
 
             await dispatch(createCargo(cargoData)).unwrap();
-            alert('Kargo başarıyla oluşturuldu!');
+            // Show success popup instead of alert
+            setShowSuccessPopup(true);
 
             // Form'u temizle
             setFormData({
@@ -867,7 +900,7 @@ const CreateCargoPage: React.FC = () => {
                                         fontSize: '14px',
                                         color: '#0369a1'
                                     }}>
-                                        <span style={{ fontWeight: 'bold' }}>Önerilen fiyat aralığı:</span> {priceEstimate.minPrice.toFixed(2)} - {priceEstimate.maxPrice.toFixed(2)} USD
+                                        <span style={{ fontWeight: 'bold' }}>Önerilen fiyat aralığı:</span> {priceEstimate.minPrice !== null ? roundPrice(priceEstimate.minPrice).toFixed(2) : '0.00'} - {priceEstimate.maxPrice !== null ? roundPrice(priceEstimate.maxPrice).toFixed(2) : '0.00'} EUR
                                     </div>
                                 )}
                             </div>
@@ -972,6 +1005,67 @@ const CreateCargoPage: React.FC = () => {
                     </form>
                 </div>
             </div>
+
+            {/* Success Popup */}
+            {showSuccessPopup && (
+                <div className="modal-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '30px',
+                        borderRadius: '15px',
+                        maxWidth: '500px',
+                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+                        textAlign: 'center'
+                    }}>
+                        <h2 style={{
+                            color: '#e63946',
+                            fontSize: '24px',
+                            marginBottom: '15px'
+                        }}>İlanınız Gönderildi</h2>
+                        <p style={{
+                            color: '#e63946',
+                            fontSize: '16px',
+                            marginBottom: '20px',
+                            lineHeight: '1.5'
+                        }}>
+                            İlanınız moderatör onayına yönlendirildi. Gerekli koşulları sağlaması halinde yayına alınacaktır.
+                        </p>
+                        <button
+                            onClick={() => setShowSuccessPopup(false)}
+                            style={{
+                                backgroundColor: '#e63946',
+                                color: 'white',
+                                padding: '12px 25px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'background-color 0.3s'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = '#d62838';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = '#e63946';
+                            }}
+                        >
+                            Tamam
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

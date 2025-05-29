@@ -1,9 +1,13 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import vehicleOfferService, {
     VehicleOfferRequest,
     VehicleOfferResponse,
     OfferStatus,
+    VEHICLE_OFFER_STATUS
 } from '../../services/vehicleOfferService';
+
+// Re-export the status constants
+export { VEHICLE_OFFER_STATUS };
 
 interface VehicleOfferState {
     offersBySender: VehicleOfferResponse[];
@@ -52,9 +56,9 @@ export const updateVehicleOfferStatus = createAsyncThunk(
 
 export const fetchVehicleOffersBySender = createAsyncThunk(
     'vehicleOffers/fetchBySender',
-    async (senderId: string, { rejectWithValue }) => {
+    async ({ senderId, status }: { senderId: string; status?: number }, { rejectWithValue }) => {
         try {
-            return await vehicleOfferService.fetchOffersBySender(senderId);
+            return await vehicleOfferService.fetchOffersBySender(senderId, status);
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || 'Gönderici teklifleri alınamadı.');
         }
@@ -63,9 +67,9 @@ export const fetchVehicleOffersBySender = createAsyncThunk(
 
 export const fetchVehicleOffersByReceiver = createAsyncThunk(
     'vehicleOffers/fetchByReceiver',
-    async (receiverId: string, { rejectWithValue }) => {
+    async ({ receiverId, status }: { receiverId: string; status?: number }, { rejectWithValue }) => {
         try {
-            return await vehicleOfferService.fetchOffersByReceiver(receiverId);
+            return await vehicleOfferService.fetchOffersByReceiver(receiverId, status);
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || 'Alıcı teklifleri alınamadı.');
         }
@@ -74,9 +78,9 @@ export const fetchVehicleOffersByReceiver = createAsyncThunk(
 
 export const fetchVehicleOffersByVehicleAdId = createAsyncThunk(
     'vehicleOffers/fetchByVehicleAdId',
-    async (vehicleAdId: number, { rejectWithValue }) => {
+    async ({ vehicleAdId, status }: { vehicleAdId: number; status?: number }, { rejectWithValue }) => {
         try {
-            return await vehicleOfferService.fetchOffersByVehicleAdId(vehicleAdId);
+            return await vehicleOfferService.fetchOffersByVehicleAdId(vehicleAdId, status);
         } catch (err: any) {
             return rejectWithValue(err.response?.data?.message || 'İlan teklifleri alınamadı.');
         }
@@ -104,49 +108,112 @@ const vehicleOfferSlice = createSlice({
             state.currentOffer = undefined;
         },
     },
-    extraReducers: (builder) => {
+    extraReducers(builder) {
         builder
+            // Create Offer
             .addCase(createVehicleOffer.pending, (state) => {
                 state.loading = true;
                 state.error = undefined;
             })
             .addCase(createVehicleOffer.fulfilled, (state, action) => {
                 state.loading = false;
-                state.offersBySender.push(action.payload);
-            })
-            .addCase(createVehicleOffer.rejected, (state, action: PayloadAction<any>) => {
-                state.loading = false;
-                state.error = action.payload;
-            })
-
-            .addCase(updateVehicleOfferStatus.fulfilled, (state, action) => {
-                const updated = action.payload;
-                const allOffers = [
-                    ...state.offersBySender,
-                    ...state.offersByReceiver,
-                    ...state.offersByVehicleAdId,
-                ];
-                for (const offer of allOffers) {
-                    if (offer.id === updated.id) {
-                        offer.status = updated.status;
-                    }
+                state.currentOffer = action.payload;
+                // Add to sender offers if exists
+                if (state.offersBySender.length > 0) {
+                    state.offersBySender.push(action.payload);
                 }
             })
+            .addCase(createVehicleOffer.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
 
+            // Update Offer Status
+            .addCase(updateVehicleOfferStatus.pending, (state) => {
+                state.loading = true;
+                state.error = undefined;
+            })
+            .addCase(updateVehicleOfferStatus.fulfilled, (state, action) => {
+                state.loading = false;
+                state.currentOffer = action.payload;
+                
+                // Update in sender offers
+                const index = state.offersBySender.findIndex(o => o.id === action.payload.id);
+                if (index !== -1) {
+                    state.offersBySender[index] = action.payload;
+                }
+                
+                // Update in receiver offers
+                const recIndex = state.offersByReceiver.findIndex(o => o.id === action.payload.id);
+                if (recIndex !== -1) {
+                    state.offersByReceiver[recIndex] = action.payload;
+                }
+                
+                // Update in vehicle ad offers
+                const adIndex = state.offersByVehicleAdId.findIndex(o => o.id === action.payload.id);
+                if (adIndex !== -1) {
+                    state.offersByVehicleAdId[adIndex] = action.payload;
+                }
+            })
+            .addCase(updateVehicleOfferStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+
+            // Fetch by Sender
+            .addCase(fetchVehicleOffersBySender.pending, (state) => {
+                state.loading = true;
+                state.error = undefined;
+            })
             .addCase(fetchVehicleOffersBySender.fulfilled, (state, action) => {
+                state.loading = false;
                 state.offersBySender = action.payload;
             })
+            .addCase(fetchVehicleOffersBySender.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
 
+            // Fetch by Receiver
+            .addCase(fetchVehicleOffersByReceiver.pending, (state) => {
+                state.loading = true;
+                state.error = undefined;
+            })
             .addCase(fetchVehicleOffersByReceiver.fulfilled, (state, action) => {
+                state.loading = false;
                 state.offersByReceiver = action.payload;
             })
-
-            .addCase(fetchVehicleOffersByVehicleAdId.fulfilled, (state, action) => {
-                state.offersByVehicleAdId = action.payload;
+            .addCase(fetchVehicleOffersByReceiver.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             })
 
+            // Fetch by Vehicle Ad ID
+            .addCase(fetchVehicleOffersByVehicleAdId.pending, (state) => {
+                state.loading = true;
+                state.error = undefined;
+            })
+            .addCase(fetchVehicleOffersByVehicleAdId.fulfilled, (state, action) => {
+                state.loading = false;
+                state.offersByVehicleAdId = action.payload;
+            })
+            .addCase(fetchVehicleOffersByVehicleAdId.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
+            })
+
+            // Get by ID
+            .addCase(getVehicleOfferById.pending, (state) => {
+                state.loading = true;
+                state.error = undefined;
+            })
             .addCase(getVehicleOfferById.fulfilled, (state, action) => {
+                state.loading = false;
                 state.currentOffer = action.payload;
+            })
+            .addCase(getVehicleOfferById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload as string;
             });
     },
 });

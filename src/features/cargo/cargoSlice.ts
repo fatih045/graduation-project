@@ -29,9 +29,9 @@ export const fetchAllCargos = createAsyncThunk(
 
 export const fetchMyCargos = createAsyncThunk(
     'cargo/fetchMy',
-    async (userId: string, thunkAPI) => {
+    async (params: { userId: string, status?: number }, thunkAPI) => {
         try {
-            return await cargoService.fetchMyCargos(userId);
+            return await cargoService.fetchMyCargos(params.userId, params.status);
         } catch (error: any) {
             return thunkAPI.rejectWithValue(error.message);
         }

@@ -109,7 +109,10 @@ const ReceivedCargoOffersPage: React.FC = () => {
     useEffect(() => {
         if (userData && (userData.userId || userData.uid)) {
             const userId = userData.userId || userData.uid;
-            dispatch(fetchOffersByReceiver(userId));
+            dispatch(fetchOffersByReceiver({
+                receiverId: userId,
+                adminStatus: 1 // Sadece kabul edilmiş teklifleri getir (adminStatus=1)
+            }));
         }
     }, [dispatch, userData]);
 

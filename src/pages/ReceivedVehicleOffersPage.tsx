@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Truck, Clock, User, Check, X, AlertCircle, Loader, Phone, Mail } from 'lucide-react';
-import { fetchVehicleOffersByReceiver, updateVehicleOfferStatus } from '../features/vehicleOffer/vehicleOfferSlice';
+import { fetchVehicleOffersByReceiver, updateVehicleOfferStatus, VEHICLE_OFFER_STATUS } from '../features/vehicleOffer/vehicleOfferSlice';
 import { getUserById } from '../features/user/authSlice';
 import { OfferStatus } from '../services/vehicleOfferService';
 import type { RootState, AppDispatch } from '../store/store';
@@ -109,7 +109,10 @@ const ReceivedVehicleOffersPage: React.FC = () => {
     useEffect(() => {
         if (userData && (userData.userId || userData.uid)) {
             const userId = userData.userId || userData.uid;
-            dispatch(fetchVehicleOffersByReceiver(userId));
+            dispatch(fetchVehicleOffersByReceiver({ 
+                receiverId: userId,
+                status: VEHICLE_OFFER_STATUS.ACCEPTED
+            }));
         }
     }, [dispatch, userData]);
 
@@ -193,7 +196,10 @@ const ReceivedVehicleOffersPage: React.FC = () => {
                 // Refresh the list after 1.5 seconds
                 setTimeout(() => {
                     if (userData.userId || userData.uid) {
-                        dispatch(fetchVehicleOffersByReceiver(userData.userId || userData.uid));
+                        dispatch(fetchVehicleOffersByReceiver({ 
+                            receiverId: userData.userId || userData.uid,
+                            status: VEHICLE_OFFER_STATUS.ACCEPTED
+                        }));
                         setStatusMessages(prev => {
                             const newMessages = { ...prev };
                             delete newMessages[offerId];

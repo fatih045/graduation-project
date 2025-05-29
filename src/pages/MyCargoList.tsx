@@ -7,7 +7,7 @@ import {
     deleteCargo,
 
 } from '../features/cargo/cargoSlice';
-import {Cargo} from "../services/cargoService.ts"; // Adjust path as needed
+import {Cargo, CARGO_STATUS} from "../services/cargoService.ts"; // Adjust path as needed
 import useAutocomplete, { EUROPEAN_COUNTRIES } from '../hooks/useAutocomplete';
 
 const UserCargoManagement: React.FC = () => {
@@ -16,12 +16,17 @@ const UserCargoManagement: React.FC = () => {
     const { cargos, loading, error } = useSelector((state: RootState) => state.cargo);
     const auth = useSelector((state: RootState) => state.auth); // Get auth state
 
+    // Debug logs
+    console.log('Redux cargo state:', { cargos, loading, error });
+    console.log('Auth state:', auth?.user);
+
     // Local state
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [countryFilter, setCountryFilter] = useState<string>('');
     const [cityFilter, setCityFilter] = useState<string>('');
+    const [statusFilter, setStatusFilter] = useState<number | undefined>(undefined);
 
     // Modal state
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
@@ -359,17 +364,19 @@ const UserCargoManagement: React.FC = () => {
         }
     };
 
-    // Load cargo data when component mounts
+    // Load cargo data when component mounts or status filter changes
     useEffect(() => {
         if (auth?.user?.uid) {
-            dispatch(fetchMyCargos(auth.user.uid) as any);
-            // setDebug(`Fetching cargos for user ID: ${auth.user.uid}`);
+            console.log('Dispatching fetchMyCargos with params:', { userId: auth.user.uid, status: statusFilter });
+            dispatch(fetchMyCargos({ userId: auth.user.uid, status: statusFilter }) as any);
         }
-    }, [dispatch, auth?.user?.uid]);
+    }, [dispatch, auth?.user?.uid, statusFilter]);
 
     // Filtering and sorting
     const filteredAndSortedCargos = React.useMemo(() => {
         let result = [...cargos];
+        console.log('Initial cargos for filtering:', cargos);
+        console.log('Status filter value:', statusFilter);
 
         if (searchTerm) {
             const lowercasedSearch = searchTerm.toLowerCase();
@@ -396,6 +403,18 @@ const UserCargoManagement: React.FC = () => {
             );
         }
 
+        // We don't need to filter by status here since we're already filtering in the API call
+        // Keeping this commented for reference
+        /*
+        if (statusFilter !== undefined) {
+            console.log('Filtering by status:', statusFilter);
+            result = result.filter(cargo => {
+                console.log('Cargo status:', cargo.status, 'comparing with:', statusFilter);
+                return cargo.status === statusFilter;
+            });
+        }
+        */
+
         // Sort
         result.sort((a, b) => {
             // Handle numeric fields
@@ -418,7 +437,7 @@ const UserCargoManagement: React.FC = () => {
         });
 
         return result;
-    }, [cargos, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
+    }, [cargos, searchTerm, sortBy, sortOrder, countryFilter, cityFilter, statusFilter]);
 
     // Component styles
     const pageStyle = {
@@ -628,6 +647,24 @@ const UserCargoManagement: React.FC = () => {
                     />
 
                     <div style={filterContainerStyle}>
+                        {/* Status filter */}
+                        <div>
+                            <select
+                                value={statusFilter === undefined ? '' : statusFilter.toString()}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setStatusFilter(value === '' ? undefined : parseInt(value));
+                                }}
+                                style={{...selectStyle, backgroundColor: statusFilter !== undefined ? '#e3f2fd' : '#f9f9f9'}}
+                                className="select-element"
+                            >
+                                <option value="">Tüm Durumlar</option>
+                                <option value={CARGO_STATUS.PENDING.toString()}>Beklemede</option>
+                                <option value={CARGO_STATUS.ACCEPTED.toString()}>Onaylandı</option>
+                                <option value={CARGO_STATUS.REJECTED.toString()}>Reddedildi</option>
+                            </select>
+                        </div>
+
                         <div>
                             <select
                                 value={`${sortBy}-${sortOrder}`}

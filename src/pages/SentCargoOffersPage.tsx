@@ -1,22 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 // import { useNavigate } from 'react-router-dom';
-import { Clock, User, X, AlertCircle, Loader, Phone, Mail, Package, Check} from 'lucide-react';
+import { Clock, User, X, AlertCircle, Loader, Phone, Mail, Package, Check, Filter } from 'lucide-react';
 import { fetchOffersBySender, updateCargoOfferStatus } from '../features/cargoOffer/cargoOfferSlice';
 import { getUserById } from '../features/user/authSlice';
-import { OfferStatus } from '../services/cargoOfferService';
+import { OfferStatus, } from '../services/cargoOfferService';
 import type { RootState, AppDispatch } from '../store/store';
 
 const SentCargoOffersPage: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
  //   const navigate = useNavigate();
     const { user: userData } = useSelector((state: RootState) => state.auth);
-    const { offers, loading, error } = useSelector((state: RootState) => state.cargoOffer);
+    const {  offersBySender, loading, error } = useSelector((state: RootState) => state.cargoOffer);
     
     const [updateLoading, setUpdateLoading] = useState<{ [key: number]: boolean }>({});
     const [statusMessages, setStatusMessages] = useState<{ [key: number]: { type: 'success' | 'error', message: string } }>({});
     const [userDetails, setUserDetails] = useState<{ [key: string]: any }>({});
     const [expandedOffer, setExpandedOffer] = useState<number | null>(null);
+    const [selectedStatus, setSelectedStatus] = useState<number | undefined>(undefined);
+    const [filteredOffers, setFilteredOffers] = useState<any[]>([]);
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -112,17 +114,20 @@ const SentCargoOffersPage: React.FC = () => {
     useEffect(() => {
         if (userData && (userData.userId || userData.uid)) {
             const userId = userData.userId || userData.uid;
-            dispatch(fetchOffersBySender(userId));
+            dispatch(fetchOffersBySender({
+                senderId: userId,
+                adminStatus: selectedStatus
+            }));
         }
-    }, [dispatch, userData]);
+    }, [dispatch, userData, selectedStatus]);
 
     // Fetch user details for each receiver - improved implementation
     useEffect(() => {
-        if (!offers || offers.length === 0) return;
+        if (!offersBySender || offersBySender.length === 0) return;
         
         const fetchReceiverDetails = async () => {
             const newUserDetails = { ...userDetails };
-            const uniqueReceiverIds = [...new Set(offers.map(offer => offer.receiverId))];
+            const uniqueReceiverIds = [...new Set(offersBySender.map(offer => offer.receiverId))];
             
             const unfetchedIds = uniqueReceiverIds.filter(id => !userDetails[id]);
             if (unfetchedIds.length === 0) return; // Skip if all IDs already fetched
@@ -140,7 +145,22 @@ const SentCargoOffersPage: React.FC = () => {
         };
 
         fetchReceiverDetails();
-    }, [dispatch, offers]);
+    }, [dispatch, offersBySender]);
+
+    // Filter offers based on adminStatus
+    useEffect(() => {
+        if (selectedStatus === undefined) {
+            setFilteredOffers(offersBySender || []);
+        } else {
+            setFilteredOffers(offersBySender?.filter(offer => {
+                // Ensure both are numbers for comparison
+                const offerStatus = typeof offer.adminStatus === 'string' 
+                    ? parseInt(offer.adminStatus, 10) 
+                    : offer.adminStatus;
+                return offerStatus === selectedStatus;
+            }) || []);
+        }
+    }, [offersBySender, selectedStatus]);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -228,7 +248,10 @@ const SentCargoOffersPage: React.FC = () => {
         setExpandedOffer(current => current === offerId ? null : offerId);
     };
 
-
+    const handleStatusChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = event.target.value;
+        setSelectedStatus(value === "" ? undefined : parseInt(value));
+    };
 
     // Component styles
     const pageStyle = {
@@ -384,8 +407,50 @@ const SentCargoOffersPage: React.FC = () => {
                 <div style={headerStyle}>
                     <h1 style={titleStyle}>Gönderdiğim Yük Teklifleri</h1>
                     <p style={subtitleStyle}>Yük sahiplerine gönderdiğiniz teklifleri burada yönetebilirsiniz.</p>
-                    <div style={statsStyle}>
-                        Toplam Teklif: {offers?.length || 0}
+                    
+                    {/* Status Filter - Styled better */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginTop: '20px',
+                        marginBottom: '10px'
+                    }}>
+                        <div style={statsStyle}>
+                            Toplam Teklif: {offersBySender?.length || 0}
+                        </div>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            background: '#f8f9fa',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                        }}>
+                            <Filter size={18} style={{ color: '#4b5563', marginRight: '8px' }} />
+                            <span style={{ marginRight: '10px', fontSize: '14px', color: '#4b5563', fontWeight: 500 }}>Filtrele:</span>
+                            <select
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: '#1e40af',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    outline: 'none'
+                                }}
+                                value={selectedStatus === undefined ? "" : selectedStatus.toString()}
+                                onChange={handleStatusChange}
+                                className="select-element"
+                            >
+                                <option value="">Tüm Teklifler</option>
+                                <option value="0">Bekleyen</option>
+                                <option value="1">Kabul Edildi</option>
+                                <option value="2">Reddedildi</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -414,7 +479,7 @@ const SentCargoOffersPage: React.FC = () => {
                         </div>
                     )}
 
-                    {!loading && !error && (!offers || offers.length === 0) && (
+                    {!loading && !error && filteredOffers.length === 0 && (
                         <div style={noDataStyle}>
                             <Package size={64} style={{ color: '#ccc', margin: '0 auto 20px' }} />
                             <h3 style={{ fontSize: '20px', marginBottom: '10px', color: '#666' }}>
@@ -427,9 +492,9 @@ const SentCargoOffersPage: React.FC = () => {
                     )}
 
                     {/* List of offers */}
-                    {!loading && offers && offers.length > 0 && (
+                    {!loading && filteredOffers.length > 0 && (
                         <div>
-                            {offers.map((offer) => {
+                            {filteredOffers.map((offer) => {
                                 const receiver = userDetails[offer.receiverId];
                                 const isExpanded = expandedOffer === offer.id;
                                 
