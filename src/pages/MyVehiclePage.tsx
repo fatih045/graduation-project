@@ -68,12 +68,8 @@ const MyVehiclesPage: React.FC = () => {
     // Sayfa yüklendiğinde carrier ID'ye göre araçları getir
     useEffect(() => {
         if (isValidCarrierId(carrierId)) {
-            // UUID ise string olarak gönder, sayı ise number olarak gönder
-            if (isValidUUID(carrierId)) {
-                dispatch(fetchVehiclesByCarrier(carrierId)); // String olarak gönder
-            } else {
-                dispatch(fetchVehiclesByCarrier(Number(carrierId))); // Number olarak gönder
-            }
+            // Her durumda string olarak gönder
+            dispatch(fetchVehiclesByCarrier(carrierId));
         } else {
             console.error('Geçersiz carrierId:', carrierId);
         }
@@ -93,11 +89,7 @@ const MyVehiclesPage: React.FC = () => {
                 .then(() => {
                     // Silme işlemi başarılı olduğunda araçları yeniden çek
                     if (isValidCarrierId(carrierId)) {
-                        if (isValidUUID(carrierId)) {
-                            dispatch(fetchVehiclesByCarrier(carrierId));
-                        } else {
-                            dispatch(fetchVehiclesByCarrier(Number(carrierId)));
-                        }
+                        dispatch(fetchVehiclesByCarrier(carrierId));
                     }
                     alert('Araç başarıyla silindi!');
                 })
@@ -144,11 +136,7 @@ const MyVehiclesPage: React.FC = () => {
                 .then(() => {
                     // İşlem başarılı oldu, araçları yeniden çek
                     if (isValidCarrierId(carrierId)) {
-                        if (isValidUUID(carrierId)) {
-                            dispatch(fetchVehiclesByCarrier(carrierId));
-                        } else {
-                            dispatch(fetchVehiclesByCarrier(Number(carrierId)));
-                        }
+                        dispatch(fetchVehiclesByCarrier(carrierId));
                     }
                     setIsModalOpen(false);
                     alert('Araç başarıyla güncellendi!');
