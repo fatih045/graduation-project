@@ -93,8 +93,8 @@ const LandingPage: React.FC = () => {
                     <img src={logisticsMap} alt="Logistics network on map" />
                 </div>
                 <div className="image-content">
-                    <h2>Türkiye'nin Her Yerine Hizmet</h2>
-                    <p>Ülkenin dört bir yanındaki taşıyıcılar ve yük sahiplerini birbirine bağlıyoruz.</p>
+                    <h2>Avrupanın Her Yerine Hizmet</h2>
+                    <p>Avrupanın dört bir yanındaki taşıyıcıları ve yük sahiplerini birbirine bağlıyoruz.</p>
                 </div>
             </section>
 
@@ -162,8 +162,8 @@ const LandingPage: React.FC = () => {
                     <div className="benefit-item">
                         <FaTruck className="step-icon" />
                         <div>
-                            <h3>Optimizasyon</h3>
-                            <p>Kamyon sahipleri için yük takibi ve rota optimizasyonu.</p>
+                            <h3>İlan Önerisi</h3>
+                            <p>Bulunulan Konuma Göre İlan Önerisi.</p>
                         </div>
                         <img src={truckHeroImage} alt="Route optimization" className="benefit-image" />
                     </div>
@@ -173,6 +173,14 @@ const LandingPage: React.FC = () => {
                         <div>
                             <h3>Zaman Tasarrufu</h3>
                             <p>Hızlı eşleşme sistemi ile zaman kazanın.</p>
+                        </div>
+                        <img src={timeSaving} alt="Time saving" className="benefit-image" />
+                    </div>
+                    <div className="benefit-item">
+                        <FaClock className="step-icon" />
+                        <div>
+                            <h3>Teklif Sistemi</h3>
+                            <p>Teklifte bulunarak size en uygun yük sahibini & kamyon sahibini bulun.</p>
                         </div>
                         <img src={timeSaving} alt="Time saving" className="benefit-image" />
                     </div>
@@ -205,7 +213,7 @@ const LandingPage: React.FC = () => {
                 </div>
                 <div className="image-content">
                     <h2>Mobil Uygulama ile Her Yerden Erişim</h2>
-                    <p>iOS ve Android uyumlu mobil uygulamamız ile yolda bile işlerinizi yönetin.</p>
+                    <p>Android uyumlu mobil uygulamamız ile yolda bile işlerinizi yönetin.</p>
                 </div>
             </section>
 
