@@ -600,7 +600,7 @@ const VehicleAdsList: React.FC = () => {
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                     <Users size={14} style={{ color: '#4a6cf7' }} />
                                                     <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#4a6cf7' }}>
-                                                        {vehicle.capacity?.toLocaleString() || '0'} kg
+                                                        {vehicle.capacity?.toLocaleString() || '0'} Ton
                                                     </span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -724,7 +724,7 @@ const VehicleAdsList: React.FC = () => {
                                 <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Users size={16} />
                                     <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#4a6cf7' }}>
-                                        {selectedVehicle.capacity?.toLocaleString() || '0'} kg
+                                        {selectedVehicle.capacity?.toLocaleString() || '0'} Ton
                                     </span>
                                 </div>
                             </div>

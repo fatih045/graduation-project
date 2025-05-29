@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store'; // Adjust this import as needed for your store structure
 import {
@@ -8,6 +8,7 @@ import {
 
 } from '../features/cargo/cargoSlice';
 import {Cargo} from "../services/cargoService.ts"; // Adjust path as needed
+import useAutocomplete, { EUROPEAN_COUNTRIES } from '../hooks/useAutocomplete';
 
 const UserCargoManagement: React.FC = () => {
     // Redux hooks
@@ -26,8 +27,29 @@ const UserCargoManagement: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
     const [currentCargo, setCurrentCargo] = useState<Cargo | null>(null);
 
-    // Debug state
-    // const [debug, setDebug] = useState<string>('');
+    // Autocomplete refs
+    const pickupInputRef = useRef<HTMLInputElement>(null);
+    const dropoffInputRef = useRef<HTMLInputElement>(null);
+    const pickupAutocompleteRef = useRef<any>(null);
+    const dropoffAutocompleteRef = useRef<any>(null);
+
+    // Google Places API hook
+    const { isGoogleLoaded, initializeAutocomplete, updateAutocompleteRestrictions } = useAutocomplete();
+
+    // Kargo tipleri
+    const CARGO_TYPES = [
+        { value: 'TarpaulinTruck', label: 'Tenteli Kamyon' },
+        { value: 'BoxTruck', label: 'Kapalı Kasa Kamyon' },
+        { value: 'RefrigeratedTruck', label: 'Soğutmalı Kamyon' },
+        { value: 'SemiTrailer', label: 'Yarı Römork' },
+        { value: 'LightTruck', label: 'Hafif Kamyon' },
+        { value: 'ContainerCarrier', label: 'Konteyner Taşıyıcı' },
+        { value: 'TankTruck', label: 'Tanker' },
+        { value: 'LowbedTrailer', label: 'Lowbed Römork' },
+        { value: 'DumpTruck', label: 'Damperli Kamyon' },
+        { value: 'PanelVan', label: 'Panel Van' },
+        { value: 'Others', label: 'Diğer' }
+    ];
 
     // Add CSS styles for the component
     useEffect(() => {
@@ -59,6 +81,8 @@ const UserCargoManagement: React.FC = () => {
         justify-content: center;
         align-items: center;
         z-index: 1000;
+        overflow-y: auto;
+        padding: 20px 0;
       }
       
       .modal-content {
@@ -67,8 +91,11 @@ const UserCargoManagement: React.FC = () => {
         border-radius: 15px;
         width: 90%;
         max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         position: relative;
+        margin: auto;
       }
       
       .modal-header {
@@ -179,6 +206,159 @@ const UserCargoManagement: React.FC = () => {
         };
     }, []);
 
+    // Format date to Turkish format (DD.MM.YYYY HH:MM) with 3 hours subtracted
+    const formatDateToTurkish = (dateString: string) => {
+        if (!dateString) return 'Belirtilmemiş';
+
+        const date = new Date(dateString);
+
+        // Adjust for 3 hours time difference (subtract 3 hours)
+        const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+
+        // Format date as DD.MM.YYYY
+        const day = adjustedDate.getDate().toString().padStart(2, '0');
+        const month = (adjustedDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = adjustedDate.getFullYear();
+
+        // Format time as HH:MM
+        const hours = adjustedDate.getHours().toString().padStart(2, '0');
+        const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
+
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+    };
+
+    // Initialize autocomplete when Google Places is loaded and country is selected
+    useEffect(() => {
+        if (isGoogleLoaded && currentCargo?.pickCountry) {
+            initializeAutocomplete(
+                pickupInputRef,
+                pickupAutocompleteRef,
+                currentCargo.pickCountry,
+                (place) => {
+                    if (place && place.name) {
+                        setCurrentCargo(prev => prev ? { ...prev, pickCity: place.name } : null);
+                    } else if (place && place.formatted_address) {
+                        const cityName = place.formatted_address.split(',')[0];
+                        setCurrentCargo(prev => prev ? { ...prev, pickCity: cityName } : null);
+                    }
+                }
+            );
+        }
+    }, [isGoogleLoaded, currentCargo?.pickCountry]);
+
+    useEffect(() => {
+        if (isGoogleLoaded && currentCargo?.dropCountry) {
+            initializeAutocomplete(
+                dropoffInputRef,
+                dropoffAutocompleteRef,
+                currentCargo.dropCountry,
+                (place) => {
+                    if (place && place.name) {
+                        setCurrentCargo(prev => prev ? { ...prev, dropCity: place.name } : null);
+                    } else if (place && place.formatted_address) {
+                        const cityName = place.formatted_address.split(',')[0];
+                        setCurrentCargo(prev => prev ? { ...prev, dropCity: cityName } : null);
+                    }
+                }
+            );
+        }
+    }, [isGoogleLoaded, currentCargo?.dropCountry]);
+
+    // Update autocomplete restrictions when country changes
+    useEffect(() => {
+        if (isGoogleLoaded && pickupAutocompleteRef.current && currentCargo?.pickCountry) {
+            updateAutocompleteRestrictions(
+                pickupAutocompleteRef,
+                currentCargo.pickCountry,
+                pickupInputRef,
+                () => setCurrentCargo(prev => prev ? { ...prev, pickCity: '' } : null)
+            );
+        }
+    }, [currentCargo?.pickCountry, isGoogleLoaded]);
+
+    useEffect(() => {
+        if (isGoogleLoaded && dropoffAutocompleteRef.current && currentCargo?.dropCountry) {
+            updateAutocompleteRestrictions(
+                dropoffAutocompleteRef,
+                currentCargo.dropCountry,
+                dropoffInputRef,
+                () => setCurrentCargo(prev => prev ? { ...prev, dropCity: '' } : null)
+            );
+        }
+    }, [currentCargo?.dropCountry, isGoogleLoaded]);
+
+    // Update cargo handler
+    const handleUpdateCargo = (cargo: Cargo) => {
+        setCurrentCargo(cargo);
+        setShowUpdateModal(true);
+    };
+
+    // Delete cargo handler
+    const handleDeleteCargo = (id: number) => {
+        if (window.confirm('Bu kargoyu silmek istediğinizden emin misiniz?')) {
+            dispatch(deleteCargo(id) as any)
+                .then(() => {
+                    alert('Kargo başarıyla silindi!');
+                })
+                .catch((err: any) => {
+                    alert(`Silme işlemi başarısız: ${err.message}`);
+                });
+        }
+    };
+
+    // Form change handler
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        if (currentCargo) {
+            setCurrentCargo({
+                ...currentCargo,
+                [name]: name === 'weight' || name === 'status' || name === 'price' ?
+                    (value === '' ? 0 : Number(value)) : value
+            });
+        }
+    };
+
+    // City input change handler
+    const handleCityInputChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'pickup' | 'dropoff') => {
+        const value = e.target.value;
+        
+        if (currentCargo) {
+            if (type === 'pickup') {
+                setCurrentCargo({
+                    ...currentCargo,
+                    pickCity: value
+                });
+            } else {
+                setCurrentCargo({
+                    ...currentCargo,
+                    dropCity: value
+                });
+            }
+        }
+    };
+
+    // Form submit handler
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (currentCargo) {
+            // Tarih alanını mevcut kargo nesnesinden alıyoruz, kullanıcının değiştirmesine izin vermiyoruz
+            const updatedCargo = {
+                ...currentCargo,
+                adDate: currentCargo.adDate // Mevcut tarihi koruyoruz
+            };
+            
+            dispatch(updateCargo(updatedCargo) as any)
+                .then(() => {
+                    setShowUpdateModal(false);
+                    setCurrentCargo(null);
+                    alert('Kargo bilgileri başarıyla güncellendi!');
+                })
+                .catch((err: any) => {
+                    alert(`Güncelleme işlemi başarısız: ${err.message}`);
+                });
+        }
+    };
+
     // Load cargo data when component mounts
     useEffect(() => {
         if (auth?.user?.uid) {
@@ -239,74 +419,6 @@ const UserCargoManagement: React.FC = () => {
 
         return result;
     }, [cargos, searchTerm, sortBy, sortOrder, countryFilter, cityFilter]);
-
-    // Format date to Turkish format (DD.MM.YYYY HH:MM) with 3 hours subtracted
-    const formatDateToTurkish = (dateString: string) => {
-        if (!dateString) return 'Belirtilmemiş';
-
-        const date = new Date(dateString);
-
-        // Adjust for 3 hours time difference (subtract 3 hours)
-        const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
-
-        // Format date as DD.MM.YYYY
-        const day = adjustedDate.getDate().toString().padStart(2, '0');
-        const month = (adjustedDate.getMonth() + 1).toString().padStart(2, '0');
-        const year = adjustedDate.getFullYear();
-
-        // Format time as HH:MM
-        const hours = adjustedDate.getHours().toString().padStart(2, '0');
-        const minutes = adjustedDate.getMinutes().toString().padStart(2, '0');
-
-        return `${day}.${month}.${year} ${hours}:${minutes}`;
-    };
-
-    // Update cargo handler
-    const handleUpdateCargo = (cargo: Cargo) => {
-        setCurrentCargo(cargo);
-        setShowUpdateModal(true);
-    };
-
-    // Delete cargo handler
-    const handleDeleteCargo = (id: number) => {
-        if (window.confirm('Bu kargoyu silmek istediğinizden emin misiniz?')) {
-            dispatch(deleteCargo(id) as any)
-                .then(() => {
-                    alert('Kargo başarıyla silindi!');
-                })
-                .catch((err: any) => {
-                    alert(`Silme işlemi başarısız: ${err.message}`);
-                });
-        }
-    };
-
-    // Form change handler
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        if (currentCargo) {
-            setCurrentCargo({
-                ...currentCargo,
-                [name]: name === 'weight' || name === 'status' ?
-                    (value === '' ? 0 : Number(value)) : value
-            });
-        }
-    };
-
-    // Form submit handler
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (currentCargo) {
-            dispatch(updateCargo(currentCargo) as any)
-                .then(() => {
-                    setShowUpdateModal(false);
-                    setCurrentCargo(null);
-                    alert('Kargo bilgileri başarıyla güncellendi!');
-                })
-                .catch((err: any) => {
-                    alert(`Güncelleme işlemi başarısız: ${err.message}`);
-                });
-        }
-    };
 
     // Component styles
     const pageStyle = {
@@ -595,6 +707,30 @@ const UserCargoManagement: React.FC = () => {
                                                     </div>
                                                 </div>
 
+                                                {/* Fiyat ve Para Birimi */}
+                                                {cargo.price > 0 && (
+                                                    <div style={{ 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        gap: '5px', 
+                                                        marginBottom: '8px',
+                                                        backgroundColor: '#f0fff4',
+                                                        padding: '5px 8px',
+                                                        borderRadius: '5px',
+                                                        fontSize: '14px',
+                                                        color: '#059669',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                                                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                                        </svg>
+                                                        <span>
+                                                            {cargo.price} {cargo.currency || 'TRY'}
+                                                        </span>
+                                                    </div>
+                                                )}
+
                                                 {/* Planlanan Tarih */}
                                                 {cargo.adDate && (
                                                     <div style={{ 
@@ -734,6 +870,7 @@ const UserCargoManagement: React.FC = () => {
                                     value={currentCargo.title || ''}
                                     onChange={handleFormChange}
                                     className="form-control"
+                                    required
                                 />
                             </div>
                             <div className="form-group">
@@ -743,7 +880,8 @@ const UserCargoManagement: React.FC = () => {
                                     value={currentCargo.description || ''}
                                     onChange={handleFormChange}
                                     className="form-control"
-                                    rows={4}
+                                    rows={3}
+                                    required
                                 />
                             </div>
                             <div className="form-group">
@@ -754,27 +892,125 @@ const UserCargoManagement: React.FC = () => {
                                     value={currentCargo.weight || ''}
                                     onChange={handleFormChange}
                                     className="form-control"
+                                    min="0.1"
+                                    step="0.1"
+                                    required
                                 />
                             </div>
                             <div className="form-group">
                                 <label className="form-label">Araç Tipi</label>
-                                <input
-                                    type="text"
+                                <select
                                     name="cargoType"
                                     value={currentCargo.cargoType || ''}
                                     onChange={handleFormChange}
                                     className="form-control"
-                                />
+                                    required
+                                >
+                                    <option value="">Araç Tipi Seçin</option>
+                                    {CARGO_TYPES.map(type => (
+                                        <option key={type.value} value={type.value}>{type.label}</option>
+                                    ))}
+                                </select>
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Planlanan Tarih</label>
-                                <input
-                                    type="datetime-local"
-                                    name="adDate"
-                                    value={currentCargo.adDate ? new Date(currentCargo.adDate).toISOString().slice(0, 16) : ''}
-                                    onChange={handleFormChange}
-                                    className="form-control"
-                                />
+
+                            {/* Alım Lokasyonu */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Alım Ülkesi</label>
+                                    <select
+                                        name="pickCountry"
+                                        value={currentCargo.pickCountry || ''}
+                                        onChange={handleFormChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="">Ülke Seçin</option>
+                                        {EUROPEAN_COUNTRIES.map(country => (
+                                            <option key={country.value} value={country.value}>{country.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Alım Şehri</label>
+                                    <input
+                                        ref={pickupInputRef}
+                                        type="text"
+                                        name="pickCity"
+                                        value={currentCargo.pickCity || ''}
+                                        onChange={(e) => handleCityInputChange(e, 'pickup')}
+                                        className="form-control"
+                                        placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                        disabled={!currentCargo.pickCountry}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Teslim Lokasyonu */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Teslim Ülkesi</label>
+                                    <select
+                                        name="dropCountry"
+                                        value={currentCargo.dropCountry || ''}
+                                        onChange={handleFormChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="">Ülke Seçin</option>
+                                        {EUROPEAN_COUNTRIES.map(country => (
+                                            <option key={country.value} value={country.value}>{country.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Teslim Şehri</label>
+                                    <input
+                                        ref={dropoffInputRef}
+                                        type="text"
+                                        name="dropCity"
+                                        value={currentCargo.dropCity || ''}
+                                        onChange={(e) => handleCityInputChange(e, 'dropoff')}
+                                        className="form-control"
+                                        placeholder={isGoogleLoaded ? "Şehir yazın..." : "Google Places yükleniyor..."}
+                                        disabled={!currentCargo.dropCountry}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Fiyat ve Para Birimi */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '15px' }}>
+                                <div className="form-group">
+                                    <label className="form-label">Fiyat</label>
+                                    <input
+                                        type="number"
+                                        name="price"
+                                        value={currentCargo.price || ''}
+                                        onChange={handleFormChange}
+                                        className="form-control"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Para Birimi</label>
+                                    <select
+                                        name="currency"
+                                        value={currentCargo.currency || 'TRY'}
+                                        onChange={handleFormChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="TRY">TRY</option>
+                                        <option value="USD">USD</option>
+                                        <option value="EUR">EUR</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="btn-container">

@@ -746,7 +746,7 @@ const MyVehicleAdsPage: React.FC = () => {
                                     <div style={cardBodyStyle}>
                                         <div style={capacityStyle}>
                                             <span style={{ marginRight: '5px' }}>📦</span>
-                                            {(vehicle.capacity / 1000).toFixed(1)} Ton
+                                            {(vehicle.capacity ).toFixed(1)} Ton
                                         </div>
                                         <div style={locationStyle}>
                                             <span style={{ marginRight: '5px' }}>📍</span>

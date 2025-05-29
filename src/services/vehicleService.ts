@@ -62,7 +62,7 @@ export const deleteVehicle = async (id: number) => {
     }
 };
 
-export const getVehiclesByCarrier = async (carrierId: number) => {
+export const getVehiclesByCarrier = async (carrierId: string) => {
     try {
         const response = await axiosInstance.get(`api/Vehicle/by-carrier/${carrierId}`);
         return response.data;

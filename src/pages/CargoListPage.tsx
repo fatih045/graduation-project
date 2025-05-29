@@ -661,7 +661,7 @@ const CargoListPage: React.FC = () => {
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                                 <Weight size={14} style={{ color: '#4a6cf7' }} />
                                                 <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#4a6cf7' }}>
-                                                    {cargo.weight?.toLocaleString() || '0'} kg
+                                                    {cargo.weight?.toLocaleString() || '0'} Ton
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -843,7 +843,7 @@ const CargoListPage: React.FC = () => {
                                     <span className="detail-label">Ağırlık</span>
                                     <div className="detail-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Weight size={16} />
-                                        {selectedCargo.weight?.toLocaleString() || '0'} kg
+                                        {selectedCargo.weight?.toLocaleString() || '0'} Ton
                                     </div>
                                 </div>
 

@@ -83,7 +83,7 @@ export const removeVehicle = createAsyncThunk('vehicle/remove', async (id: numbe
 
 export const fetchVehiclesByCarrier = createAsyncThunk(
     'vehicle/fetchByCarrier',
-    async (carrierId: number, { rejectWithValue }) => {
+    async (carrierId: string, { rejectWithValue }) => {
         try {
             return await getVehiclesByCarrier(carrierId);
         } catch (error: any) {

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { createVehicleAd } from '../features/vehicle/vehicleAdSlice';
 import { AppDispatch, useAppSelector } from '../store/store';
+import { fetchVehiclesByCarrier } from '../features/vehicle/vehicleSlice';
+
 
 // Google Places API'yi yükle
 declare global {
@@ -99,6 +101,10 @@ const CreateVehicleAdPage: React.FC = () => {
     // Redux store'dan userId'yi al
     const userId = useAppSelector(state => state.auth.user?.uid || "");
 
+    // Kullanıcının araçlarını al
+    const userVehicles = useAppSelector(state => state.vehicle.items);
+    const vehicleStatus = useAppSelector(state => state.vehicle.status);
+
     const [formData, setFormData] = useState<VehicleFormData>({
         title: '',
         description: '',
@@ -111,12 +117,20 @@ const CreateVehicleAdPage: React.FC = () => {
         carrierName: ''
     });
 
+    const [selectedVehicleId, setSelectedVehicleId] = useState<number | ''>('');
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const cityInputRef = useRef<HTMLInputElement>(null);
     const cityAutocompleteRef = useRef<any>(null);
+
+    // Kullanıcının araçlarını yükle
+    useEffect(() => {
+        if (userId) {
+            dispatch(fetchVehiclesByCarrier(userId));
+        }
+    }, [dispatch, userId]);
 
     // Google Places API'yi yükle ve initialize et
     useEffect(() => {
@@ -280,6 +294,32 @@ const CreateVehicleAdPage: React.FC = () => {
         setFormData(prev => ({ ...prev, city: value }));
     };
 
+    // Araç seçildiğinde form verilerini güncelle
+    const handleVehicleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const vehicleId = e.target.value;
+        setSelectedVehicleId(vehicleId === '' ? '' : Number(vehicleId));
+        
+        if (vehicleId === '') {
+            // Araç seçimi temizlendiğinde, kapasite ve araç türünü sıfırla
+            setFormData(prev => ({
+                ...prev,
+                vehicleType: '',
+                capacity: 0
+            }));
+        } else {
+            // Seçilen aracın bilgilerini bul
+            const selectedVehicle = userVehicles.find(v => v.id === Number(vehicleId));
+            if (selectedVehicle) {
+                // Form verilerini güncelle
+                setFormData(prev => ({
+                    ...prev,
+                    vehicleType: selectedVehicle.vehicleType,
+                    capacity: selectedVehicle.capacity
+                }));
+            }
+        }
+    };
+
     // Form submit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -300,12 +340,10 @@ const CreateVehicleAdPage: React.FC = () => {
         setError(null);
 
         try {
-            // formData'ya carrierId'yi (userId) ekle ve createdDate ve carrierName için boş değerler gönder
+            // formData'ya carrierId'yi (userId) ekle
             const vehicleAdData = {
                 ...formData,
-                carrierId: userId,
-                createdDate: '',  // Bu değer backend tarafında oluşturulacak
-                carrierName: ''   // Bu değer backend tarafında oluşturulacak
+                carrierId: userId
             };
 
             await dispatch(createVehicleAd(vehicleAdData)).unwrap();
@@ -378,7 +416,7 @@ const CreateVehicleAdPage: React.FC = () => {
                             marginBottom: '20px',
                             textAlign: 'center'
                         }}>
-                            Araç ilanı oluşturmak için giriş yapmanız gerekiyor!
+                            Araç ilanı oluşturmak için giriş yapmış bir kullanıcı bulunamadı!
                         </div>
                     </div>
                 </div>
@@ -497,6 +535,55 @@ const CreateVehicleAdPage: React.FC = () => {
                                 placeholder="Araç hakkında detaylı bilgi"
                                 required
                             />
+                        </div>
+
+                        {/* Araç Seçimi */}
+                        <div className="form-group">
+                            <label style={{
+                                display: 'block',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                marginBottom: '10px'
+                            }}>Araçlarım</label>
+                            <select
+                                value={selectedVehicleId}
+                                onChange={handleVehicleSelect}
+                                style={{
+                                    width: '100%',
+                                    padding: '15px',
+                                    fontSize: '16px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '10px',
+                                    backgroundColor: '#f9f9f9',
+                                    outline: 'none',
+                                    transition: 'border-color 0.3s, box-shadow 0.3s'
+                                }}
+                            >
+                                <option value="">Araç Seçin (Opsiyonel)</option>
+                                {userVehicles.map(vehicle => (
+                                    <option key={vehicle.id} value={vehicle.id}>
+                                        {vehicle.title} - {vehicle.model} ({vehicle.licensePlate})
+                                    </option>
+                                ))}
+                            </select>
+                            <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                Kayıtlı araçlarınızdan birini seçerek kapasite ve araç türü bilgilerini otomatik doldurabilirsiniz
+                            </p>
+                            {vehicleStatus === 'loading' && (
+                                <p style={{ color: '#4a6cf7', fontSize: '12px', marginTop: '5px' }}>
+                                    Araçlarınız yükleniyor...
+                                </p>
+                            )}
+                            {vehicleStatus === 'failed' && (
+                                <p style={{ color: '#c33', fontSize: '12px', marginTop: '5px' }}>
+                                    Araçlarınız yüklenirken bir hata oluştu
+                                </p>
+                            )}
+                            {vehicleStatus === 'succeeded' && userVehicles.length === 0 && (
+                                <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>
+                                    Henüz kayıtlı aracınız bulunmuyor
+                                </p>
+                            )}
                         </div>
 
                         {/* Kapasite ve Araç Türü */}
