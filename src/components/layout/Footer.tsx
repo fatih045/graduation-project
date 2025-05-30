@@ -5,7 +5,7 @@ function  Footer() {
         <footer className="footer">
             <div className="footer-container">
                 {/* Logo & Slogan */}
-                <h2 className="footer-logo">TruckLink</h2>
+                <h2 className="footer-logo">Logistify</h2>
                 <p>Yük ve kamyon sahiplerini buluşturan platform</p>
 
                 {/* Footer Linkleri */}
@@ -26,7 +26,7 @@ function  Footer() {
 
                 {/* Copyright */}
                 <p className="footer-copyright">
-                    © {new Date().getFullYear()} TruckLink. Tüm hakları saklıdır.
+                    © {new Date().getFullYear()} Logistify. Tüm hakları saklıdır.
                 </p>
             </div>
         </footer>

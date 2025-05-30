@@ -15,6 +15,9 @@ const Login = () => {
     const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
     const isMobile = useMediaQuery({ maxWidth: 768 });
+    
+    // Form validation states
+    const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (loggedInUser) {
@@ -23,8 +26,25 @@ const Login = () => {
         }
     }, [loggedInUser, navigate]);
 
+    const validateForm = () => {
+        const errors: Record<string, string> = {};
+        
+        if (!user.email.trim()) errors.email = "E-posta alanı zorunludur";
+        else if (!/\S+@\S+\.\S+/.test(user.email)) errors.email = "Geçerli bir e-posta adresi giriniz";
+        
+        if (!user.password) errors.password = "Şifre zorunludur";
+        
+        setFormErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
     const handleLogin = async () => {
         setSuccess(false);
+        
+        if (!validateForm()) {
+            return;
+        }
+        
         const resultAction = await dispatch(login(user));
         if (login.fulfilled.match(resultAction)) {
             setSuccess(true);
@@ -74,7 +94,7 @@ const Login = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Sağ taraf - Login Formu */}
             <div style={{
                 flex: '1',
@@ -104,13 +124,13 @@ const Login = () => {
                         marginBottom: '10px',
                         color: '#333'
                     }}>Hoş Geldiniz</h1>
-                    
+
                     <p style={{
                         fontSize: '16px',
                         color: '#666',
                         marginBottom: '30px'
                     }}>Hesabınıza giriş yapın</p>
-                    
+
                     <div style={{ marginBottom: '20px', textAlign: 'left' }}>
                         <label style={{
                             display: 'block',
@@ -119,7 +139,7 @@ const Login = () => {
                             fontWeight: '500',
                             color: '#555'
                         }}>
-                            E-posta
+                            E-posta <span style={{ color: 'red' }}>*</span>
                         </label>
                         <input
                             type="email"
@@ -130,16 +150,22 @@ const Login = () => {
                             style={{
                                 width: '100%',
                                 padding: '14px',
-                                border: '1px solid #ddd',
+                                border: formErrors.email ? '1px solid #e53e3e' : '1px solid #ddd',
                                 borderRadius: '10px',
                                 fontSize: '16px',
                                 backgroundColor: '#f9f9f9',
                                 transition: 'border-color 0.3s',
                                 outline: 'none'
                             }}
+                            required
                         />
+                        {formErrors.email && (
+                            <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                                {formErrors.email}
+                            </div>
+                        )}
                     </div>
-                    
+
                     <div style={{ marginBottom: '25px', textAlign: 'left' }}>
                         <label style={{
                             display: 'block',
@@ -148,7 +174,7 @@ const Login = () => {
                             fontWeight: '500',
                             color: '#555'
                         }}>
-                            Şifre
+                            Şifre <span style={{ color: 'red' }}>*</span>
                         </label>
                         <input
                             type="password"
@@ -159,42 +185,48 @@ const Login = () => {
                             style={{
                                 width: '100%',
                                 padding: '14px',
-                                border: '1px solid #ddd',
+                                border: formErrors.password ? '1px solid #e53e3e' : '1px solid #ddd',
                                 borderRadius: '10px',
                                 fontSize: '16px',
                                 backgroundColor: '#f9f9f9',
                                 transition: 'border-color 0.3s',
                                 outline: 'none'
                             }}
+                            required
                         />
+                        {formErrors.password && (
+                            <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                                {formErrors.password}
+                            </div>
+                        )}
                     </div>
-                    
-                    <div style={{ 
-                        display: 'flex', 
+
+                    <div style={{
+                        display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         marginBottom: '25px',
                         fontSize: '14px'
                     }}>
                         <div>
-                            <input 
-                                type="checkbox" 
-                                id="remember" 
+                            <input
+                                type="checkbox"
+                                id="remember"
                                 style={{ marginRight: '5px' }}
                             />
                             <label htmlFor="remember" style={{ color: '#555' }}>Beni hatırla</label>
                         </div>
-                        <Link to="/forgot-password" style={{ 
-                            color: '#667eea', 
+                        <Link to="/forgot-password" style={{
+                            color: '#667eea',
                             textDecoration: 'none',
                             fontWeight: '500'
                         }}>
                             Şifremi unuttum
                         </Link>
                     </div>
-                    
-                    <button 
-                        onClick={handleLogin} 
+
+                    <button
+                        onClick={handleLogin}
                         disabled={status === "loading"}
                         style={{
                             width: '100%',
@@ -214,7 +246,7 @@ const Login = () => {
                     >
                         {status === "loading" ? "Giriş Yapılıyor..." : "Giriş Yap"}
                     </button>
-                    
+
                     {error && (
                         <div style={{
                             backgroundColor: '#fee',
@@ -227,7 +259,7 @@ const Login = () => {
                             {error}
                         </div>
                     )}
-                    
+
                     {success && (
                         <div style={{
                             backgroundColor: '#e6f7e6',
@@ -240,17 +272,17 @@ const Login = () => {
                             Giriş başarılı!
                         </div>
                     )}
-                    
-                    <p style={{ 
+
+                    <p style={{
                         marginTop: '20px',
                         fontSize: '14px',
                         color: '#666'
                     }}>
-                        Hesabınız yok mu? <Link to="/register" style={{ 
-                            color: '#667eea', 
-                            textDecoration: 'none',
-                            fontWeight: '500'
-                        }}>Kayıt Ol</Link>
+                        Hesabınız yok mu? <Link to="/register" style={{
+                        color: '#667eea',
+                        textDecoration: 'none',
+                        fontWeight: '500'
+                    }}>Kayıt Ol</Link>
                     </p>
                 </motion.div>
             </div>

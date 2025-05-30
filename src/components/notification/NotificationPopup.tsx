@@ -46,6 +46,18 @@ const NotificationPopup: React.FC<NotificationPopupProps> = ({
     if (isVisible) {
       console.log('NotificationPopup: Popup açıldı, bildirimler getiriliyor');
       dispatch(fetchNotifications() as any);
+      
+      // 1.5 saniyede bir bildirimleri güncelle
+      const intervalId = setInterval(() => {
+        console.log('NotificationPopup: Bildirimler periyodik olarak güncelleniyor (1.5 saniye)');
+        dispatch(fetchNotifications() as any);
+      }, 10000); // 1.5 saniye = 1500 ms
+      
+      // Component unmount olduğunda veya popup kapandığında interval'i temizle
+      return () => {
+        console.log('NotificationPopup: Periyodik güncelleme durduruldu');
+        clearInterval(intervalId);
+      };
     }
   }, [isVisible, dispatch]);
 

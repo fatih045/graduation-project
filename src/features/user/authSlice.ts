@@ -9,7 +9,7 @@ export interface AuthState {
     token: string | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
-    carrierDetails: any | null; 
+    carrierDetails: any | null;
 }
 
 // localStorage'dan token'ı al
@@ -31,7 +31,7 @@ const initialState: AuthState = {
     token: storedToken,
     status: storedToken ? 'succeeded' : 'idle',
     error: null,
-    carrierDetails: null, 
+    carrierDetails: null,
 };
 
 // Async thunk işlemleri

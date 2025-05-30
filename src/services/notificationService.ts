@@ -1,3 +1,4 @@
+
 import axiosInstance from './axios.ts';
 import * as signalR from '@microsoft/signalr';
 
@@ -28,7 +29,7 @@ const startSignalRConnection = (userId: string) => {
     // SignalR hub URL'i - sabit URL kullanılıyor
     const hubUrl = 'https://evrenblackbird.com/notificationHub';
     console.log(`SignalR hub URL: ${hubUrl}`);
-    
+
     connection = new signalR.HubConnectionBuilder()
         .withUrl(hubUrl, {
             accessTokenFactory: () => {

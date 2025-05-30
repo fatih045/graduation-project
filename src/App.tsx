@@ -18,7 +18,7 @@ function App() {
       <>
         <NotificationListener />
         <div className="app-container">
-            <Header appName="TruckLink" logoUrl={truckLogo} />
+            <Header appName="Logistify" logoUrl={truckLogo} />
             <div className="content-with-sidebar">
                 <Sidebar />
                 <main className="main-content">

@@ -24,9 +24,42 @@ const Register = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  
+  // Form validation states
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [showDisclaimerPopup, setShowDisclaimerPopup] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!user.firstName.trim()) errors.firstName = "Ad alanı zorunludur";
+    if (!user.lastName.trim()) errors.lastName = "Soyad alanı zorunludur";
+    if (!user.email.trim()) errors.email = "E-posta alanı zorunludur";
+    else if (!/\S+@\S+\.\S+/.test(user.email)) errors.email = "Geçerli bir e-posta adresi giriniz";
+    
+    if (!user.phoneNumber.trim()) errors.phoneNumber = "Telefon numarası zorunludur";
+    if (!user.userName.trim()) errors.userName = "Kullanıcı adı zorunludur";
+    
+    if (!user.password) errors.password = "Şifre zorunludur";
+    else if (user.password.length < 6) errors.password = "Şifre en az 6 karakter olmalıdır";
+    
+    if (!user.confirmPassword) errors.confirmPassword = "Şifre tekrarı zorunludur";
+    else if (user.password !== user.confirmPassword) errors.confirmPassword = "Şifreler eşleşmiyor";
+    
+    if (!disclaimerAccepted) errors.disclaimer = "Sorumluluk reddi beyanını kabul etmelisiniz";
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleRegister = async () => {
     setSuccess(false);
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     const resultAction = await dispatch(register(user));
     if (register.fulfilled.match(resultAction)) {
       setSuccess(true);
@@ -44,6 +77,70 @@ const Register = () => {
       handleRegister();
     }
   };
+
+  const DisclaimerPopup = () => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '10px',
+        padding: '30px',
+        maxWidth: '600px',
+        maxHeight: '80vh',
+        overflow: 'auto',
+        boxShadow: '0 5px 15px rgba(0, 0, 0, 0.3)'
+      }}>
+        <h2 style={{ fontSize: '22px', marginBottom: '20px', color: '#333', textAlign: 'center' }}>
+          SORUMLULUK REDDİ BEYANI
+        </h2>
+        
+        <div style={{ fontSize: '15px', lineHeight: '1.6', color: '#444' }}>
+          <p style={{ marginBottom: '15px' }}>
+            Firmamız, yalnızca yük sahibi ile taşıyıcıyı bir araya getiren bir aracılık hizmeti sunmaktadır. 
+            Taraflar arasında gerçekleşen taşıma işlemleri, teslimatlar, ürün güvenliği, zamanlama ve benzeri 
+            konularda herhangi bir sorumluluğumuz bulunmamaktadır.
+          </p>
+          
+          <p style={{ marginBottom: '15px' }}>
+            Yük ve mal taşımacılığı süreçlerinde oluşabilecek gecikmeler, hasarlar, kayıplar, hukuki ihtilaflar 
+            ve diğer tüm riskler tamamen yük sahibi ile taşıyıcı firma arasındadır. Bu süreçlerde firmamızın 
+            hiçbir şekilde taraf olmadığını ve herhangi bir garanti vermediğini açıkça beyan ederiz.
+          </p>
+          
+          <p style={{ marginBottom: '15px' }}>
+            Platformumuzu kullanan tüm taraflar, bu beyanı kabul etmiş sayılır.
+          </p>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <button 
+            onClick={() => setShowDisclaimerPopup(false)}
+            style={{
+              padding: '12px 25px',
+              backgroundColor: '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            Kapat
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{
@@ -138,7 +235,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Ad
+                  Ad <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -149,14 +246,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.firstName ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.firstName && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.firstName}
+                  </div>
+                )}
               </div>
               
               <div style={{ marginBottom: '20px' }}>
@@ -167,7 +270,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Doğum Yılı
+                  Doğum Yılı <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="number"
@@ -185,6 +288,7 @@ const Register = () => {
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
               </div>
               
@@ -196,7 +300,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Telefon Numarası
+                  Telefon Numarası <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -207,14 +311,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.phoneNumber ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.phoneNumber && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.phoneNumber}
+                  </div>
+                )}
               </div>
               
               <div style={{ marginBottom: '20px' }}>
@@ -225,7 +335,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Şifre
+                  Şifre <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="password"
@@ -236,14 +346,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.password ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.password && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.password}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -261,7 +377,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Soyad
+                  Soyad <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -272,14 +388,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.lastName ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.lastName && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.lastName}
+                  </div>
+                )}
               </div>
               
               <div style={{ marginBottom: '20px' }}>
@@ -290,7 +412,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  E-posta
+                  E-posta <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="email"
@@ -301,14 +423,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.email ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.email && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.email}
+                  </div>
+                )}
               </div>
               
               <div style={{ marginBottom: '20px' }}>
@@ -319,7 +447,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Kullanıcı Adı
+                  Kullanıcı Adı <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -330,14 +458,20 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.userName ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.userName && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.userName}
+                  </div>
+                )}
               </div>
               
               <div style={{ marginBottom: '20px' }}>
@@ -348,7 +482,7 @@ const Register = () => {
                   fontWeight: '500',
                   color: '#555'
                 }}>
-                  Şifre Tekrar
+                  Şifre Tekrar <span style={{ color: 'red' }}>*</span>
                 </label>
                 <input
                   type="password"
@@ -359,17 +493,55 @@ const Register = () => {
                   style={{
                     width: '100%',
                     padding: '14px',
-                    border: '1px solid #ddd',
+                    border: formErrors.confirmPassword ? '1px solid #e53e3e' : '1px solid #ddd',
                     borderRadius: '10px',
                     fontSize: '16px',
                     backgroundColor: '#f9f9f9',
                     transition: 'border-color 0.3s',
                     outline: 'none'
                   }}
+                  required
                 />
+                {formErrors.confirmPassword && (
+                  <div style={{ color: '#e53e3e', fontSize: '12px', marginTop: '5px' }}>
+                    {formErrors.confirmPassword}
+                  </div>
+                )}
               </div>
             </div>
           </div>
+          
+          {/* Disclaimer Checkbox */}
+          <div style={{ 
+            marginTop: '10px', 
+            marginBottom: '20px', 
+            display: 'flex', 
+            alignItems: 'flex-start',
+            textAlign: 'left'
+          }}>
+            <input 
+              type="checkbox" 
+              id="disclaimerCheckbox"
+              checked={disclaimerAccepted}
+              onChange={(e) => setDisclaimerAccepted(e.target.checked)}
+              style={{ marginRight: '10px', marginTop: '5px' }}
+            />
+            <label htmlFor="disclaimerCheckbox" style={{ fontSize: '14px', color: '#555', cursor: 'pointer' }}>
+              <span style={{ color: 'red' }}>*</span> <span style={{ fontWeight: 'bold' }}>Sorumluluk Reddi Beyanı</span>'nı okudum ve kabul ediyorum. 
+              <span 
+                style={{ color: '#667eea', marginLeft: '5px', cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => setShowDisclaimerPopup(true)}
+              >
+                (Metni Görüntüle)
+              </span>
+            </label>
+          </div>
+          
+          {formErrors.disclaimer && (
+            <div style={{ color: '#e53e3e', fontSize: '14px', marginBottom: '15px', textAlign: 'left' }}>
+              {formErrors.disclaimer}
+            </div>
+          )}
           
           <button 
             onClick={handleRegister} 
@@ -399,6 +571,9 @@ const Register = () => {
           </div>
         </motion.div>
       </div>
+      
+      {/* Disclaimer Popup */}
+      {showDisclaimerPopup && <DisclaimerPopup />}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaTruck, FaBox, FaHandshake, FaChartLine, FaCalculator, FaClock } from 'react-icons/fa';
+import { FaTruck, FaBox, FaHandshake,  FaCalculator, FaClock } from 'react-icons/fa';
 import "../styles/LandingPage.css";
 import { useNavigate } from 'react-router-dom';
 // Import ScrollReveal if using the npm package
@@ -143,14 +143,7 @@ const LandingPage: React.FC = () => {
             <section className="benefits">
                 <h2>Platformun Avantajları</h2>
                 <div className="benefits-container">
-                    <div className="benefit-item">
-                        <FaChartLine className="step-icon" />
-                        <div>
-                            <h3>Akıllı Fiyat Analizi</h3>
-                            <p>Piyasa verilerine göre anlık fiyat analizi.</p>
-                        </div>
-                        <img src={aiCalculation} alt="Price analysis graph" className="benefit-image" />
-                    </div>
+
                     <div className="benefit-item">
                         <FaCalculator className="step-icon" />
                         <div>

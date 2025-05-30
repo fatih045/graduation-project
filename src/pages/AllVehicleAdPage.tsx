@@ -830,14 +830,17 @@ const VehicleAdsList: React.FC = () => {
                                     
                                     {offerSuccess && (
                                         <div style={{ 
-                                            backgroundColor: '#d1fae5', 
-                                            color: '#059669', 
+                                            backgroundColor: 'white', 
+                                            color: 'red', 
                                             padding: '15px', 
                                             borderRadius: '8px',
                                             fontWeight: 'bold',
-                                            textAlign: 'center'
+                                            textAlign: 'center',
+                                            border: '1px solid #ddd'
                                         }}>
-                                            Teklifiniz başarıyla gönderildi!
+                                            <p>Araç teklifiniz moderatör onayına gönderildi.</p>
+                                            <p>İncelendikten sonra yayınlanacaktır.</p>
+                                            <p>İlanınızın durumunu "Araç tekliflerim" sayfasından takip edebilirsiniz.</p>
                                         </div>
                                     )}
                                     
