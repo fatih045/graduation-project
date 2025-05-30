@@ -17,7 +17,7 @@ const VehicleAdsList: React.FC = () => {
     const [sortBy, setSortBy] = useState<string>('id');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [filterByType, setFilterByType] = useState<string>('all');
-    const [filterByAvailability, setFilterByAvailability] = useState<string>('all');
+
 
     // Modal state
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
@@ -165,15 +165,7 @@ const VehicleAdsList: React.FC = () => {
             );
         }
 
-        // Availability filter
-        if (filterByAvailability !== 'all') {
-            result = result.filter(vehicle => {
-                const isAvailable = getAvailabilityStatus(vehicle.id);
-                if (filterByAvailability === 'available') return isAvailable;
-                if (filterByAvailability === 'unavailable') return !isAvailable;
-                return true;
-            });
-        }
+
 
         // Type filter
         if (filterByType !== 'all') {
@@ -200,7 +192,7 @@ const VehicleAdsList: React.FC = () => {
         });
 
         return result;
-    }, [vehicleAds, searchTerm, sortBy, sortOrder, filterByAvailability, filterByType]);
+    }, [vehicleAds, searchTerm, sortBy, sortOrder,  filterByType]);
 
     const handleViewDetails = (vehicle: VehicleAd) => {
         setSelectedVehicle(vehicle);
@@ -504,16 +496,7 @@ const VehicleAdsList: React.FC = () => {
 
                         </select>
 
-                        <select
-                            value={filterByAvailability}
-                            onChange={(e) => setFilterByAvailability(e.target.value)}
-                            style={selectStyle}
-                            className="select-element"
-                        >
-                            <option value="all">Tüm Durumlar</option>
-                            <option value="available">Müsait Araçlar</option>
-                            <option value="unavailable">Müsait Olmayan</option>
-                        </select>
+
 
                         <select
                             value={filterByType}
@@ -542,7 +525,7 @@ const VehicleAdsList: React.FC = () => {
                     ) : (
                         <div style={gridStyle}>
                             {filteredAndSortedVehicles.map((vehicle) => {
-                                const isAvailable = getAvailabilityStatus(vehicle.id);
+
                                 return (
                                     <div
                                         key={vehicle.id}
@@ -565,16 +548,7 @@ const VehicleAdsList: React.FC = () => {
                                                         }}>
                                                             {vehicle.title}
                                                         </h3>
-                                                        <div style={statusBadgeStyle(isAvailable)}>
-                                                            <div style={{
-                                                                width: '6px',
-                                                                height: '6px',
-                                                                borderRadius: '50%',
-                                                                backgroundColor: isAvailable ? '#059669' : '#dc2626',
-                                                                marginRight: '6px'
-                                                            }}></div>
-                                                            {isAvailable ? 'Müsait' : 'Müsait Değil'}
-                                                        </div>
+
                                                     </div>
                                                 </div>
                                             </div>

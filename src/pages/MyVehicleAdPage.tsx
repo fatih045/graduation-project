@@ -34,6 +34,8 @@ const MyVehicleAdsPage: React.FC = () => {
     });
     const [isUpdating, setIsUpdating] = useState(false);
     const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
+    // Notification state
+    const [showNotification, setShowNotification] = useState(false);
     
     // Refs for Google Places API
     const cityInputRef = useRef<HTMLInputElement>(null);
@@ -141,8 +143,14 @@ const MyVehicleAdsPage: React.FC = () => {
         dispatch(updateVehicleAd({ id: selectedVehicle.id, updatedData }))
             .unwrap()
             .then(() => {
-                alert('Araç ilanı başarıyla güncellendi!');
+                // Close modal
                 setIsUpdateModalOpen(false);
+                // Show notification instead of alert
+                setShowNotification(true);
+                // Hide notification after 5 seconds
+                setTimeout(() => {
+                    setShowNotification(false);
+                }, 5000);
             })
             .catch((error) => {
                 console.error('Araç ilanı güncellenirken hata oluştu:', error);
@@ -592,6 +600,28 @@ const MyVehicleAdsPage: React.FC = () => {
         color: '#666',
         fontSize: '16px'
     };
+
+    // Add CSS for animation
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
 
     // Yükleme durumunda spinner göster
     if (loading) {
@@ -1131,6 +1161,30 @@ const MyVehicleAdsPage: React.FC = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            
+            {/* Notification Component */}
+            {showNotification && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    right: '20px',
+                    backgroundColor: '#4a6cf7',
+                    color: 'white',
+                    padding: '15px 25px',
+                    borderRadius: '10px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    zIndex: 1100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    animation: 'slideIn 0.3s ease-out'
+                }}>
+                    <div style={{ fontSize: '20px' }}>✓</div>
+                    <div style={{ fontSize: '14px', fontWeight: 500 }}>
+                        Güncelleme talebiniz işleme alınmıştır, kontrollerden sonra yayına alınacaktır.
                     </div>
                 </div>
             )}

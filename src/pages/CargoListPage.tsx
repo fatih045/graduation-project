@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Package,  Weight, Loader, AlertCircle, User, Eye, Filter, Search, Mail, Phone } from 'lucide-react';
+import { Package,  Weight, Loader, AlertCircle, User,  Filter, Search, Mail, Phone } from 'lucide-react';
 import { fetchAllCargos } from '../features/cargo/cargoSlice';
 import { getCarrierDetails } from '../features/user/authSlice';
 import type { RootState, AppDispatch } from '../store/store';
@@ -434,16 +434,7 @@ const CargoListPage: React.FC = () => {
         color: '#4a6cf7'
     };
 
-    const statusBadgeStyle = (isExpired: boolean) => ({
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '5px 12px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: 'bold' as const,
-        backgroundColor: isExpired ? '#fee2e2' : '#d1fae5',
-        color: isExpired ? '#dc2626' : '#059669'
-    });
+
 
     const noDataStyle = {
         textAlign: 'center' as const,
@@ -554,7 +545,7 @@ const CargoListPage: React.FC = () => {
                             className="select-element"
                         >
                             <option value="all">Tüm Durumlar</option>
-                            <option value="active">Aktif İlanlar</option>
+
                             <option value="expired">Süresi Dolmuş</option>
                         </select>
 
@@ -697,30 +688,7 @@ const CargoListPage: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        {/* Status and Action */}
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={statusBadgeStyle(!!cargo.isExpired)}>
-                                                <div style={{
-                                                    width: '6px',
-                                                    height: '6px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: cargo.isExpired ? '#dc2626' : '#059669',
-                                                    marginRight: '6px'
-                                                }}></div>
-                                                {cargo.isExpired ? 'Süresi Dolmuş' : 'Aktif'}
-                                            </div>
-                                            <div style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '5px',
-                                                color: '#4a6cf7',
-                                                fontSize: '14px',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                <Eye size={14} />
-                                                Detayları Gör
-                                            </div>
-                                        </div>
+
                                     </div>
                                 </div>
                             ))}
@@ -856,20 +824,7 @@ const CargoListPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Status */}
-                            <div className="detail-section">
-                                <span className="detail-label">Durum</span>
-                                <div style={statusBadgeStyle(!!selectedCargo.isExpired)}>
-                                    <div style={{
-                                        width: '8px',
-                                        height: '8px',
-                                        borderRadius: '50%',
-                                        backgroundColor: selectedCargo.isExpired ? '#dc2626' : '#059669',
-                                        marginRight: '8px'
-                                    }}></div>
-                                    {selectedCargo.isExpired ? 'Süresi Dolmuş' : 'Aktif İlan'}
-                                </div>
-                            </div>
+
 
                             {/* Additional Info */}
                             {selectedCargo.id && (

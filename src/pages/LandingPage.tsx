@@ -210,6 +210,18 @@ const LandingPage: React.FC = () => {
                 </div>
             </section>
 
+            <section className="contact-section">
+                <h2>Bize Ulaşın</h2>
+                <div className="contact-container">
+                    <div className="contact-info">
+                        <p>Sorularınız veya önerileriniz için bize e-posta gönderin:</p>
+                        <a href="mailto:muhammedfatihcinar00@gmail.com" className="contact-email">
+                            muhammedfatihcinar00@gmail.com
+                        </a>
+                    </div>
+                </div>
+            </section>
+
             <div className="cta-section">
                 <h2>Hemen Başlayın</h2>
                 <p>Lojistik süreçlerinizi optimize etmek için bugün kaydolun.</p>

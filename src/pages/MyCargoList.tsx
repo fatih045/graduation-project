@@ -32,6 +32,9 @@ const UserCargoManagement: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
     const [currentCargo, setCurrentCargo] = useState<Cargo | null>(null);
 
+    // Notification state
+    const [showNotification, setShowNotification] = useState<boolean>(false);
+
     // Autocomplete refs
     const pickupInputRef = useRef<HTMLInputElement>(null);
     const dropoffInputRef = useRef<HTMLInputElement>(null);
@@ -203,7 +206,43 @@ const UserCargoManagement: React.FC = () => {
         background-color: #fee2e2;
         color: #dc2626;
       }
-    `;
+      
+      .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #4a6cf7;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1100;
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      
+      .notification-icon {
+        font-size: 20px;
+      }
+      
+      .notification-content {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+`;
         document.head.appendChild(style);
 
         return () => {
@@ -356,7 +395,10 @@ const UserCargoManagement: React.FC = () => {
                 .then(() => {
                     setShowUpdateModal(false);
                     setCurrentCargo(null);
-                    alert('Kargo bilgileri başarıyla güncellendi!');
+                    setShowNotification(true);
+                    setTimeout(() => {
+                        setShowNotification(false);
+                    }, 5000);
                 })
                 .catch((err: any) => {
                     alert(`Güncelleme işlemi başarısız: ${err.message}`);
@@ -547,16 +589,7 @@ const UserCargoManagement: React.FC = () => {
         padding: '20px'
     };
 
-    const statusBadgeStyle = (isExpired: boolean) => ({
-        display: 'inline-flex',
-        alignItems: 'center',
-        padding: '5px 12px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: 'bold' as const,
-        backgroundColor: isExpired ? '#fee2e2' : '#d1fae5',
-        color: isExpired ? '#dc2626' : '#059669'
-    });
+    
 
     const noDataStyle = {
         textAlign: 'center' as const,
@@ -841,16 +874,7 @@ const UserCargoManagement: React.FC = () => {
 
                                                 {/* Status and Action */}
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div style={statusBadgeStyle(!!cargo.isExpired)}>
-                                                        <div style={{
-                                                            width: '6px',
-                                                            height: '6px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: cargo.isExpired ? '#dc2626' : '#059669',
-                                                            marginRight: '6px'
-                                                        }}></div>
-                                                        {cargo.isExpired ? 'Süresi Dolmuş' : 'Aktif'}
-                                                    </div>
+
                                                     <div className="action-buttons">
                                                         <button
                                                             style={updateButtonStyle}
@@ -1064,6 +1088,16 @@ const UserCargoManagement: React.FC = () => {
                                 <button type="submit" className="btn btn-primary">Güncelle</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            
+            {/* Notification Component */}
+            {showNotification && (
+                <div className="notification">
+                    <div className="notification-icon">✓</div>
+                    <div className="notification-content">
+                        Güncelleme talebiniz işleme alınmıştır, kontrollerden sonra yayına alınacaktır.
                     </div>
                 </div>
             )}

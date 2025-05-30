@@ -70,16 +70,16 @@ const EUROPEAN_COUNTRIES = [
 
 // Kargo türleri
 const CARGO_TYPES = [
-    { value: 'Tarpaulin Truck', label: 'Tenteli Kamyon' },
-    { value: 'Box Truck', label: 'Kapalı Kasa Kamyon' },
-    { value: 'Refrigerated Truck', label: 'Soğutmalı Kamyon' },
-    { value: 'Semi Trailer', label: 'Yarı Römork' },
-    { value: 'Light-Truck', label: 'Hafif Kamyon' },
-    { value: 'Container Carrier', label: 'Konteyner Taşıyıcı' },
-    { value: 'Tank Truck', label: 'Tanker' },
-    { value: 'Lowbed Trailer', label: 'Lowbed Römork' },
-    { value: 'Dump Truck', label: 'Damperli Kamyon' },
-    { value: 'Panel Van', label: 'Panel Van' },
+    { value: 'General', label: 'Tenteli Kamyon' },
+    { value: 'Fragile', label: 'Kapalı Kasa Kamyon' },
+    { value: 'Refrigerated', label: 'Soğutmalı Kamyon' },
+    { value: 'Oversized', label: 'Yarı Römork' },
+    { value: 'LightFreight', label: 'Hafif Kamyon' },
+    { value: 'Containerized', label: 'Konteyner Taşıyıcı' },
+    { value: 'Liquid', label: 'Tanker' },
+    { value: 'HeavyMachinery', label: 'Lowbed Römork' },
+    { value: 'Construction', label: 'Damperli Kamyon' },
+    { value: 'Parcel', label: 'Panel Van' },
     { value: 'Others', label: 'Diğer' }
 ];
 

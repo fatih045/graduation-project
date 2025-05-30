@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
     const user = useSelector((state: RootState) => state.auth.user);
     const { notifications } = useSelector((state: RootState) => state.notification);
     const isLoggedIn = !!user;
-    const userName = user?.email || user?.userName || "";
+
     
     const unreadCount = notifications.filter(item => !item.isRead).length;
 
@@ -65,22 +65,7 @@ const Header: React.FC<HeaderProps> = ({
                         </Link>
                     </div>
                     <div className="header-right">
-                        <nav className={`main-nav ${isMenuOpen ? 'open' : ''}`}>
-                            <ul>
-                                <li><Link to="/">Anasayfa</Link></li>
-                                {isLoggedIn ? (
-                                    <>
-                                        <li><Link to="/profile">Profil</Link></li>
-                                        <li><Link to="/logout">Çıkış</Link></li>
-                                    </>
-                                ) : (
-                                    <>
-                                        <li><Link to="/login">Giriş Yap</Link></li>
-                                        <li><Link to="/register">Kayıt Ol</Link></li>
-                                    </>
-                                )}
-                            </ul>
-                        </nav>
+
                         
                         {/* Bildirim ikonu */}
                         {isLoggedIn && (
@@ -105,9 +90,25 @@ const Header: React.FC<HeaderProps> = ({
                                 />
                             </div>
                         )}
+                        <nav className={`main-nav ${isMenuOpen ? 'open' : ''}`}>
+                            <ul>
+                                <li><Link to="/">Anasayfa</Link></li>
+                                {isLoggedIn ? (
+                                    <>
+                                        <li><Link to="/profile">Profil</Link></li>
+                                        <li><Link to="/logout">Çıkış</Link></li>
+                                    </>
+                                ) : (
+                                    <>
+                                        <li><Link to="/login">Giriş Yap</Link></li>
+                                        <li><Link to="/register">Kayıt Ol</Link></li>
+                                    </>
+                                )}
+                            </ul>
+                        </nav>
                         
-                        {/* Kullanıcı adı sadece login ise göster */}
-                        {isLoggedIn && <span className="user-info">{userName}</span>}
+                        {/*/!* Kullanıcı adı sadece login ise göster *!/*/}
+                        {/*{isLoggedIn && <span className="user-info">{userName}</span>}*/}
                         
                         {/* Mobil menü butonu */}
                         <button
