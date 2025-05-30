@@ -519,7 +519,7 @@ const SentCargoOffersPage: React.FC = () => {
                                                 </div>
                                                 <div style={{ textAlign: 'right' }}>
                                                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-                                                        {offer.price.toLocaleString('tr-TR')} ₺
+                                                        {offer.price}
                                                     </div>
                                                     <div style={{ fontSize: '14px', color: '#6b7280', marginTop: '5px' }}>
                                                         <Clock size={14} style={{ display: 'inline-block', marginRight: '5px', verticalAlign: 'middle' }} />
